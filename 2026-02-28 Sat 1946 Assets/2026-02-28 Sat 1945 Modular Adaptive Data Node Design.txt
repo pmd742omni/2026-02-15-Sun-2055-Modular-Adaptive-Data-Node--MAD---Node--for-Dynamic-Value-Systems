@@ -1,0 +1,30 @@
+﻿Here is a High-Level Design (HLD) for the Modular Adaptive Data Node (MAD-Node) and a preliminary Low-Level Design (LLD) resource list to kickstart the first iteration of development.
+High-Level Design (HLD)
+The MAD-Node ecosystem is structured around a flexible, solderless architecture that separates the processing core from the swappable value modules. This enables a single hardware foundation to adapt dynamically to varying environments, from agricultural monitoring to perimeter security.
+* The Intelligent Core: A Raspberry Pi Pico W acts as the reusable brain of the node. It is mounted on a Pico Screw Terminal Expansion Board to allow rapid, 5-minute assembly and disassembly without soldering. The core runs a "State-Aware" MicroPython framework that uses an Auto-Discovery Protocol (scanning I2C/GPIO) to detect which sensor modules are currently attached and load the appropriate logic blocks. Source code is protected via Flash Encryption.
+* The Vault (Permanent Data): A Raspberry Pi 4 Model B serves as the centralized, permanent data repository. The Pico W syncs data to The Vault via Wi-Fi using lightweight MQTT messaging. To ensure no data is lost during reconfiguration, an "Auto-Dump" protocol forces a sync to The Vault before the node powers down. The Vault runs InfluxDB and Grafana for data storage and visualization.
+* Swappable Value Modules: Standardized sensors and transducers connect to the Intelligent Core using a universal port system and standard connector cables.
+   * Farm Yield Enhancement: Capacitive soil moisture sensors to act as a "Plant Twin".
+   * Security: PIR motion sensors and ultrasonic distance sensors.
+   * Point of Sale (PoS): Interface modules dedicated to transactions and accounting.
+   * User Interface: TFT displays and button modules provide expressiveness and on-device interaction.
+* Power and Enclosure Subsystem: The system is powered by a reusable 18650 Li-Ion battery module using generic JST connectors. Hardware is housed in an IP65-rated, snap-fit plastic enclosure to protect against dust and rain. Due to the high ambient temperatures characteristic of deployment locations like Bulawayo and Tsholotsho, dedicated cooling systems are integrated into the Pico W modules to prevent thermal throttling.
+________________
+Preliminary Low-Level Design (LLD) & Resource List
+To move from the high-level architecture into the first iteration of prototyping, the following resources and specific hardware components are required to complete the specified development environment and modular nodes.
+1. Workstation & Development Environment
+* Engineering Laptop: A machine running Windows 11 (for security updates) capable of running FreeCAD (3D parts), KiCAD (PCB design), Blender (simulations), Inkscape (2D visualizations), and Windows Subsystem for Linux (API hosting). It must also support SDKs for programming the Pico W and developing Windows and Android applications.
+2. Core Compute & Central Vault
+* Existing Inventory: 1 × Raspberry Pi 4 Model B, 2 × Raspberry Pi Pico W.
+* The Vault Peripherals: A portable monitor and a dedicated touch screen display that interfaces seamlessly with the Pi 4's power management.
+* Core Assembly: Pico Screw Terminal Expansion Boards for rapid clamping of wires. Mini solderless breadboards for rapid prototyping of new value ideas.
+3. Power Management & Cooling
+* Uninterruptible Power Supplies (UPS): Dedicated UPS systems for the Pi 4 and Pico Ws that feature power storage indicators and mechanisms to control the sharing and receiving of power between units.
+* Battery System: 18650 Li-Ion battery holders equipped with generic JST connectors for easy swapping.
+* Thermal Management: Micro-heatsinks and 5V mini cooling fans integrated into the IP65 snap-fit enclosures to regulate the Pico W temperatures.
+4. Swappable Value Modules (Sensors & IO)
+* Agri-Mode (Farm Yield): Capacitive soil moisture sensors and DHT11/DHT22 sensors for capturing plant micro-climate data.
+* Security Mode: PIR motion sensors and ultrasonic distance sensors.
+* PoS Mode: Barcode/QR scanners or RFID/NFC readers compatible with the Pico W.
+* Interface & Expansion: SPI/I2C TFT displays and momentary push buttons for user interaction. An I2C port expander (e.g., PCF8574 or MCP23017) to provide additional GPIO pins if the Pico W runs out of native ports during module stacking.
+Would you like me to draft a preliminary schematic map detailing how the I2C port expander and the Auto-Discovery configuration resistors should be wired to the Pico W?

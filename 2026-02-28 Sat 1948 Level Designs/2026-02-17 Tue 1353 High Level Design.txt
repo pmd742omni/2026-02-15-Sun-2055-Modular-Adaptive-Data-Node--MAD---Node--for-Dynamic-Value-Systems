@@ -1,0 +1,352 @@
+---
+{
+2026-02-17 Tue 1354 Modular Adaptive Data Node (MAD - Node) for Dynamic Value Systems
+- High Level Design 
+}
+---
+
+2026-02-17 Tue 
+{
+*1358
+(
+*000000000001
+[
+Aim :
+To provide a version of the high level design of Modular Adaptive Data Node ( MAD - Node) for Dynamic Value Systems
+Then provide some preliminary low level designs, to list out first batch of required resources enabling iterations of development.
+]
+*000000000002
+[
+What is a high level design?ðŸ¤”
+I think it involves presenting the largest groups of components of the project and how they are connected.ðŸ¤“
+]
+*000000000003
+[
+How best can i approach high level design?
+I think i should start with describing a vision of the entity (Modular Adaptive Data Node (MAD - Node) for Dynamic Value Systems). 
+]
+*000000000004
+[
+The entity is modular, it consists of parts that can be broken down and or connected together to build simple and or complex systems. The entity is a combination of hardware, software, human talent, knowledge, and social, economic, and political settings.
+It is adaptive, it has attributes that enable it to be flexible in changing environments.
+It's intended application is in dynamic value systems. These are environments whereby points of capturing value are changing.
+Value include time saving, enabling :possibilities, accounting, rapid decision making; monetary, social, economic, political...
+]
+*000000000005
+[
+My project got approved and i promised to present 3 situations where the entity, carries out it's services;
+These situations include :
+Point of Sale;
+Farm Yield Enhancement;
+Security;
+These would be the first services enabled and more will be added with time, such as :
+Network Attached Storage;
+Secure Computing;
+Network Attached Computing;
+Blockchain Technologies;
+Model Context Protocols...
+;
+]
+
+*000000000006
+[
+The current computing systems i have access to are :
+1 × Raspberry Pi 4 Model B;
+2 × Raspberry Pi Pico W;
+To power these devices i would need a uninterruptible power supplies for each of them, and method for them to share power.
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+]
+
+*000000000007
+[
+The compute systems will need a compute system to program them, i will need a laptop. This laptop should also help me with simulations as the project develops, it should be able to run free cad for designing parts for 3D printing, fabricating... , inkscape for rapid 2D visualizations, and run some simulations on blender consisting of a decent number of geometries, run KiCad for PCB designs.
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) 
+Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+
+2. 
+(To be specified) (Tbs)
+Laptop that can :
+Use SDKs for programming the 2 × Raspberry Pie Pico W;
+Run Free Cad to design parts;
+Run KiCAD for PCB design;
+Run Blender for simulations;
+Run Inscape for 2D designing;
+Run windows subsystem for linux for hosting api(s)
+Windows 11 to get security updates...
+
+]
+
+*000000000008
+[
+The Raspberry Pie 4 Model B needs a monitor, a touch screen display (that works well with the uninterruptible power supply system)
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) 
+Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+
+2. 
+(To be specified) (Tbs)
+Laptop that can :
+Use SDKs for programming the 2 × Raspberry Pie Pico W;
+Run Free Cad to design parts;
+Run KiCAD for PCB design;
+Run Blender for simulations;
+Run Inscape for 2D designing;
+Run windows subsystem for linux for hosting api(s)
+Windows 11 to get security updates...
+
+3.
+(To be specified) (Tbs)
+Touch Screen Display for Raspberry Pie 4 Model B that works well with the uninterruptible power supply system
+
+4.
+(To be specified) (Tbs)
+Monitor that can connect to the Raspberry Pi 4 Model B, must be portable;
+]
+
+*000000000009
+[
+Laptop should also be able to develop android applications and windows applications;
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) 
+Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+
+2. 
+(To be specified) (Tbs)
+Laptop that can :
+Use SDKs for programming the 2 × Raspberry Pie Pico W;
+Run Free Cad to design parts;
+Run KiCAD for PCB design;
+Run Blender for simulations;
+Run Inscape for 2D designing;
+Run windows subsystem for linux for hosting api(s)
+Capable of developing android and windows applications;
+Windows 11 to get security updates...
+
+3.
+(To be specified) (Tbs)
+Touch Screen Display for Raspberry Pie 4 Model B that works well with the uninterruptible power supply system
+
+4.
+(To be specified) (Tbs)
+Monitor that can connect to the Raspberry Pi 4 Model B, must be portable;
+]
+
+*000000000010
+[
+For the agriculture (farm yield enhancement) part, i will need sensors for collecting information concerning the micro climate of the plants and soil attributes;
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) 
+Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+
+2. 
+(To be specified) (Tbs)
+Laptop that can :
+Use SDKs for programming the 2 × Raspberry Pie Pico W;
+Run Free Cad to design parts;
+Run KiCAD for PCB design;
+Run Blender for simulations;
+Run Inscape for 2D designing;
+Run windows subsystem for linux for hosting api(s)
+Capable of developing android and windows applications;
+Windows 11 to get security updates...
+
+3.
+(To be specified) (Tbs)
+Touch Screen Display for Raspberry Pie 4 Model B that works well with the uninterruptible power supply system
+
+4.
+(To be specified) (Tbs)
+Monitor that can connect to the Raspberry Pi 4 Model B, must be portable;
+
+5. 
+(To be specified) (Tbs)
+Sensors to interface with raspberry pi pico w for gathering information and enabling farm yield enhancement;
+]
+
+*000000000011
+[
+Sensors and Transducers for security system & Point of Sale system
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) 
+Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+
+2. 
+(To be specified) (Tbs)
+Laptop that can :
+Use SDKs for programming the 2 × Raspberry Pie Pico W;
+Run Free Cad to design parts;
+Run KiCAD for PCB design;
+Run Blender for simulations;
+Run Inscape for 2D designing;
+Run windows subsystem for linux for hosting api(s)
+Capable of developing android and windows applications;
+Windows 11 to get security updates...
+
+3.
+(To be specified) (Tbs)
+Touch Screen Display for Raspberry Pie 4 Model B that works well with the uninterruptible power supply system
+
+4.
+(To be specified) (Tbs)
+Monitor that can connect to the Raspberry Pi 4 Model B, must be portable;
+
+5. 
+(To be specified) (Tbs)
+Sensors to interface with raspberry pi pico w for gathering information and enabling farm yield enhancement;
+
+6.
+(To be specified) (Tbs)
+Sensors and transducers interfacing with raspberry pi pico w for security system;
+
+7. 
+(To be specified)(Tbs)
+Sensors and transducers interfacing with raspberry pi pico w for point of sale system;
+]
+)
+}
+
+2026-02-20 Fri 
+{
+*1502
+(
+*000000000001
+[
+I am planning on making everything modular, so that various components can be reused multiple times;
+I also think it is best for the components in the state of the three use cases, to be packaged in a way to ensure mechanical,moisture, heat and other environmental attributes protection, while ensuring that they can effectively interface with each other depending on the intended use case;
+I have a vision to ensure high intuition configuration,  through use of magnets, but this might increase the cost of development, i will shelf this attempt for a future iteration;
+I think a slide in mechanism, would work well, including some plugging in of cables feature, this seems more cheaper, after specifying items list developed so far, i think it would be cool to work on the this connection mechanism, then update the list.
+I can already anticipate the design of pcbs and other parts to be 3D printed;
+
+Timestamp : 2026-02-20 Fri 1514;
+]
+
+*000000000002
+[
+Timestamp 2026-02-20 Fri 1516;
+
+How would the security system work?
+- It should alert the user when something is approaching a certain location, either through a buzzer, a notification on their device...
+
+Timestamp 2026-02-20 Fri 1518;
+
+I also think i need to define Modular Adaptive Data Node in a more universal manner, that is to ensure that peers exploring my work understand that it consists and involves all data, as in all data that is digital, and also every matter, energy, force and their various interactions can be part of this node, the current development is just a version of it, but it's vision is more universal and perpetually develop able.
+The current focus on this aspect of the project is the application of the node to dynamic value systems, extracting value, unlocking it....
+
+Timestamp 2026-02-20 Fri 1524;
+
+Timestamp 2026-02-20 Fri 1535;
+
+I think TFT display and button modules are required to make the raspberry pi pico w more expressive 
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) 
+Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+
+2. 
+(To be specified) (Tbs)
+Laptop that can :
+Use SDKs for programming the 2 × Raspberry Pie Pico W;
+Run Free Cad to design parts;
+Run KiCAD for PCB design;
+Run Blender for simulations;
+Run Inscape for 2D designing;
+Run windows subsystem for linux for hosting api(s)
+Capable of developing android and windows applications;
+Windows 11 to get security updates...
+
+3.
+(To be specified) (Tbs)
+Touch Screen Display for Raspberry Pie 4 Model B that works well with the uninterruptible power supply system
+
+4.
+(To be specified) (Tbs)
+Monitor that can connect to the Raspberry Pi 4 Model B, must be portable;
+
+5. 
+(To be specified) (Tbs)
+Sensors to interface with raspberry pi pico w for gathering information and enabling farm yield enhancement;
+
+6.
+(To be specified) (Tbs)
+Sensors and transducers interfacing with raspberry pi pico w for security system;
+
+7. 
+(To be specified)(Tbs)
+Sensors and transducers interfacing with raspberry pi pico w for point of sale system;
+
+8. 
+(To be specified)(Tbs)
+TFT display, buttons;
+
+Timestamp 2026-02-20 Fri 1540;
+
+I think the Raspberry Pi Pico W systems should have cooling in their packaging, temperatures in bulawayo and tsholotsho can get very high; 
+
+Items Required (IR) :
+1. 
+(To be specified) (Tbs) 
+Uninterruptible power supplies, that can share power in certain implementations, and have systems that show stored power, and systems that enable the control of sharing power and or recieving power
+
+2. 
+(To be specified) (Tbs)
+Laptop that can :
+Use SDKs for programming the 2 × Raspberry Pie Pico W;
+Run Free Cad to design parts;
+Run KiCAD for PCB design;
+Run Blender for simulations;
+Run Inscape for 2D designing;
+Run windows subsystem for linux for hosting api(s)
+Capable of developing android and windows applications;
+Windows 11 to get security updates...
+
+3.
+(To be specified) (Tbs)
+Touch Screen Display for Raspberry Pie 4 Model B that works well with the uninterruptible power supply system
+
+4.
+(To be specified) (Tbs)
+Monitor that can connect to the Raspberry Pi 4 Model B, must be portable;
+
+5. 
+(To be specified) (Tbs)
+Sensors to interface with raspberry pi pico w for gathering information and enabling farm yield enhancement;
+
+6.
+(To be specified) (Tbs)
+Sensors and transducers interfacing with raspberry pi pico w for security system;
+
+7. 
+(To be specified)(Tbs)
+Sensors and transducers interfacing with raspberry pi pico w for point of sale system;
+
+8. 
+(To be specified)(Tbs)
+TFT display, buttons;
+
+9.
+(To be specified) (Tbs)
+Cooling systems within the Raspberry pi pico w modules;
+
+Timestamp 2026-02-20 Fri 1550
+
+If during lower level planning, i run out of ports for connecting modules to.the raspberry pi pico w, i can use a I2C port expander, like the I2C port expander;
+
+Timestamp 2026-02-20 Fri 1552;
+]
+)
+}

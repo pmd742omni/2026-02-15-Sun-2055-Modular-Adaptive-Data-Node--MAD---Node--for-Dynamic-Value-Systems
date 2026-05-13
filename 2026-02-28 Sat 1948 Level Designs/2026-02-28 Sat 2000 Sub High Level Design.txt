@@ -1,0 +1,49 @@
+2026-02-28 Sat
+{
+*2002
+(
+Extraction from :
+/Assets
+:
+/2026-02-28 Sat 1945 Modular Adaptive Data Node Design.txt
+:
+Preliminary Low-Level Design (LLD) & Resource List
+
+1. Workstation & Development Environment
+* Engineering Laptop: A machine running Windows 11 (for security updates) capable of running FreeCAD (3D parts), KiCAD (PCB design), Blender (simulations), Inkscape (2D visualizations), and Windows Subsystem for Linux (API hosting). It must also support SDKs for programming the Pico W and developing Windows and Android applications.
+2. Core Compute & Central Vault
+* Existing Inventory: 1 × Raspberry Pi 4 Model B, 2 × Raspberry Pi Pico W.
+* The Vault Peripherals: A portable monitor and a dedicated touch screen display that interfaces seamlessly with the Pi 4's power management.
+* Core Assembly: Pico Screw Terminal Expansion Boards for rapid clamping of wires. Mini solderless breadboards for rapid prototyping of new value ideas.
+3. Power Management & Cooling
+* Uninterruptible Power Supplies (UPS): Dedicated UPS systems for the Pi 4 and Pico Ws that feature power storage indicators and mechanisms to control the sharing and receiving of power between units.
+* Battery System: 18650 Li-Ion battery holders equipped with generic JST connectors for easy swapping.
+* Thermal Management: Micro-heatsinks and 5V mini cooling fans integrated into the IP65 snap-fit enclosures to regulate the Pico W temperatures.
+4. Swappable Value Modules (Sensors & IO)
+* Agri-Mode (Farm Yield): Capacitive soil moisture sensors and DHT11/DHT22 sensors for capturing plant micro-climate data.
+* Security Mode: PIR motion sensors and ultrasonic distance sensors.
+* PoS Mode: Barcode/QR scanners or RFID/NFC readers compatible with the Pico W.
+* Interface & Expansion: SPI/I2C TFT displays and momentary push buttons for user interaction. An I2C port expander (e.g., PCF8574 or MCP23017) to provide additional GPIO pins if the Pico W runs out of native ports during module stacking.
+)
+*2003
+(
+More support materials needed :
+
+Multimeter 
+Transistors
+Diodes
+Capacitors
+Resistors
+Breadboards
+LEDs
+Copper Cables
+Cable Stripper
+Cutters
+Male header pins
+Jumpers (Male-to-female, male-to-male, female-female)
+Push-button switch
+Potentiometer
+Piezoelectric buzzer
+Passive Infrared Sensor (PIR)
+)
+}
