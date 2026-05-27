@@ -1,0 +1,1 @@
+The hardraware requirements diagram should be coded in mermaid
