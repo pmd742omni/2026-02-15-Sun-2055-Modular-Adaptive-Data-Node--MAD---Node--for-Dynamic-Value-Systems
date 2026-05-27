@@ -13,5 +13,5 @@ If the MADN is a tree, the Research Design is the soil and the roots. This quest
 
 ## Status
 - [x] Initial conceptualization
-- [/] Developing intuitive metaphors
-- [ ] Reviewing and updating
+- [x] Developing intuitive metaphors
+- [x] Reviewing and updating
