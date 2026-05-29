@@ -6,6 +6,6 @@ To achieve the overarching aim, the project will be guided by the following spec
 
 ​2. To implement the Agri-Analytics Engine: To configure Raspberry Pi Pico W edge nodes for real-time environmental data collection (moisture, pH, temperature) and process this data through a localized TensorFlow Lite yield prediction model, tailored to the microclimates of Bulawayo and Tsholotsho.
 
-3. ​To engineer the Edge-Vision Gateway: To integrate low-power edge sensors (PIR and ultrasonic tripwires) with an Intelligent Surveillance Hub on the primary node, utilizing OpenCV for real-time motion detection, object recognition, and localized perimeter security.
+3. To engineer the Edge-Alert Security Gateway: To integrate low-power edge sensors (PIR and ultrasonic tripwires) with an Intelligent Alarm Hub on the primary node, utilizing lightweight trigger logic and state monitoring for real-time security alerts and perimeter defense.
 
 ​4. To deploy the Mesh-POS System: To construct a local-first, resilient Distributed Micro-Transaction Ledger and an Inventory Synchronization Mesh that enables uninterrupted commercial transactions and digital stock monitoring for local vendors during connectivity fluctuations.

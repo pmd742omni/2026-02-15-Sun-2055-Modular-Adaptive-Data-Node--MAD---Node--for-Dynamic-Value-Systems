@@ -6,6 +6,6 @@ To guide the development and evaluation of the MADN framework, this study seeks 
 
 ​2. To what extent can localized edge processing via TensorFlow Lite, using microclimate data (moisture, pH, temperature) collected from Raspberry Pi Pico W nodes, improve the accuracy of agricultural yield predictions for farmers in Bulawayo and Tsholotsho compared to traditional methods?
 
-​3. How effectively can a localized Intelligent Surveillance Hub utilize OpenCV and edge-triggered sensors (PIR, ultrasonic) to perform real-time object recognition and perimeter security without relying on continuous cloud connectivity?
+​3. How effectively can a localized security alert system utilize edge-triggered sensors (PIR, ultrasonic) to perform real-time intrusion detection and perimeter security alerts without relying on continuous cloud connectivity?
 
 ​4. What architectural design is required to establish a resilient, local-first Distributed Micro-Transaction Ledger that ensures seamless commercial operations and stock synchronization during periods of intermittent internet access?

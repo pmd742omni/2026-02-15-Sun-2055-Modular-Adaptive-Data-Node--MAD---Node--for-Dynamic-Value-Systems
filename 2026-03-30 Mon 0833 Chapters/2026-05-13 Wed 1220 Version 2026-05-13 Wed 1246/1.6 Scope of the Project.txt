@@ -9,7 +9,7 @@
 ​Functional Boundary: The software and system architecture will focus exclusively on developing the four proposed pillars:
 ​The MADN Orchestrator (Dynamic Resource Scheduler, API Gateway).
 ​The Agri-Analytics Engine (MQTT telemetry, InfluxDB/Grafana, and TensorFlow Lite yield modeling).
-​The Edge-Vision Gateway (PIR/ultrasonic sensor integration and OpenCV motion/object recognition).
+The Edge-Alert Security Gateway (PIR/ultrasonic sensor integration and real-time state alerts).
 ​The Mesh-POS System (Distributed Micro-Transaction Ledger and Inventory Synchronization).
 
 ​Exclusions: The project deliberately excludes cloud-dependent processing paradigms. All computation must be edge-native or localized. Furthermore, while the MADN is a modular framework, this initial study will not develop applications outside of the three targeted sectors (agriculture, security, commerce); other potential domains such as healthcare or smart transportation are beyond the current scope.
