@@ -4,7 +4,7 @@
 
 ​Geographical Boundary: The deployment, testing, and data modelling for the system will be strictly localized to the specific microclimates, urban environments, and peri-urban agricultural zones of Bulawayo and the Tsholotsho district.
 
-​Hardware Boundary: The physical infrastructure is constrained to a core "seed" setup comprising one (1) Raspberry Pi 4 Model B acting as the central orchestration hub, and two (2) Raspberry Pi Pico W microcontrollers acting as edge "leaf" nodes. The scope also includes the software-level integration of existing third-party idle devices (e.g., local smartphones and laptops) acting solely as temporary computational "guest" nodes. The project will not involve the design or manufacturing of custom printed circuit boards (PCBs).
+​Hardware Boundary: The physical infrastructure is constrained to a core "seed" setup comprising one (1) Raspberry Pi 4 Model B acting as the central orchestration hub, and two (2) Raspberry Pi Pico W microcontrollers acting as edge "leaf" nodes. The scope also includes the software-level integration of existing third-party idle devices (e.g., local smartphones and laptops) acting as temporary computational "guest" nodes and mobile POS client terminals. The project will not involve the design or manufacturing of custom printed circuit boards (PCBs).
 
 ​Functional Boundary: The software and system architecture will focus exclusively on developing the four proposed pillars:
 ​The MADN Orchestrator (Dynamic Resource Scheduler, API Gateway).
