@@ -4,7 +4,7 @@ To guide the development and evaluation of the MADN framework, this study seeks 
 
 ​1. How can a Dynamic Resource Scheduler on a Raspberry Pi 4 efficiently aggregate and distribute complex computational tasks across a decentralized network of heterogeneous, idle personal devices in a resource-constrained environment?
 
-​2. To what extent can localized edge processing via TensorFlow Lite, using microclimate data (moisture, pH, temperature) collected from Raspberry Pi Pico W nodes, improve the accuracy of agricultural yield predictions for farmers in Bulawayo and Tsholotsho compared to traditional methods?
+​2. To what extent can localized edge processing via TensorFlow Lite, using microclimate data (moisture, pH, temperature) collected from Raspberry Pi Pico W nodes, improve the accuracy of localized irrigation and watering requirement predictions for farmers in Bulawayo and Tsholotsho compared to traditional methods?
 
 ​3. How effectively can a localized security alert system utilize edge-triggered sensors (PIR, ultrasonic) to perform real-time intrusion detection and perimeter security alerts without relying on continuous cloud connectivity?
 

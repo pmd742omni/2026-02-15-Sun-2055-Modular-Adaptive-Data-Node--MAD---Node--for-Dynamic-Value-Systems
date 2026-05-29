@@ -8,7 +8,7 @@
 
 ​Functional Boundary: The software and system architecture will focus exclusively on developing the four proposed pillars:
 ​The MADN Orchestrator (Dynamic Resource Scheduler, API Gateway).
-​The Agri-Analytics Engine (MQTT telemetry, InfluxDB/Grafana, and TensorFlow Lite yield modeling).
+​The Agri-Analytics Engine (MQTT telemetry, InfluxDB/Grafana, and TensorFlow Lite irrigation and watering requirement modeling).
 The Edge-Alert Security Gateway (PIR/ultrasonic sensor integration and real-time state alerts).
 ​The Mesh-POS System (Distributed Micro-Transaction Ledger and Inventory Synchronization).
 

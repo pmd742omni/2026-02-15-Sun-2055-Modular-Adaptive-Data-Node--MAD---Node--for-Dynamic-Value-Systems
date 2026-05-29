@@ -4,7 +4,7 @@ To achieve the overarching aim, the project will be guided by the following spec
 
 ​1. To develop the MADN Orchestrator: To design and deploy a core infrastructure on a Raspberry Pi 4 Model B featuring a Dynamic Resource Scheduler capable of identifying, aggregating, and distributing computational tasks across idle guest devices (smartphones, laptops) and to establish an Open-Source API Gateway for system extensibility.
 
-​2. To implement the Agri-Analytics Engine: To configure Raspberry Pi Pico W edge nodes for real-time environmental data collection (moisture, pH, temperature) and process this data through a localized TensorFlow Lite yield prediction model, tailored to the microclimates of Bulawayo and Tsholotsho.
+​2. To implement the Agri-Analytics Engine: To configure Raspberry Pi Pico W edge nodes for real-time environmental data collection (moisture, pH, temperature) and process this data through a localized TensorFlow Lite irrigation prediction model (to determine watering requirements), tailored to the microclimates of Bulawayo and Tsholotsho.
 
 3. To engineer the Edge-Alert Security Gateway: To integrate low-power edge sensors (PIR and ultrasonic tripwires) with an Intelligent Alarm Hub on the primary node, utilizing lightweight trigger logic and state monitoring for real-time security alerts and perimeter defense.
 

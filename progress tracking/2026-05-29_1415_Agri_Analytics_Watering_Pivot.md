@@ -1,0 +1,37 @@
+# Checkpoint Eleven - Agri-Analytics Watering Requirement Pivot
+
+## Description
+Pivoting the agricultural module (Agri-Analytics Engine) across all literature files from a generic "crop yield prediction" focus to localized soil moisture tracking and watering/irrigation requirement determination (deciding whether a plant should be watered or not based on microclimate variables) accessible via the mobile device app.
+
+## Progress
+We have successfully updated the thesis chapters in the [Version 2026-05-13 Wed 1246](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246) directory to replace yield optimization targets with localized watering determination logic:
+- **[1.1 Background of the Study.txt](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/1.1%20Background%20of%20the%20Study.txt)**: Replaced yield enhancement goals with localized microclimate insights to optimize irrigation schedules and manage soil hydration.
+- **[1.2 Problem Statement.txt](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/1.2%20Problem%20Statement.txt)**: Updated the agricultural problem description to focus on the lack of microclimate data processing for soil moisture and watering requirements.
+- **[1.3 Aim of the Project.txt](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/1.3%20Aim%20of%20the%20Project.txt)**: Changed the primary output definition to soil moisture optimization and watering requirement determination.
+- **[1.4 Objectives of the Project.txt](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/1.4%20Objectives%20of%20the%20Project.txt)**: Refined Objective 2 to configure Pico W nodes for soil/temperature variables and process them through a localized TensorFlow Lite irrigation model.
+- **[1.5 Research Questions.txt](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/1.5%20Research%20Questions.txt)**: Reframed Question 2 to study predictions regarding localized irrigation and watering requirement parameters.
+- **[1.6 Scope of the Project.txt](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/1.6%20Scope%20of%20the%20Project.txt)**: Re-scoped the Agri-Analytics system to focus on localized watering requirement modeling.
+- **[1.7 Significance of the Study.txt](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/1.7%20Significance%20of%20the%20Study.txt)**: Updated the Agricultural Advancement text to focus on precision predictions for soil hydration and watering needs.
+- **[2.2 Theoretical Background.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/2026-05-11%200818%202.2%20Theoretical%20Background.md)**: Updated the Embedded Machine Learning paragraph to list TensorFlow Lite for agricultural irrigation and watering requirement prediction.
+- **[2.5 Gaps in Existing Solutions.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/2026-05-11%200836%202.5%20Gaps%20in%20Existing%20Solutions.md)**: Shifted agricultural gap descriptions from yield optimization to soil moisture levels and watering requirements.
+- **[3.3 System Requirements.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/2026-05-27%200832%203.3%20System%20Requirements.md)**:
+  - Replaced yield projections with soil moisture analytics and irrigation/watering alerts under portable projector peripherals.
+  - Updated the software requirements table to define local irrigation/watering requirement inference as the machine learning purpose.
+  - Updated the Agri-Analytics Inference application logic section to document local TensorFlow Lite predictive analysis on soil moisture and watering requirements.
+- **[3.4 System Design.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/2026-03-30%20Mon%200833%20Chapters/2026-05-13%20Wed%201220%20Version%202026-05-13%20Wed%201246/2026-05-29%201355%203.4%20System%20Design.md)**:
+  - Changed the Telemetry Flowchart `Predict` node to load a TF Lite irrigation/watering predictor model.
+  - Updated the Telemetry Logic description to execute a TensorFlow Lite watering requirements predictor model at scheduled intervals.
+
+## Date & Time
+2026-05-29 14:15
+
+## Version 1.6.0 Ukunisela
+**Ukunisela** is a Ndebele word that means "watering" or "irrigating". It describes the act of supplying dry soil with water to sustain plant life. By shifting our agricultural machine learning model to predict watering requirements, *Ukunisela* translates raw microclimate telemetry into simple, direct instructions on whether a plant needs to be watered, delivering actionable, localized soil moisture advice directly to farmers' mobile screens!
+
+## Next Steps
+With the watering pivot fully integrated, we will proceed to system design and circuit layouts for the other modules, transitioning into "Chapter 4: Implementation and Results" to write script blocks.
+
+## Details of nature of development
+Development was collaborative.
+User: Peter Dube (Proposed focusing the Agri-Analytics system on microclimates/soil moisture to predict watering needs via a mobile app).
+AI Agent Name: Antigravity (Implemented the search-and-replace updates across all chapter files, updated the logic flowcharts, and logged progress).
