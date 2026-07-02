@@ -1,0 +1,31 @@
+001. 2 x Adafruit Terminal PiCowbell - Adafruit Terminal PiCowbell for Pico with Pre-Soldered Sockets - Reset Button & STEMMA QT
+
+002. 2 x Raspberry Pi Pico ST7735 display
+
+003. 2 x Tactile Push Buttons
+
+004. 2 x Capacitive Soil Moisture Sensor (v1.2)
+
+005. 2 x DHT22 Temperature & Humidity Sensor
+
+006. 2 x HC-SR501 Passive Infrared (PIR) Sensor - [2 x HC-SR501 PIR Sensor + IR Proximity Sensor Combo]
+
+007. 2 x HC-SR04 Ultrasonic Distance Sensor
+
+008. 4 x 18650 Li-Ion Batteries (2500mAh)
+
+009. 2 x 18650 Battery Holder (with JST-PH 2.0)
+
+010. 2 x TP4056 USB Lithium Charging Board
+
+011. 2 x MT3608 DC-DC Step-Up Boost Converter
+
+012. Jumper Wire Kit - 120-piece ribbon pack (Male-Male, Male-Female, Female-Female)
+
+013. Stacking Connectors & Headers Pack - Stacking headers (Adafruit 5583, 5584, 5585)
+
+014. In Multiples Resistors [1.0 (1 Ω, 10 Ω, 100 Ω, 1 kΩ, 10 kΩ, 100 kΩ, 1 MΩ), 2.2 (2.2 Ω, 22 Ω, 220 Ω, 2.2 kΩ, 22 kΩ, 220 kΩ), 4.7 (4.7 Ω, 47 Ω, 470 Ω, 4.7 kΩ, 47 kΩ, 470 kΩ)]
+
+015. 2 xSmall toggle switch to turn off and on poer on the raspberry pi pico w (s)
+
+

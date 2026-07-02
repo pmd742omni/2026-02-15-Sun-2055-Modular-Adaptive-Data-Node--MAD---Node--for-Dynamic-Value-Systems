@@ -1,0 +1,140 @@
+digraph SystemFlow {
+    // ==========================================
+    // 1. FLOW DIAGRAM LAYOUT ENGINE
+    // ==========================================
+    graph [
+        rankdir=TB          // Strict Top-to-Bottom Flow Pipeline
+        splines=ortho       // 90-degree blueprint routing
+        nodesep=1.0         // Wide horizontal spacing to prevent line overlaps
+        ranksep=0.7         // Vertical rhythm for the flow sequence
+        bgcolor="#f8fafc"   // Premium slate background
+        compound=true
+    ];
+
+    // Default Component Style (Dark Navy)
+    node [
+        shape=box, style="rounded,filled", fontname="Arial Bold", fontsize=11,
+        color="#2b6cb0", fillcolor="#1a365d", fontcolor="white", penwidth=2, margin="0.3,0.15"
+    ];
+    
+    edge [color="#4a5568", penwidth=2, fontname="Arial Bold", fontsize=10];
+
+    // ==========================================
+    // 2. THE "FLOW TRICK" COMMUNICATION NODES
+    // Converting fragile edge labels into physical Data Stream blocks
+    // ==========================================
+    node [shape=box, style="filled,dashed", fillcolor="#ffffff", penwidth=2, margin="0.2,0.15"];
+    
+    Flow_Web  [label="WebSocket / HTTP Data Stream", color="#4299e1", fontcolor="#2b6cb0"];
+    Flow_BT   [label="Bluetooth RFCOMM Protocol", color="#4299e1", fontcolor="#2b6cb0"];
+    Flow_MQTT [label="Local Wi-Fi / MQTT Stream (Offline)", color="#319795", fontcolor="#234e52"];
+
+    // Reset back to Component Style
+    node [style="rounded,filled", fillcolor="#1a365d", fontcolor="white", color="#2b6cb0", penwidth=2];
+
+    // ==========================================
+    // 3. LAYER 1: MOBILE POS TERMINAL
+    // ==========================================
+    subgraph cluster_MobilePOS {
+        label = "Mobile POS Client Terminal";
+        fontname="Arial Bold"; fontsize=12; labeljust="l";
+        style="rounded,filled"; color="#ecc94b"; fillcolor="#ffffff";
+        
+        Browser [label="Merchant Browser\n(HTML5 / Vanilla JS)"];
+        NFC [label="Built-in NFC Chip"];
+        Camera [label="Built-in Camera"];
+        
+        Browser -> {NFC Camera} [arrowhead=none];
+    }
+
+    // ==========================================
+    // 4. LAYER 2: EDGE SENSING CORE
+    // ==========================================
+    subgraph cluster_EdgeNode {
+        label = "Edge Sensing Core (Pi Pico W)";
+        fontname="Arial Bold"; fontsize=12; labeljust="l";
+        style="rounded,filled"; color="#ecc94b"; fillcolor="#ffffff";
+        
+        Firmware [label="MicroPython Runtime", fillcolor="#2d3748", color="#718096"];
+        MQTT_Client [label="umqtt.simple Client", fillcolor="#234e52", color="#319795"];
+        Pin_Interface [label="GPIO / ADC / SPI Bus", fillcolor="#2d3748", color="#718096"];
+        
+        Firmware -> {MQTT_Client Pin_Interface} [arrowhead=none, color="#718096"];
+    }
+
+    // ==========================================
+    // 5. LAYER 3: CENTRAL VAULT (Sub-Blocks)
+    // ==========================================
+    subgraph cluster_Hub_OS {
+        label = "Central Vault: Host Operating System";
+        style="rounded,filled"; color="#3182ce"; fillcolor="#ebf8ff";
+        OS [label="Kali Linux (ARM64 Headless)"];
+    }
+
+    subgraph cluster_Hub_Network {
+        label = "Central Vault: Network Ingress";
+        style="rounded,filled"; color="#319795"; fillcolor="#e6fffa";
+        
+        AP [label="Hostapd Wi-Fi AP", fillcolor="#234e52", color="#319795"];
+        BT [label="Bluetooth RFCOMM Daemon", fillcolor="#234e52", color="#319795"];
+        Hub_MQTT [label="Mosquitto MQTT Broker", fillcolor="#234e52", color="#319795"];
+        
+        { rank=same; AP; BT; Hub_MQTT; }
+    }
+
+    subgraph cluster_Hub_Logic {
+        label = "Central Vault: Processing Core";
+        style="rounded,filled"; color="#4a5568"; fillcolor="#edf2f7";
+        
+        Logic_Scheduler [label="Resource Scheduler"];
+        ML_Model [label="TensorFlow Lite"];
+        Logic_POS [label="Python POS Daemon"];
+        Logic_Security [label="Security Alert Daemon"];
+        
+        { rank=same; Logic_Scheduler; ML_Model; Logic_POS; Logic_Security; }
+    }
+
+    subgraph cluster_Hub_Storage {
+        label = "Central Vault: Database Layer";
+        style="rounded,filled"; color="#2b6cb0"; fillcolor="#ebf8ff";
+        
+        DB_Telemetry [label="InfluxDB Time-Series", shape=cylinder];
+        DB_Ledger [label="SQLite Transactions", shape=cylinder];
+        
+        { rank=same; DB_Telemetry; DB_Ledger; }
+    }
+
+    // --- INTERNAL VAULT PIPELINE ---
+    OS -> {AP BT Hub_MQTT} [arrowhead=none, color="#3182ce"];
+    AP -> Logic_Scheduler [style=invis, weight=10]; 
+    
+    Hub_MQTT -> DB_Telemetry [arrowhead=none, color="#319795"];
+    Logic_Scheduler -> DB_Telemetry [arrowhead=none, color="#3182ce", weight=10];
+    ML_Model -> DB_Telemetry [arrowhead=none, color="#3182ce"];
+    
+    Logic_POS -> DB_Ledger [arrowhead=none, color="#3182ce"];
+    Logic_Security -> DB_Ledger [arrowhead=none, color="#3182ce"];
+
+    // ==========================================
+    // 6. PIPING THE FLOW LOGIC
+    // We physically pipe the nodes through the data stream blocks.
+    // This entirely prevents Graphviz from generating cascading diagonals.
+    // ==========================================
+    
+    // Client Pipeline
+    Browser -> Flow_Web [color="#4299e1"];
+    Browser -> Flow_BT [color="#4299e1"];
+    Flow_Web -> AP [color="#4299e1"];
+    Flow_BT -> BT [color="#4299e1"];
+    
+    // Edge Pipeline
+    MQTT_Client -> Flow_MQTT [color="#319795"];
+    Flow_MQTT -> Hub_MQTT [color="#319795"];
+
+    // ==========================================
+    // 7. THE STRUCTURAL BACKBONE
+    // Using invisible links to force the clusters into a strict 1-2-3 column
+    // ==========================================
+    Camera -> Firmware [style=invis, weight=1000];
+    Pin_Interface -> OS [style=invis, weight=1000];
+}
