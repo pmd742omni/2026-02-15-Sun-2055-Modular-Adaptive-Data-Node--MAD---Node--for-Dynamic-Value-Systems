@@ -1,4 +1,4 @@
-001. 2 x Adafruit Terminal PiCowbell - Adafruit Terminal PiCowbell for Pico with Pre-Soldered Sockets - Reset Button & STEMMA QT
+001. 2 x Adafruit Terminal PiCowbell for Pico with Pre-Soldered Sockets - Reset Button & STEMMA QT
 
 002. 2 x Raspberry Pi Pico ST7735 display
 
@@ -8,7 +8,7 @@
 
 005. 2 x DHT22 Temperature & Humidity Sensor
 
-006. 2 x HC-SR501 Passive Infrared (PIR) Sensor - [2 x HC-SR501 PIR Sensor + IR Proximity Sensor Combo]
+006. 2 x HC-SR501 PIR Sensor + IR Proximity Sensor Combo]
 
 007. 2 x HC-SR04 Ultrasonic Distance Sensor
 
