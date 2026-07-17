@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MADN - Local Orchestrator Dashboard</title>
+  <!-- Google Fonts for typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Left Interaction Zone: Navigation Sidebar -->
+    <aside class="sidebar" aria-label="Primary Navigation">
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">▲</span>
+          <span class="logo-text">MADN Vault</span>
+        </div>
+        <p class="logo-subtext">Offline Edge Node Local Hub</p>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-target="dashboard" aria-selected="true" id="nav-dashboard">
+          <span class="btn-icon">⚏</span>
+          <span class="btn-text">System Dashboard</span>
+        </button>
+        <button class="nav-btn" data-target="vpa1" aria-selected="false" id="nav-vpa1">
+          <span class="btn-icon">🌾</span>
+          <span class="btn-text">Agricultural Aid</span>
+        </button>
+        <button class="nav-btn" data-target="vpa2" aria-selected="false" id="nav-vpa2">
+          <span class="btn-icon">🛡️</span>
+          <span class="btn-text">Perimeter Security</span>
+        </button>
+        <button class="nav-btn" data-target="vpa3" aria-selected="false" id="nav-vpa3">
+          <span class="btn-icon">🪙</span>
+          <span class="btn-text">Point of Sale</span>
+        </button>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="connection-pill offline" id="local-status">
+          <span class="status-dot"></span>
+          <span class="status-text">Hub Offline Mode</span>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Right Viewing & Action Zone -->
+    <main class="main-content">
+      
+      <!-- Top Status Header -->
+      <header class="top-header" aria-label="System Status Bar">
+        <h1 class="page-title" id="page-title">System Dashboard</h1>
+        
+        <div class="status-grid">
+          <div class="status-card" id="node1-status-card">
+            <span class="node-indicator offline" id="node1-indicator"></span>
+            <div class="status-info">
+              <p class="status-label">Pico Node 01</p>
+              <p class="status-value" id="node1-val">Offline</p>
+            </div>
+          </div>
+          <div class="status-card" id="node2-status-card">
+            <span class="node-indicator offline" id="node2-indicator"></span>
+            <div class="status-info">
+              <p class="status-label">Pico Node 02</p>
+              <p class="status-value" id="node2-val">Offline</p>
+            </div>
+          </div>
+          <div class="status-card time-card">
+            <span class="btn-icon">🕒</span>
+            <div class="status-info">
+              <p class="status-label">Local Node Time</p>
+              <p class="status-value" id="live-time">15:25</p>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Core Content Container -->
+      <div class="view-viewport">
+        
+        <!-- View: System Dashboard -->
+        <section id="view-dashboard" class="view-section active" aria-hidden="false">
+          <div class="welcome-banner">
+            <h2>Welcome to your Local Edge Orchestrator</h2>
+            <p>Monitor your farming operations, configure tripwires, and process commerce transactions entirely offline from this secure localized dashboard.</p>
+          </div>
+          
+          <div class="dashboard-grid">
+            <!-- Summary Blocks -->
+            <div class="focus-block status-overview">
+              <h3>System Health & Indicators</h3>
+              <p class="health-message">Your local micro-cloud is running in offline mode. Active connections are managed via local Wi-Fi hotspot.</p>
+              
+              <div class="health-metrics">
+                <div class="metric-item">
+                  <span class="metric-icon">🌾</span>
+                  <div class="metric-data">
+                    <span class="metric-title">Agriculture Scheduler</span>
+                    <span class="metric-desc" id="agri-summary">Database pre-loaded</span>
+                  </div>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-icon">🛡️</span>
+                  <div class="metric-data">
+                    <span class="metric-title">Perimeter Security</span>
+                    <span class="metric-desc" id="security-summary">Map waiting for nodes</span>
+                  </div>
+                </div>
+                <div class="metric-item">
+                  <span class="metric-icon">🪙</span>
+                  <div class="metric-data">
+                    <span class="metric-title">Commerce Ledger</span>
+                    <span class="metric-desc" id="pos-summary">USD / ZAR / ZWG Active</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="focus-block current-activities">
+              <h3>Quick Controls</h3>
+              <div class="quick-actions">
+                <button class="action-btn" id="btn-mock-telemetry">Mock Pico Data Stream</button>
+                <button class="action-btn secondary" id="btn-clear-db">Reset Local Cache</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- View: VPA 1 (Agricultural Aid) -->
+        <section id="view-vpa1" class="view-section" aria-hidden="true">
+          <div class="view-header-desc">
+            <h2>Agricultural Aid Scheduler</h2>
+            <p>Optimize planting windows, schedule watering tasks, and review historical Bulawayo climate data entirely off-grid.</p>
+          </div>
+          
+          <!-- Cycle 1 Content Block -->
+          <div class="vpa-container">
+            <div class="focus-block climate-scheduler">
+              <div class="card-header">
+                <h3>VPA 1.1: Local Climate & Planting Scheduler</h3>
+                <span class="pill-badge info">Offline Reference</span>
+              </div>
+              
+              <div class="scheduler-grid">
+                <!-- Inputs Section (Action/Interaction Zone) -->
+                <div class="interaction-card">
+                  <h4 class="form-title">Determine Optimal Planting</h4>
+                  
+                  <div class="form-group">
+                    <label for="crop-select">Select Target Crop</label>
+                    <select id="crop-select" class="form-input">
+                      <option value="maize">Maize (Isikhwebu)</option>
+                      <option value="sorghum">Sorghum (Amabele)</option>
+                      <option value="beans">Sugar Beans (Indlubu)</option>
+                      <option value="cabbage">Cabbage (Ikabitshi)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="month-select">Planned Planting Month</label>
+                    <select id="month-select" class="form-input">
+                      <option value="0">January</option>
+                      <option value="1">February</option>
+                      <option value="2">March</option>
+                      <option value="3">April</option>
+                      <option value="4">May</option>
+                      <option value="5">June</option>
+                      <option value="6">July</option>
+                      <option value="7">August</option>
+                      <option value="8">September</option>
+                      <option value="9">October</option>
+                      <option value="10">November</option>
+                      <option value="11">December</option>
+                    </select>
+                  </div>
+                  
+                  <button class="btn btn-primary" id="btn-calculate-planting">Generate Recommendation</button>
+                </div>
+                
+                <!-- Display Section (Content/Viewing Zone) -->
+                <div class="display-card">
+                  <h4>Climate Insight & Recommendation</h4>
+                  
+                  <div class="recommendation-box" id="planting-recommendation">
+                    <p class="neutral-message">Select a crop and planning month to generate localized planting advice.</p>
+                  </div>
+                  
+                  <div class="climate-stats">
+                    <h5 class="stats-title">Bulawayo Monthly Climate Profile</h5>
+                    <div class="stats-row">
+                      <div class="stat-item">
+                        <span class="stat-label">Avg Rainfall</span>
+                        <span class="stat-value" id="climate-rain">-- mm</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-label">Avg Temp</span>
+                        <span class="stat-value" id="climate-temp">-- °C</span>
+                      </div>
+                      <div class="stat-item">
+                        <span class="stat-label">Rainy Days</span>
+                        <span class="stat-value" id="climate-days">-- days</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- View: VPA 2 (Perimeter Security) -->
+        <section id="view-vpa2" class="view-section" aria-hidden="true">
+          <div class="view-header-desc">
+            <h2>Perimeter Security Gateway</h2>
+            <p>Monitor virtual tripwire states, review network signals, and configure automated alarms on local network nodes.</p>
+          </div>
+          
+          <!-- Cycle 1 Content Block -->
+          <div class="vpa-container">
+            <div class="focus-block security-map-block">
+              <div class="card-header">
+                <h3>VPA 2.1: Real-Time Node Status Map</h3>
+                <span class="pill-badge info" id="security-active-pill">0 Nodes Active</span>
+              </div>
+              
+              <div class="security-layout">
+                <!-- SVG Viewing Zone (F/Z reading path) -->
+                <div class="map-viewing-card">
+                  <h4>Physical Perimeter Monitored Zones</h4>
+                  <div class="svg-container">
+                    <svg viewBox="0 0 600 350" class="perimeter-svg" id="perimeter-map">
+                      <!-- Grid Background -->
+                      <defs>
+                        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#grid)" />
+                      
+                      <!-- Boundaries -->
+                      <rect x="50" y="50" width="500" height="250" rx="10" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2" stroke-dasharray="8 4" />
+                      <text x="60" y="45" fill="rgba(255, 255, 255, 0.4)" font-size="12" font-weight="bold">Outer Boundary</text>
+                      
+                      <!-- Node 1 (Agri-Analytics Zone) -->
+                      <g class="map-node-group" id="map-node1">
+                        <circle cx="180" cy="175" r="45" fill="rgba(255, 255, 255, 0.02)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
+                        <circle cx="180" cy="175" r="10" class="node-center offline" id="map-node1-dot" />
+                        <text x="180" y="240" text-anchor="middle" class="node-label" fill="rgba(255,255,255,0.7)">Pico Node 1 (Agri-Field)</text>
+                      </g>
+                      
+                      <!-- Node 2 (Security Gate Zone) -->
+                      <g class="map-node-group" id="map-node2">
+                        <circle cx="420" cy="175" r="45" fill="rgba(255, 255, 255, 0.02)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
+                        <circle cx="420" cy="175" r="10" class="node-center offline" id="map-node2-dot" />
+                        <text x="420" y="240" text-anchor="middle" class="node-label" fill="rgba(255,255,255,0.7)">Pico Node 2 (Gatehouse)</text>
+                      </g>
+                      
+                      <!-- Central Vault Hub -->
+                      <g class="vault-hub">
+                        <rect x="280" y="155" width="40" height="40" rx="8" fill="var(--surface-card)" stroke="var(--accent)" stroke-width="2" />
+                        <text x="300" y="145" text-anchor="middle" class="hub-label" fill="var(--accent)" font-weight="bold">Vault Hub</text>
+                        <!-- Connection Links -->
+                        <line x1="280" y1="175" x2="190" y2="175" class="map-link offline" id="link-node1" stroke-dasharray="5 5" />
+                        <line x1="320" y1="175" x2="410" y2="175" class="map-link offline" id="link-node2" stroke-dasharray="5 5" />
+                      </g>
+                    </svg>
+                  </div>
+                </div>
+                
+                <!-- Action / Control Zone -->
+                <div class="map-controls-card">
+                  <h4>Simulator & Signal Overrides</h4>
+                  <p class="control-help-text">Simulate connection signals and state-changes of external nodes to verify system responsiveness.</p>
+                  
+                  <div class="override-group">
+                    <h5>Node 1 Controls</h5>
+                    <div class="toggle-buttons">
+                      <button class="toggle-btn" id="btn-toggle-node1">Connect Node 1</button>
+                      <button class="toggle-btn pulse-action hidden" id="btn-trigger-alarm1">Trigger Tripwire</button>
+                    </div>
+                    <div class="slider-group">
+                      <label for="node1-rssi">Signal Strength (RSSI)</label>
+                      <input type="range" id="node1-rssi" min="-100" max="-30" value="-75" class="rssi-slider" disabled>
+                      <span class="slider-val" id="node1-rssi-val">-75 dBm</span>
+                    </div>
+                  </div>
+                  
+                  <div class="override-group">
+                    <h5>Node 2 Controls</h5>
+                    <div class="toggle-buttons">
+                      <button class="toggle-btn" id="btn-toggle-node2">Connect Node 2</button>
+                      <button class="toggle-btn pulse-action hidden" id="btn-trigger-alarm2">Trigger Tripwire</button>
+                    </div>
+                    <div class="slider-group">
+                      <label for="node2-rssi">Signal Strength (RSSI)</label>
+                      <input type="range" id="node2-rssi" min="-100" max="-30" value="-80" class="rssi-slider" disabled>
+                      <span class="slider-val" id="node2-rssi-val">-80 dBm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- View: VPA 3 (Point of Sale) -->
+        <section id="view-vpa3" class="view-section" aria-hidden="true">
+          <div class="view-header-desc">
+            <h2>Offline POS Checkout Terminal</h2>
+            <p>Record transactions, calculate exact currency distribution, and manage sales operations entirely offline.</p>
+          </div>
+          
+          <!-- Cycle 1 Content Block -->
+          <div class="vpa-container">
+            <div class="focus-block pos-ledger-block">
+              <div class="card-header">
+                <h3>VPA 3.1: Multi-Currency Tri-Ledger</h3>
+                <span class="pill-badge success">Ledger Secured</span>
+              </div>
+              
+              <div class="pos-grid">
+                <!-- Inputs Section (Action/Interaction Zone) -->
+                <div class="pos-checkout-card">
+                  <h4>Checkout Cart & Currency Setup</h4>
+                  
+                  <div class="exchange-rates-box">
+                    <h5>Daily Exchange Rates (Base USD)</h5>
+                    <div class="rates-inputs">
+                      <div class="rate-group">
+                        <label for="rate-zar">USD to ZAR</label>
+                        <input type="number" id="rate-zar" value="18.00" step="0.1" class="form-input text-right">
+                      </div>
+                      <div class="rate-group">
+                        <label for="rate-zwg">USD to ZWG</label>
+                        <input type="number" id="rate-zwg" value="25.00" step="0.5" class="form-input text-right">
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="cart-total-setup">
+                    <div class="form-group">
+                      <label for="cart-amount-usd">Total Amount (USD)</label>
+                      <input type="number" id="cart-amount-usd" value="10.00" min="0.01" step="0.01" class="form-input large-input text-right">
+                    </div>
+                  </div>
+                  
+                  <div class="tendered-splits">
+                    <h5>Cash Tendered Split</h5>
+                    
+                    <div class="split-row">
+                      <div class="split-input-group">
+                        <label for="tender-usd">USD Cash</label>
+                        <input type="number" id="tender-usd" value="10" min="0" class="form-input text-right">
+                      </div>
+                      <div class="split-input-group">
+                        <label for="tender-zar">ZAR Cash</label>
+                        <input type="number" id="tender-zar" value="0" min="0" class="form-input text-right">
+                      </div>
+                      <div class="split-input-group">
+                        <label for="tender-zwg">ZWG Cash</label>
+                        <input type="number" id="tender-zwg" value="0" min="0" class="form-input text-right">
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button class="btn btn-primary" id="btn-process-sale">Commit Sale & Calculate Change</button>
+                </div>
+                
+                <!-- Display Section (Content/Viewing Zone) -->
+                <div class="pos-receipt-card">
+                  <h4>Tender & Change Reconciliation</h4>
+                  
+                  <div class="checkout-summary-box">
+                    <div class="summary-line">
+                      <span>Total Due (USD):</span>
+                      <span class="value-bold" id="rec-due-usd">$10.00</span>
+                    </div>
+                    <div class="summary-line">
+                      <span>Total Due (ZAR Equivalent):</span>
+                      <span id="rec-due-zar">R180.00</span>
+                    </div>
+                    <div class="summary-line">
+                      <span>Total Due (ZWG Equivalent):</span>
+                      <span id="rec-due-zwg">250.00 ZWG</span>
+                    </div>
+                    
+                    <hr class="summary-divider">
+                    
+                    <div class="summary-line">
+                      <span>Total Tendered Value (USD):</span>
+                      <span class="value-bold" id="rec-tendered-usd">$10.00</span>
+                    </div>
+                    
+                    <div class="change-status-box success" id="rec-change-box">
+                      <p class="change-status-title" id="change-title">Paid in Full</p>
+                      <p class="change-status-desc" id="change-desc">No change required.</p>
+                      
+                      <!-- Currency Options for Change -->
+                      <div class="change-splits hidden" id="change-currency-split">
+                        <h5>Change Distribution Options:</h5>
+                        <div class="change-row">
+                          <span class="change-option-label">In USD:</span>
+                          <span class="change-option-val" id="change-opt-usd">$0.00</span>
+                        </div>
+                        <div class="change-row">
+                          <span class="change-option-label">In ZAR:</span>
+                          <span class="change-option-val" id="change-opt-zar">R0.00</span>
+                        </div>
+                        <div class="change-row">
+                          <span class="change-option-label">In ZWG:</span>
+                          <span class="change-option-val" id="change-opt-zwg">0.00 ZWG</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="pos-history-log">
+                    <h5>Recent Transaction Cache (IndexedDB)</h5>
+                    <div class="log-entries" id="pos-recent-entries">
+                      <p class="neutral-message">No transactions recorded in this session.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+    </main>
+  </div>
+
+  <!-- Main scripts -->
+  <script src="./app.js"></script>
+</body>
+</html>
