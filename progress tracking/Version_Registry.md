@@ -25,3 +25,4 @@
 | **1.16.0** | `Ukusebenza` |  | 2026-07-20 10:15 | [2026-07-20_1015_Cycle_1_to_4_Web_App_Implementation.md](./2026-07-20_1015_Cycle_1_to_4_Web_App_Implementation.md) |
 | **1.17.0** | `Ukuqinisekisa` | To verify / To confirm / To validate | Wednesday, 22 July 2026, 09:40 AM (local time) | [2026-07-22_0940_Document_Now_Skill_and_Verification.md](./2026-07-22_0940_Document_Now_Skill_and_Verification.md) |
 | **1.18.0** | `Ukucinisa` | To strengthen / To make robust / To reinforce | Wednesday, 22 July 2026, 09:49 AM (local time) | [2026-07-22_0949_Timestamp_Utility_Integration.md](./2026-07-22_0949_Timestamp_Utility_Integration.md) |
+| **1.18.1** | `Ukusungula` | Innovation / Invention | Wednesday, 22 July 2026, 04:17 PM (local time) | [2026-07-22_1617_VisionPro_UI_Redesign_and_Subnav_Refactoring.md](./2026-07-22_1617_VisionPro_UI_Redesign_and_Subnav_Refactoring.md) |

@@ -272,6 +272,26 @@ def init_db():
     );
     """)
 
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS blocked_devices (
+        ip_address TEXT PRIMARY KEY,
+        blocked_by TEXT NOT NULL,
+        blocked_at INTEGER NOT NULL,
+        reason TEXT NOT NULL
+    );
+    """)
+
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS tracked_devices (
+        ip_address TEXT PRIMARY KEY,
+        user_agent TEXT NOT NULL,
+        device_type TEXT NOT NULL,
+        first_seen INTEGER NOT NULL,
+        last_seen INTEGER NOT NULL,
+        last_username TEXT NOT NULL
+    );
+    """)
+
     db.commit()
 
     # Schema Migration: add pin column to users if it doesn't exist
@@ -447,7 +467,7 @@ def init_db():
         db.execute("""
             INSERT INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, ("admin", hash_hex, salt_hex, "admin", "active", now, now, 1))
+        """, ("admin", hash_hex, salt_hex, "admin", "active", now, now, 0))
         
         # Record password history entry
         db.execute("""
@@ -1153,4 +1173,86 @@ def calculate_pos_catalog_prices():
         item["applied_promo_title"] = applied_promo
         
     return items
+
+
+def classify_user_agent(ua_str):
+    ua = ua_str.lower() if ua_str else ""
+    if any(k in ua for k in ["ipad", "android tablet", "kindle", "playbook", "silk", "nexus 7", "nexus 9", "nexus 10", "sm-t"]):
+        return "Tablet"
+    elif any(k in ua for k in ["mobile", "iphone", "ipod", "android", "blackberry", "opera mini", "windows phone"]):
+        return "Mobile"
+    return "Desktop"
+
+
+def track_device_activity(ip_address, user_agent, username="anonymous"):
+    if not ip_address:
+        return
+    db = get_db()
+    device_type = classify_user_agent(user_agent)
+    now = int(time.time())
+    
+    cursor = db.execute("SELECT first_seen FROM tracked_devices WHERE ip_address = ?", (ip_address,))
+    row = cursor.fetchone()
+    
+    if row:
+        db.execute("""
+            UPDATE tracked_devices 
+            SET user_agent = ?, device_type = ?, last_seen = ?, last_username = ? 
+            WHERE ip_address = ?
+        """, (user_agent, device_type, now, username, ip_address))
+    else:
+        db.execute("""
+            INSERT INTO tracked_devices (ip_address, user_agent, device_type, first_seen, last_seen, last_username)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (ip_address, user_agent, device_type, now, now, username))
+    db.commit()
+    db.close()
+
+
+def is_device_blocked(ip_address):
+    if not ip_address:
+        return False
+    db = get_db()
+    cursor = db.execute("SELECT ip_address FROM blocked_devices WHERE ip_address = ?", (ip_address,))
+    blocked = cursor.fetchone() is not None
+    db.close()
+    return blocked
+
+
+def block_device(ip_address, admin_user, reason="Blocked by System Administrator"):
+    db = get_db()
+    now = int(time.time())
+    db.execute("""
+        INSERT OR REPLACE INTO blocked_devices (ip_address, blocked_by, blocked_at, reason)
+        VALUES (?, ?, ?, ?)
+    """, (ip_address, admin_user, now, reason))
+    
+    db.execute("DELETE FROM sessions WHERE ip_subnet = ?", (ip_address,))
+    db.commit()
+    db.close()
+    write_audit_log(admin_user, "BLOCK_DEVICE", f"Blocked device IP '{ip_address}'. Reason: {reason}")
+
+
+def unblock_device(ip_address, admin_user):
+    db = get_db()
+    db.execute("DELETE FROM blocked_devices WHERE ip_address = ?", (ip_address,))
+    db.commit()
+    db.close()
+    write_audit_log(admin_user, "UNBLOCK_DEVICE", f"Unblocked device IP '{ip_address}'.")
+
+
+def get_tracked_devices():
+    db = get_db()
+    cursor = db.execute("SELECT * FROM tracked_devices ORDER BY last_seen DESC")
+    devices = [dict(r) for r in cursor.fetchall()]
+    
+    cursor = db.execute("SELECT ip_address FROM blocked_devices")
+    blocked_ips = {row["ip_address"] for row in cursor.fetchall()}
+    db.close()
+    
+    for dev in devices:
+        dev["status"] = "blocked" if dev["ip_address"] in blocked_ips else "allowed"
+        
+    return devices
+
 

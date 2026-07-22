@@ -17,7 +17,8 @@ try:
         get_calculator_config, get_all_calculator_configs, update_calculator_config,
         add_inventory_item, adjust_inventory_qty, log_wastage,
         execute_checkout_transaction, write_shift_handover, verify_shift_handover_chain,
-        get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices
+        get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices,
+        track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices
     )
     from .auth_utils import (
         verify_password,
@@ -33,7 +34,8 @@ except ImportError:
         get_calculator_config, get_all_calculator_configs, update_calculator_config,
         add_inventory_item, adjust_inventory_qty, log_wastage,
         execute_checkout_transaction, write_shift_handover, verify_shift_handover_chain,
-        get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices
+        get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices,
+        track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices
     )
     from auth_utils import (
         verify_password,
@@ -65,10 +67,25 @@ app = FastAPI(
 def startup_event():
     init_db()
 
-# Security Headers & Content-Security-Policy (CSP) Middleware
+# Security Headers, Device Tracking & Content-Security-Policy (CSP) Middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
-    # If forensic mode is active, block all api requests except health checks
+    client_ip = request.client.host if request.client else ""
+    user_agent = request.headers.get("User-Agent", "")
+    
+    # 1. Device IP Blocking Enforcement
+    if client_ip and is_device_blocked(client_ip):
+        return Response(
+            content='{"detail": "Device access blocked by system administrator."}',
+            status_code=403,
+            media_type="application/json"
+        )
+        
+    # 2. Track connected device activity
+    if client_ip:
+        track_device_activity(client_ip, user_agent)
+
+    # 3. If forensic mode is active, block all api requests except health checks
     if FORENSIC_MODE and request.url.path.startswith("/api") and request.url.path != "/api/health":
         return Response(
             content='{"detail": "Security System Integrity Compromised. Forensic Mode Active."}',
@@ -79,8 +96,9 @@ async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com data:; "
         "frame-ancestors 'none';"
     )
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -643,8 +661,45 @@ async def delete_user(user_id: int, admin = Depends(require_elevated_admin)):
     db.commit()
     db.close()
     
-    write_audit_log(admin["username"], "USER_DELETED", f"Deleted user '{target['username']}' (ID: {user_id}). Sessions terminated.")
+    write_audit_log(admin["username"], "USER_DELETE", f"Permanently deleted user '{target['username']}' (ID: {user_id}).")
     return {"message": f"User '{target['username']}' deleted successfully."}
+
+# --- ADMIN DEVICE MANAGEMENT ENDPOINTS ---
+
+@app.get("/api/admin/devices", dependencies=[Depends(require_admin)])
+async def list_tracked_devices():
+    """List all tracked network devices and their block status."""
+    return get_tracked_devices()
+
+@app.post("/api/admin/devices/block")
+async def block_device_endpoint(request: Request, admin = Depends(require_elevated_admin)):
+    """Block a network device by IP address."""
+    body = await request.json()
+    ip_address = body.get("ip_address", "").strip()
+    reason = body.get("reason", "Blocked by System Administrator").strip()
+    
+    if not ip_address:
+        raise HTTPException(status_code=400, detail="Device IP address is required")
+        
+    current_ip = request.client.host if request.client else ""
+    if current_ip and secrets.compare_digest(current_ip, ip_address):
+        raise HTTPException(status_code=400, detail="Self-lockout protection: Cannot block the IP address of your active session.")
+        
+    block_device(ip_address, admin["username"], reason)
+    return {"message": f"Device IP '{ip_address}' blocked successfully."}
+
+@app.post("/api/admin/devices/unblock")
+async def unblock_device_endpoint(request: Request, admin = Depends(require_elevated_admin)):
+    """Unblock a network device by IP address."""
+    body = await request.json()
+    ip_address = body.get("ip_address", "").strip()
+    
+    if not ip_address:
+        raise HTTPException(status_code=400, detail="Device IP address is required")
+        
+    unblock_device(ip_address, admin["username"])
+    return {"message": f"Device IP '{ip_address}' unblocked successfully."}
+
 
 @app.get("/api/admin/audit", dependencies=[Depends(require_admin)])
 async def list_audit_logs():

@@ -1,5 +1,5 @@
 # Modular Adaptive Data Node (MADN) System Internals & Subsystem Reference
-**Document Version**: 1.0.0 | **Kernel Target**: MADN Web Application Core (Cycles 1–5)  
+**Document Version**: 1.18.1 | **Kernel Target**: MADN Web Application Core (Cycles 1–5)  
 **Audience**: Systems Architects, Lead Engineers, Security Analysts, and Autonomous AI Coding Agents
 
 ---
@@ -142,6 +142,41 @@ where:
 ### 5.3 Captive Portal Access Token Vending
 * **Endpoints**: `POST /api/pos/vouchers/generate` & `GET /api/pos/vouchers/verify`
 * **Mechanism**: Generates cryptographic Wi-Fi access tokens embedded as QR barcodes on POS checkout receipts, unlocking local network bandwidth based on purchase amount.
+
+---
+
+## 6. VisionPro Glassmorphic UI Architecture & Dynamic Sub-Navigation Engine
+
+### 6.1 Layout Architecture & Glass Panel Composite Tokens
+* **CSS Glassmorphism Composite Rules**:
+  ```css
+  background: rgba(20, 26, 38, 0.85);
+  backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 28px;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    0 16px 40px rgba(0, 0, 0, 0.85);
+  ```
+* **3-Panel Grid Structure**:
+  - `layout-col-left` ($260\text{px}$ fixed width capsule): Logo badge, main navigation list, primary action pill CTA (`⚡ Quick Check-In`), and horizontal flex profile row (`.sidebar-user-drawer`).
+  - `layout-col-center` (Fluid flexible stage): Vault 1 cover banner (`MAD Node Hub — Vault 1`), contextual sub-navigation pill bar (`#subnav-pill-bar`), and active view sections (`#view-dashboard`, `#view-vpa1`, `#view-vpa2`, `#view-vpa3`, `#view-admin`).
+  - `layout-col-right` ($320\text{px}$ fixed width widget column): Metric search bar, System Health cards, Live Node Feeds, and collapsible bottom drawers (`Quick POS Terminal` & `Security Audit Log`).
+
+### 6.2 Horizontal Profile Row Component Contract
+* **Flex Alignment Specs**:
+  `display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; padding: 8px 12px; border-radius: 9999px;`
+* **Child Element Layout**:
+  1. **Avatar Badge**: $38\text{px} \times 38\text{px}$ circle (`flex-shrink: 0; background: linear-gradient(135deg, #00e5ff, #7c4dff);`).
+  2. **Text Metadata Block (`.user-meta-info`)**: Vertical flex column (`flex-direction: column; align-items: flex-start; margin-left: 10px; flex-grow: 1; min-width: 0;`).
+     - Display Name (`.user-display-name`): `font-weight: 600; font-size: 14px; color: #ffffff; text-overflow: ellipsis;`.
+     - Handle (`.user-handle`): `font-size: 12px; color: #8899a6; margin-top: 2px;`.
+  3. **Action Element (`.user-drawer-more`)**: `margin-left: auto; color: #8899a6; font-size: 14px; flex-shrink: 0;`.
+
+### 6.3 Contextual Sub-Navigation Switcher Engine
+* **Sub-Nav Engine Contract**:
+  When main navigation changes via `switchView(target)`, `updateSubNav(target)` dynamically injects sub-section pills into `#subnav-pill-bar` mapped via `SUBNAV_CONFIG`.
+* **Smooth Sub-Section Scroll**: `scrollToSubSection(targetId)` executes smooth element scrolling (`scrollIntoView({ behavior: 'smooth', block: 'start' })`).
 
 ---
 

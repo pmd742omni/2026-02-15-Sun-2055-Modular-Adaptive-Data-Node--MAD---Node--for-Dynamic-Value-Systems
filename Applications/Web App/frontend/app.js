@@ -50,63 +50,121 @@ document.addEventListener('DOMContentLoaded', () => {
   initPOSSalesAnalytics();
   
   // Dashboard mock controls
-  document.getElementById('btn-mock-telemetry').addEventListener('click', runMockNodeActivity);
-  document.getElementById('btn-clear-db').addEventListener('click', resetLocalCache);
+  const btnMock = document.getElementById('btn-mock-telemetry');
+  if (btnMock) btnMock.addEventListener('click', runMockNodeActivity);
+  
+  const btnClear = document.getElementById('btn-clear-db');
+  if (btnClear) btnClear.addEventListener('click', resetLocalCache);
   
   // Update summaries
   updateSummaries();
 });
 
 // --- NAVIGATION ---
-function initNavigation() {
-  const navButtons = document.querySelectorAll('.nav-btn');
-  const sections = document.querySelectorAll('.view-section');
-  const pageTitle = document.getElementById('page-title');
-  const localStatus = document.getElementById('local-status');
+function switchView(target) {
+  state.activeView = target;
 
-  navButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.target;
-      
-      // Update sidebar state
-      navButtons.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-selected', 'false');
-      });
+  // 1. Sidebar items
+  document.querySelectorAll('.nav-item-btn').forEach(btn => {
+    if (btn.dataset.target === target) {
       btn.classList.add('active');
-      btn.setAttribute('aria-selected', 'true');
-      
-      // Update visible section
-      sections.forEach(sec => {
-        if (sec.id === `view-${target}`) {
-          sec.classList.add('active');
-          sec.setAttribute('aria-hidden', 'false');
-        } else {
-          sec.classList.remove('active');
-          sec.setAttribute('aria-hidden', 'true');
-        }
-      });
-
-      // Update page header
-      state.activeView = target;
-      let titleText = 'System Dashboard';
-      if (target === 'vpa1') titleText = 'Agricultural Aid';
-      if (target === 'vpa2') titleText = 'Perimeter Security';
-      if (target === 'vpa3') titleText = 'Point of Sale';
-      if (target === 'admin') {
-        titleText = 'Admin Control Panel';
-        loadAdminPanel();
-      }
-      pageTitle.textContent = titleText;
-    });
+    } else {
+      btn.classList.remove('active');
+    }
   });
 
-  // Check if server is reachable (simulating offline mode)
-  setTimeout(() => {
-    localStatus.classList.remove('offline');
-    localStatus.classList.add('online');
-    localStatus.innerHTML = '<span class="status-dot"></span><span class="status-text">Hub Online (Offline-First)</span>';
-  }, 1500);
+  // 2. Horizontal pill tabs
+  document.querySelectorAll('.tab-pill-btn').forEach(tab => {
+    if (tab.dataset.view === target) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  // 3. Mobile bottom items
+  document.querySelectorAll('.mobile-nav-item').forEach(item => {
+    if (item.dataset.target === target) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  // 4. Update section visibility explicitly
+  document.querySelectorAll('.view-section').forEach(sec => {
+    if (sec.id === `view-${target}`) {
+      sec.classList.add('active');
+      sec.style.display = 'block';
+    } else {
+      sec.classList.remove('active');
+      sec.style.display = 'none';
+    }
+  });
+
+  // 5. Update sub-navigation pills
+  if (typeof updateSubNav === 'function') {
+    updateSubNav(target);
+  }
+
+  if (target === 'admin') {
+    loadAdminPanel();
+  }
+}
+
+// Expose globally for inline onclick handlers
+window.switchView = switchView;
+window.switchViewInternal = switchView;
+
+function initNavigation() {
+  const sidebarButtons = document.querySelectorAll('.nav-item-btn');
+  const horizontalTabs = document.querySelectorAll('.tab-pill-btn');
+  const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+
+  // Attach click listeners to all tab types
+  sidebarButtons.forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.target));
+  });
+
+  horizontalTabs.forEach(tab => {
+    tab.addEventListener('click', () => switchView(tab.dataset.view));
+  });
+
+  mobileNavItems.forEach(item => {
+    item.addEventListener('click', () => switchView(item.dataset.target));
+  });
+
+  mobileNavItems.forEach(item => {
+    item.addEventListener('click', () => switchView(item.dataset.target));
+  });
+
+  // Collapsible bottom widget triggers
+  const posWidget = document.getElementById('widget-toggle-pos');
+  if (posWidget) {
+    posWidget.addEventListener('click', () => switchView('vpa3'));
+  }
+
+  const secWidget = document.getElementById('widget-toggle-security');
+  if (secWidget) {
+    secWidget.addEventListener('click', () => switchView('vpa2'));
+  }
+
+  // Global Search Capsule Input Filtering
+  const searchInput = document.getElementById('global-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const rows = document.querySelectorAll('.visitor-table tbody tr, .widget-item-row');
+      rows.forEach(r => {
+        const txt = r.textContent.toLowerCase();
+        if (!q || txt.includes(q)) {
+          r.style.display = '';
+        } else {
+          r.style.display = 'none';
+        }
+      });
+    });
+  }
 }
 
 // Live Time display
@@ -1216,7 +1274,7 @@ function showLoginOverlay() {
 
 function hideLoginOverlay() {
   document.getElementById('auth-overlay').style.display = 'none';
-  document.getElementById('user-profile-drawer').style.display = 'block';
+  document.getElementById('user-profile-drawer').style.display = 'flex';
 }
 
 function showStepUpModal() {
@@ -1256,11 +1314,15 @@ async function checkActiveSession() {
       
       hideLoginOverlay();
       
-      // Show admin button conditionally
+      // Show admin controls conditionally for administrator role
+      const navAdmin = document.getElementById('nav-admin');
+      const tabAdmin = document.getElementById('tab-admin');
       if (user.role === 'admin') {
-        document.getElementById('nav-admin').style.display = 'flex';
+        if (navAdmin) navAdmin.style.display = 'flex';
+        if (tabAdmin) tabAdmin.style.display = 'inline-block';
       } else {
-        document.getElementById('nav-admin').style.display = 'none';
+        if (navAdmin) navAdmin.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
       }
       
       // Force change password overlay if must_change_password flag is set
@@ -1656,10 +1718,83 @@ async function loadAdminPanel() {
         }).join('');
       }
     }
+
+    // 3. Fetch Tracked Devices
+    const devicesBody = document.getElementById('admin-devices-table-body');
+    if (devicesBody) {
+      devicesBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px;">Loading network devices...</td></tr>`;
+      const devicesRes = await secureFetch("/api/admin/devices");
+      if (devicesRes.ok) {
+        const devices = await devicesRes.json();
+        document.getElementById('active-devices-kpi').textContent = `${devices.length} Device${devices.length !== 1 ? 's' : ''} Tracked`;
+        
+        if (devices.length === 0) {
+          devicesBody.innerHTML = `<tr><td colspan="7" style="text-align:center; font-style:italic; padding:20px;">No network devices recorded.</td></tr>`;
+        } else {
+          devicesBody.innerHTML = devices.map(d => {
+            const isBlocked = d.status === 'blocked';
+            const icon = d.device_type === 'Mobile' ? '📱' : (d.device_type === 'Tablet' ? '📱' : '💻');
+            const lastSeenStr = new Date(d.last_seen * 1000).toLocaleString();
+            
+            return `
+              <tr style="border-bottom:1px solid var(--border-light);">
+                <td style="padding:10px; font-weight:600; font-family:monospace; color:var(--accent);">${d.ip_address}</td>
+                <td style="padding:10px;">${icon} ${d.device_type}</td>
+                <td style="padding:10px; font-size:0.75rem; color:var(--text-muted); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${d.user_agent}">${d.user_agent}</td>
+                <td style="padding:10px; font-weight:500; color:var(--text-main);">${d.last_username}</td>
+                <td style="padding:10px; font-size:0.8rem; color:var(--text-muted);">${lastSeenStr}</td>
+                <td style="padding:10px;"><span class="pill-badge ${isBlocked ? 'disabled' : 'active'}">${d.status}</span></td>
+                <td style="padding:10px; text-align:center;">
+                  <button class="action-btn device-block-btn ${isBlocked ? '' : 'secondary'}" data-ip="${d.ip_address}" data-blocked="${isBlocked}" style="padding:4px 10px; font-size:0.75rem; min-height:28px; border-radius:6px; width:auto; cursor:pointer; ${isBlocked ? '' : 'color:var(--danger); border-color:var(--danger-glow);'}">
+                    ${isBlocked ? 'Unblock IP' : 'Block Device'}
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+          
+          devicesBody.querySelectorAll('.device-block-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const ip = btn.dataset.ip;
+              const isBlocked = btn.dataset.blocked === 'true';
+              handleDeviceBlockAction(ip, isBlocked);
+            });
+          });
+        }
+      }
+    }
   } catch (err) {
     console.error("Admin view load failed:", err);
   }
 }
+
+async function handleDeviceBlockAction(ipAddress, isCurrentlyBlocked) {
+  const action = isCurrentlyBlocked ? 'unblock' : 'block';
+  const url = `/api/admin/devices/${action}`;
+  
+  if (!isCurrentlyBlocked && !confirm(`Are you sure you want to block device IP '${ipAddress}'? All active sessions from this IP will be terminated immediately.`)) {
+    return;
+  }
+  
+  try {
+    const res = await secureFetch(url, {
+      method: "POST",
+      body: JSON.stringify({ ip_address: ipAddress, reason: "Blocked via Administrator Control Gateway" })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      alert(`Device action failed: ${data.detail}`);
+      return;
+    }
+    
+    alert(data.message);
+    loadAdminPanel();
+  } catch (err) {
+    alert("Connection lost while updating device status.");
+  }
+}
+
 
 async function handleUserManagementAction(userId, action) {
   try {
@@ -2820,5 +2955,55 @@ async function loadPosPromotions() {
     console.error(err);
   }
 }
+
+function initMobileNav() {
+  const hamburger = document.getElementById('btn-mobile-hamburger');
+  const sidebar = document.getElementById('app-sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  const collapseBtn = document.getElementById('btn-sidebar-collapse');
+  const mainContent = document.querySelector('.main-content');
+  
+  if (collapseBtn && sidebar && mainContent) {
+    collapseBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      mainContent.classList.toggle('collapsed-rail');
+    });
+  }
+  
+  const featuredBtn = document.getElementById('btn-sidebar-featured');
+  if (featuredBtn) {
+    featuredBtn.addEventListener('click', () => {
+      const vpa2Btn = document.getElementById('nav-vpa2');
+      if (vpa2Btn) vpa2Btn.click();
+    });
+  }
+  
+  if (!hamburger || !sidebar || !backdrop) return;
+  
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('mobile-open');
+    backdrop.classList.toggle('active');
+  });
+  
+  backdrop.addEventListener('click', () => {
+    sidebar.classList.remove('mobile-open');
+    backdrop.classList.remove('active');
+  });
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (window.innerWidth <= 768) {
+        sidebar.classList.remove('mobile-open');
+        backdrop.classList.remove('active');
+      }
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initMobileNav();
+});
+
+
 
 
