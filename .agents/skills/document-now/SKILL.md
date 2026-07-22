@@ -21,6 +21,18 @@ Execute this workflow immediately when the developer specifies:
 
 ## 2. Execution Workflow
 
+### Step 0: Collect System Date & Time Stamps
+Run the timestamp utility script to obtain authoritative, formatted system date and time strings:
+```bash
+python .agents/skills/document-now/scripts/get_timestamp.py
+```
+Use the JSON output values:
+- `file_prefix`: For progress filename `progress tracking/{file_prefix}_Description.md`.
+- `human_date_time`: For the `## Date & Time` section in the progress markdown file.
+- `git_prefix`: For constructing the Git commit header (`{git_prefix}: [Title] ([Codename] [Version])`).
+
+---
+
 ### Step 1: Analyze & Gather Progress
 Review the conversation transcript, git diffs, modified files, and recent prompt commands since the previous checkpoint to synthesize:
 1. **Description**: High-level summary of changes and architectural accomplishments.
