@@ -33,14 +33,22 @@ Use the JSON output values:
 
 ---
 
-### Step 1: Analyze & Gather Progress
+### Step 1: Analyze & Gather Progress & Validate Codename Uniqueness
 Review the conversation transcript, git diffs, modified files, and recent prompt commands since the previous checkpoint to synthesize:
 1. **Description**: High-level summary of changes and architectural accomplishments.
 2. **Progress**: Bullet points detailing specific technical, functional, and mathematical additions.
-3. **Version & Codename**: Select a unique Ndebele word as the version codename (verify against previously used codenames in `progress tracking/` logs to avoid duplicates).
-4. **Child-Friendly Explanation**: Write an English explanation of the version codename targeted at a 10-year-old child.
-5. **Child-Friendly Next Steps**: Write bullet points of future actions targeted at a 10-year-old child.
-6. **Development Attribution**: Credit `Peter Dube` and `Antigravity (AI Coding Assistant)` with their respective role allocations.
+3. **Next Version Number**: Compute the next version number by running:
+   ```bash
+   python .agents/skills/document-now/scripts/version_registry.py next-version
+   ```
+4. **Codename Uniqueness Check (Mandatory)**: Select a proposed Ndebele word as the version codename and run:
+   ```bash
+   python .agents/skills/document-now/scripts/version_registry.py check <proposed_codename>
+   ```
+   If `"unique": false` is returned, a different Ndebele word **MUST** be chosen and checked until `"unique": true` is returned!
+5. **Child-Friendly Explanation**: Write an English explanation of the version codename targeted at a 10-year-old child.
+6. **Child-Friendly Next Steps**: Write bullet points of future actions targeted at a 10-year-old child.
+7. **Development Attribution**: Credit `Peter Dube` and `Antigravity (AI Coding Assistant)` with their respective role allocations.
 
 ---
 
@@ -75,12 +83,11 @@ Create a new Markdown file inside the `progress tracking/` directory in the proj
 
 ---
 
-### Step 3: Update Version Registry (If Applicable)
-If a `Version and Codename Registry.md` file exists in the workspace or `progress tracking/` folder, append a new row to the table containing:
-- Version Number
-- Ndebele Codename & Meaning
-- Local Date & Time
-- Link to the created progress file
+### Step 3: Register Version in Registry Database via Python
+Execute the version registration script to append the new version details to `progress tracking/version_registry.json` and `progress tracking/Version_Registry.md`:
+```bash
+python .agents/skills/document-now/scripts/version_registry.py register <version> <codename> "<meaning>" "<date_str>" <filename>
+```
 
 ---
 

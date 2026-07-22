@@ -1,0 +1,163 @@
+[
+  {
+    "version": "1.0.0",
+    "codename": "Isisekelo",
+    "meaning": "",
+    "date": "2026-05-13 13:31",
+    "file": "2026-05-13_1331_Initial_Git_Setup.md"
+  },
+  {
+    "version": "1.0.1",
+    "codename": "Inqubo",
+    "meaning": "",
+    "date": "2026-05-13 13:48",
+    "file": "2026-05-13_1348_Chapter_3_Methodology_Planning.md"
+  },
+  {
+    "version": "1.0.2",
+    "codename": "Umnyango",
+    "meaning": "",
+    "date": "2026-05-13 13:54",
+    "file": "2026-05-13_1354_Chapter_3_Introduction_Development.md"
+  },
+  {
+    "version": "1.0.3",
+    "codename": "Umklamo",
+    "meaning": "",
+    "date": "2026-05-13 14:08",
+    "file": "2026-05-13_1408_Chapter_3_Research_Design_Development.md"
+  },
+  {
+    "version": "1.1.0",
+    "codename": "Ingatsha",
+    "meaning": "",
+    "date": "2026-05-13 15:19",
+    "file": "2026-05-13_1519_Side_Quests_System_Launch.md"
+  },
+  {
+    "version": "1.1.1",
+    "codename": "Umfanekiso",
+    "meaning": "",
+    "date": "2026-05-27 08:17",
+    "file": "2026-05-27_0817_Side_Quest_001_Metaphors.md"
+  },
+  {
+    "version": "1.2.0",
+    "codename": "Izidingo",
+    "meaning": "",
+    "date": "2026-05-27 09:18",
+    "file": "2026-05-27_0918_Chapter_3_System_Requirements.md"
+  },
+  {
+    "version": "1.3.0",
+    "codename": "Qaphela",
+    "meaning": "",
+    "date": "2026-05-29 13:13",
+    "file": "2026-05-29_1313_Cost_Reduction_Security_Gateway_Update.md"
+  },
+  {
+    "version": "1.4.0",
+    "codename": "Ukonga",
+    "meaning": "",
+    "date": "2026-05-29 13:49",
+    "file": "2026-05-29_1325_Mesh_POS_Mobile_Integration.md"
+  },
+  {
+    "version": "1.5.0",
+    "codename": "Umdwebo",
+    "meaning": "",
+    "date": "2026-05-29 13:56",
+    "file": "2026-05-29_1356_Chapter_3_System_Design.md"
+  },
+  {
+    "version": "1.6.0",
+    "codename": "Ukunisela",
+    "meaning": "",
+    "date": "2026-05-29 14:15",
+    "file": "2026-05-29_1415_Agri_Analytics_Watering_Pivot.md"
+  },
+  {
+    "version": "1.7.0",
+    "codename": "Ukunciphisa",
+    "meaning": "",
+    "date": "2026-05-29 14:45",
+    "file": "2026-05-29_1445_Remove_UPS_Power_Shield.md"
+  },
+  {
+    "version": "1.8.0",
+    "codename": "Izixhobo",
+    "meaning": "",
+    "date": "2026-05-29 16:15",
+    "file": "2026-05-29_1615_Tools_and_Materials_Used_Chapter.md"
+  },
+  {
+    "version": "1.9.0",
+    "codename": "Inqubo",
+    "meaning": "",
+    "date": "2026-05-29 16:30",
+    "file": "2026-05-29_1630_Development_Procedure_Chapter.md"
+  },
+  {
+    "version": "1.10.0",
+    "codename": "Ukuhlola",
+    "meaning": "",
+    "date": "2026-06-02 14:10",
+    "file": "2026-06-02_1410_Testing_Methods_Chapter.md"
+  },
+  {
+    "version": "1.11.0",
+    "codename": "Ukuphepha",
+    "meaning": "",
+    "date": "2026-06-02 14:40",
+    "file": "2026-06-02_1440_Ethical_and_Safety_Considerations_Chapter.md"
+  },
+  {
+    "version": "1.12.0",
+    "codename": "Umbiko",
+    "meaning": "",
+    "date": "2026-06-02 15:00",
+    "file": "2026-06-02_1500_Cost_Reduction_Memorandum_Kunene.md"
+  },
+  {
+    "version": "1.13.0",
+    "codename": "Childa",
+    "meaning": "",
+    "date": "2026-07-02 03:50",
+    "file": "2026-07-02_0350_Prototype_Shopping_List_and_Sourcing.md"
+  },
+  {
+    "version": "1.14.0",
+    "codename": "Engina",
+    "meaning": "",
+    "date": "2026-07-12 13:54",
+    "file": "2026-07-12_1354_Chapter_4_System_Design_and_Prototype.md"
+  },
+  {
+    "version": "1.15.0",
+    "codename": "Ukuhlela",
+    "meaning": "",
+    "date": "2026-07-17 15:00",
+    "file": "2026-07-17_1500_Scaled_Down_Prototype_Planning_VPA.md"
+  },
+  {
+    "version": "1.16.0",
+    "codename": "Ukusebenza",
+    "meaning": "",
+    "date": "2026-07-20 10:15",
+    "file": "2026-07-20_1015_Cycle_1_to_4_Web_App_Implementation.md"
+  },
+  {
+    "version": "1.17.0",
+    "codename": "Ukuqinisekisa",
+    "meaning": "To verify / To confirm / To validate",
+    "date": "Wednesday, 22 July 2026, 09:40 AM (local time)",
+    "file": "2026-07-22_0940_Document_Now_Skill_and_Verification.md"
+  },
+  {
+    "version": "1.18.0",
+    "codename": "Ukucinisa",
+    "meaning": "To strengthen / To make robust / To reinforce",
+    "date": "Wednesday, 22 July 2026, 09:49 AM (local time)",
+    "file": "2026-07-22_0949_Timestamp_Utility_Integration.md"
+  }
+]
