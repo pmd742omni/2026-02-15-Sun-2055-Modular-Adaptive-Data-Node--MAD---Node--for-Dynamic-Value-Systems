@@ -21,6 +21,20 @@ Execute this workflow immediately when the developer specifies:
 
 ## 2. Execution Workflow
 
+### Step -1: Zero-Config Self-Bootstrapping
+Before performing progress analysis or creating files, execute the workspace bootstrap command:
+```bash
+python .agents/skills/document-now/scripts/version_registry.py bootstrap
+```
+This command automatically:
+1. Detects the current project root directory dynamically.
+2. Creates the `progress tracking/` folder if it does not exist.
+3. Initializes `progress tracking/version_registry.json` and `progress tracking/Version_Registry.md` if missing.
+4. Checks Git repository status. If `git_initialized` is `false`, run `git init` to initialize Git version control.
+5. Returns `next_version` (defaults to `1.0.0` for brand-new projects) and `suggested_codename` (e.g., `Isisekelo` for initial foundation).
+
+---
+
 ### Step 0: Collect System Date & Time Stamps
 Run the timestamp utility script to obtain authoritative, formatted system date and time strings:
 ```bash
