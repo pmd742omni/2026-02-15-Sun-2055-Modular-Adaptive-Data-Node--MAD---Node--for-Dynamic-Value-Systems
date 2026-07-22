@@ -11,6 +11,159 @@
   <link rel="stylesheet" href="./index.css">
 </head>
 <body>
+  <!-- Fullscreen Glassmorphic Authentication Overlay -->
+  <div class="auth-overlay" id="auth-overlay" style="display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 15, 26, 0.85); backdrop-filter: blur(16px); z-index: 100; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
+    <!-- Card 1: Login Portal -->
+    <div class="auth-card" id="card-login" style="background: var(--surface-card); border: 1px solid var(--border-light); padding: 32px; border-radius: 16px; width: 380px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); text-align: left;">
+      <div class="auth-header" style="text-align: center; margin-bottom: 24px;">
+        <span class="logo-icon" style="font-size: 2rem; color: var(--accent); display: block; margin-bottom: 8px;">▲</span>
+        <h3 style="font-size: 1.4rem; margin-bottom: 4px; color: var(--text-main);">MADN Local Gateway</h3>
+        <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Offline Edge Node Session Authentication</p>
+      </div>
+      
+      <div class="auth-alert hidden" id="login-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
+      
+      <form id="form-login" onsubmit="return false;">
+        <div class="form-group">
+          <label for="login-username">Username</label>
+          <input type="text" id="login-username" class="form-input" placeholder="Enter username" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-input" placeholder="Enter password" required>
+        </div>
+        
+        <!-- MFA input (revealed conditionally if credentials match and MFA is set) -->
+        <div class="form-group hidden" id="login-mfa-group" style="display: none;">
+          <label for="login-mfa-token" class="color-success" style="font-weight: 600;">MFA Authenticator Code</label>
+          <input type="text" id="login-mfa-token" class="form-input" placeholder="6-digit code" maxlength="6">
+        </div>
+        
+        <button class="btn btn-primary" id="btn-login-submit" style="width: 100%; margin-top: 10px;">Authenticate Session</button>
+      </form>
+      
+      <div class="auth-footer" style="margin-top: 20px; text-align: center; font-size: 0.85rem;">
+        <span style="color: var(--text-muted);">New operator?</span>
+        <a href="#" id="link-goto-register" style="color: var(--accent); font-weight: 500; text-decoration: none; margin-left: 4px;">Request Account</a>
+      </div>
+    </div>
+    
+    <!-- Card 2: Self-Registration Portal -->
+    <div class="auth-card hidden" id="card-register" style="background: var(--surface-card); border: 1px solid var(--border-light); padding: 32px; border-radius: 16px; width: 380px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); text-align: left; display: none;">
+      <div class="auth-header" style="text-align: center; margin-bottom: 24px;">
+        <span class="logo-icon" style="font-size: 2rem; color: var(--accent); display: block; margin-bottom: 8px;">▲</span>
+        <h3 style="font-size: 1.4rem; margin-bottom: 4px; color: var(--text-main);">Request Operator Account</h3>
+        <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Submit credentials for admin approval</p>
+      </div>
+      
+      <div class="auth-alert hidden" id="register-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
+      <div class="auth-alert success hidden" id="register-success" style="background-color: var(--success-glow); color: var(--success); border: 1px solid var(--success); padding: 12px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
+      
+      <form id="form-register" onsubmit="return false;">
+        <div class="form-group">
+          <label for="register-username">Requested Username</label>
+          <input type="text" id="register-username" class="form-input" placeholder="e.g. operator3" required>
+        </div>
+        <div class="form-group">
+          <label for="register-password">Password (min 12 chars)</label>
+          <input type="password" id="register-password" class="form-input" placeholder="••••••••••••" required>
+        </div>
+        <div class="form-group">
+          <label for="register-confirm">Confirm Password</label>
+          <input type="password" id="register-confirm" class="form-input" placeholder="••••••••••••" required>
+        </div>
+        <button class="btn btn-primary" id="btn-register-submit" style="width: 100%; margin-top: 10px;">Submit Registration</button>
+      </form>
+      
+      <div class="auth-footer" style="margin-top: 20px; text-align: center; font-size: 0.85rem;">
+        <span style="color: var(--text-muted);">Back to safety?</span>
+        <a href="#" id="link-goto-login" style="color: var(--accent); font-weight: 500; text-decoration: none; margin-left: 4px;">Log In</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Common Modals Container (MFA enrollment & Password changes) -->
+  <div class="auth-overlay hidden" id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 15, 26, 0.85); backdrop-filter: blur(16px); z-index: 150; align-items: center; justify-content: center;">
+    <!-- Modal 1: Change Password Modal (Mandatory or Voluntary) -->
+    <div class="auth-card" id="modal-change-password" style="background: var(--surface-card); border: 1px solid var(--border-light); padding: 32px; border-radius: 16px; width: 380px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); text-align: left; display: none;">
+      <div class="auth-header" style="text-align: center; margin-bottom: 24px;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: var(--text-main);">Update Account Password</h3>
+        <p class="auth-subtitle" id="change-pw-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Verify your current credentials and select a strong new passphrase</p>
+      </div>
+      <div class="auth-alert hidden" id="change-pw-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
+      <form id="form-change-password" onsubmit="return false;">
+        <div class="form-group">
+          <label for="change-pw-current">Current Password</label>
+          <input type="password" id="change-pw-current" class="form-input" placeholder="••••••••••••" required>
+        </div>
+        <div class="form-group">
+          <label for="change-pw-new">New Password (min 12 chars)</label>
+          <input type="password" id="change-pw-new" class="form-input" placeholder="••••••••••••" required>
+        </div>
+        <div class="form-group">
+          <label for="change-pw-confirm">Confirm New Password</label>
+          <input type="password" id="change-pw-confirm" class="form-input" placeholder="••••••••••••" required>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <button class="btn" id="btn-change-pw-cancel" style="flex-grow: 1; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border-light); border-radius: 12px; cursor: pointer;">Cancel</button>
+          <button class="btn btn-primary" id="btn-change-pw-submit" style="flex-grow: 1;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal 2: Step-Up Authentication Modal (Privilege Elevation) -->
+    <div class="auth-card" id="modal-step-up" style="background: var(--surface-card); border: 1px solid var(--border-light); padding: 32px; border-radius: 16px; width: 380px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); text-align: left; display: none;">
+      <div class="auth-header" style="text-align: center; margin-bottom: 24px;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: var(--danger);">Elevate Privileges</h3>
+        <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Verify credentials to authorize this operation</p>
+      </div>
+      <div class="auth-alert hidden" id="step-up-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
+      <form id="form-step-up" onsubmit="return false;">
+        <div class="form-group">
+          <label for="step-up-password">Administrator Password</label>
+          <input type="password" id="step-up-password" class="form-input" placeholder="••••••••••••" required>
+        </div>
+        <div class="form-group hidden" id="step-up-mfa-group" style="display: none;">
+          <label for="step-up-mfa-token">MFA Authenticator Code</label>
+          <input type="text" id="step-up-mfa-token" class="form-input" placeholder="6-digit code" maxlength="6">
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <button class="btn" id="btn-step-up-cancel" style="flex-grow: 1; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border-light); border-radius: 12px; cursor: pointer;">Cancel</button>
+          <button class="btn btn-primary" id="btn-step-up-submit" style="flex-grow: 1; background-color: var(--danger); border-color: var(--danger);">Confirm Action</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal 3: MFA Setup/Enrollment Modal -->
+    <div class="auth-card" id="modal-mfa-setup" style="background: var(--surface-card); border: 1px solid var(--border-light); padding: 32px; border-radius: 16px; width: 380px; max-width: 90%; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); text-align: left; display: none;">
+      <div class="auth-header" style="text-align: center; margin-bottom: 24px;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: var(--text-main);">MFA Setup (TOTP)</h3>
+        <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Scan the custom QR grid below or enter the key into your authenticator app.</p>
+      </div>
+      <div class="auth-alert hidden" id="mfa-setup-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
+      
+      <div style="text-align: center; background: white; padding: 10px; border-radius: 8px; margin: 16px auto; width: 140px; height: 140px; border: 1px solid var(--border-light);" id="mfa-qr-box">
+        <canvas id="mfa-qr-canvas" width="120" height="120"></canvas>
+      </div>
+      
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; text-transform: uppercase; margin-bottom: 4px;">MFA Secret Key</span>
+        <code id="mfa-secret-val" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: 1px; word-break: break-all;">Loading...</code>
+      </div>
+      
+      <form id="form-mfa-verify" onsubmit="return false;">
+        <div class="form-group">
+          <label for="mfa-verify-code">Confirm 6-digit Authenticator Code</label>
+          <input type="text" id="mfa-verify-code" class="form-input" placeholder="e.g. 123456" maxlength="6" required>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <button class="btn" id="btn-mfa-cancel" style="flex-grow: 1; background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border-light); border-radius: 12px; cursor: pointer;">Cancel</button>
+          <button class="btn btn-primary" id="btn-mfa-submit" style="flex-grow: 1;">Complete Setup</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="app-container">
     
     <!-- Left Interaction Zone: Navigation Sidebar -->
@@ -40,9 +193,28 @@
           <span class="btn-icon">🪙</span>
           <span class="btn-text">Point of Sale</span>
         </button>
+        <button class="nav-btn hidden" data-target="admin" aria-selected="false" id="nav-admin" style="display: none;">
+          <span class="btn-icon">⚙</span>
+          <span class="btn-text">Admin Control</span>
+        </button>
       </nav>
       
       <div class="sidebar-footer">
+        <div class="user-profile-card hidden" id="user-profile-drawer" style="margin-bottom: 16px; display: none; background: var(--bg-main); border: 1px solid var(--border-light); padding: 12px; border-radius: 8px; width: 100%;">
+          <div class="profile-header" style="display: flex; align-items: center; gap: 8px;">
+            <div class="user-avatar" id="user-avatar-pic" style="width: 32px; height: 32px; border-radius: 50%; background: var(--accent-glow); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem;">U</div>
+            <div class="user-meta" style="flex-grow: 1; text-align: left;">
+              <span class="user-name" id="profile-username" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main);">Username</span>
+              <span class="pill-badge info" id="profile-role" style="font-size: 0.65rem; padding: 1px 6px;">Operator</span>
+            </div>
+          </div>
+          <div class="profile-actions" style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">
+            <button class="action-btn text-left secondary" id="btn-open-mfa" style="padding: 6px 12px; font-size: 0.75rem; min-height: 28px; width: 100%; border-radius: 6px; cursor: pointer;">Set Up MFA (TOTP)</button>
+            <button class="action-btn text-left secondary" id="btn-open-change-pw" style="padding: 6px 12px; font-size: 0.75rem; min-height: 28px; width: 100%; border-radius: 6px; cursor: pointer;">Change Password</button>
+            <button class="action-btn text-left secondary" id="btn-logout" style="padding: 6px 12px; font-size: 0.75rem; min-height: 28px; width: 100%; color: var(--danger); border-color: var(--danger-glow); border-radius: 6px; cursor: pointer;">Logout</button>
+          </div>
+        </div>
+        
         <div class="connection-pill offline" id="local-status">
           <span class="status-dot"></span>
           <span class="status-text">Hub Offline Mode</span>
@@ -212,6 +384,233 @@
                 </div>
               </div>
             </div>
+            
+            <!-- VPA 1.2: Symptom Diagnostic Tree -->
+            <div class="focus-block diagnostic-wizard-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>VPA 1.2: Interactive Symptom Diagnostic Tree</h3>
+                <span class="pill-badge info">Local Diagnostics</span>
+              </div>
+              
+              <div class="diagnostic-grid">
+                <!-- Interaction Zone: Wizard Controls -->
+                <div class="interaction-card" id="diag-wizard-card">
+                  <h4 id="diag-step-title">Select Diagnostics Category</h4>
+                  
+                  <div class="diag-wizard-content" id="diag-wizard-body">
+                    <!-- Step 1: Crop vs Livestock -->
+                    <div class="diag-step active" id="diag-step-root">
+                      <p class="wizard-help-text" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 20px;">Select the agricultural asset type you are troubleshooting to load the diagnostic decision tree.</p>
+                      <div class="option-buttons-grid" style="display: flex; flex-direction: column; gap: 12px;">
+                        <button class="action-btn text-left" data-choice="crops">Crop Issues (Yellowing, Wilting)</button>
+                        <button class="action-btn text-left" data-choice="livestock">Livestock Issues (Lethargy, Coughing)</button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="wizard-nav-footer hidden" id="diag-nav-footer" style="margin-top: 24px; display: flex; gap: 12px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+                    <button class="btn" id="btn-diag-back" style="flex-grow: 1; background-color: var(--surface-card); color: var(--text-main); border: 1px solid var(--border-light);">← Back</button>
+                    <button class="btn" id="btn-diag-reset" style="flex-grow: 1; background-color: var(--surface-card); color: var(--danger); border: 1px solid var(--border-light);">Reset Wizard</button>
+                  </div>
+                </div>
+                
+                <!-- Viewing Zone: Outcome Summary -->
+                <div class="display-card">
+                  <h4>Diagnostic Diagnosis & Remedy</h4>
+                  <div class="recommendation-box" id="diag-outcome-box" style="min-height: 200px;">
+                    <p class="neutral-message">Complete the diagnostic questionnaire steps in the interaction zone to view the generated plant/animal diagnosis and recommended treatment procedures.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- VPA 1.3: Agricultural Decision Support & Estimator -->
+            <div class="focus-block agronomy-estimator-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>VPA 1.3: Farm Feed & Yield Decision Support</h3>
+                <span class="pill-badge info">Scenario Forecasting</span>
+              </div>
+              
+              <div class="diagnostic-grid">
+                <!-- Left: Interactive Estimator Inputs -->
+                <div class="interaction-card">
+                  <h4 style="margin-top: 0; color: var(--text-main);">Estimator Model Parameters</h4>
+                  
+                  <!-- Toggle Calculator Type -->
+                  <div class="form-group">
+                    <label for="estimator-type">Calculation Model</label>
+                    <select id="estimator-type" class="form-input">
+                      <option value="crop_yield">Crop Yield Scenario Forecast</option>
+                      <option value="herd_feed">Herd Feed Intake Calculator</option>
+                    </select>
+                  </div>
+                  
+                  <!-- Crop Yield Section -->
+                  <div id="est-crop-group">
+                    <div class="form-group">
+                      <label for="est-plot-size">Plot Dimensions (Square Feet)</label>
+                      <input type="number" id="est-plot-size" class="form-input" value="1000" min="1">
+                    </div>
+                    <div class="form-group">
+                      <label for="est-soil-class">Soil Classification</label>
+                      <select id="est-soil-class" class="form-input">
+                        <option value="clay_loam">Clay-Loam (Optimal: 1.0)</option>
+                        <option value="silt">Silt (Moderate: 0.9)</option>
+                        <option value="sandy">Sandy (Low Retention: 0.8)</option>
+                      </select>
+                    </div>
+                    <!-- Rainfall Anomaly Slider -->
+                    <div class="form-group">
+                      <div style="display: flex; justify-content: space-between;">
+                        <label for="est-rainfall-slider">Rainfall Anomaly ("What-If")</label>
+                        <span id="est-rainfall-percent" style="font-size: 0.85rem; color: var(--accent); font-weight: 600;">Average (0%)</span>
+                      </div>
+                      <input type="range" id="est-rainfall-slider" min="-50" max="50" value="0" class="rssi-slider" style="margin-top: 8px;">
+                      <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">Slide left for drought scenarios, right for flood surplus.</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Herd Feed Section -->
+                  <div id="est-herd-group" class="hidden" style="display: none;">
+                    <div class="form-group">
+                      <label for="est-animal-count">Animal Count (Herd Size)</label>
+                      <input type="number" id="est-animal-count" class="form-input" value="10" min="1">
+                    </div>
+                    <div class="form-group">
+                      <label for="est-avg-weight">Average Body Weight (kg)</label>
+                      <input type="number" id="est-avg-weight" class="form-input" value="350" min="1">
+                    </div>
+                    <div class="form-group">
+                      <label for="est-growth-stage">Production/Growth Stage</label>
+                      <select id="est-growth-stage" class="form-input">
+                        <option value="lactating_dairy">Lactating Dairy Cow (High Intake: 1.3)</option>
+                        <option value="dry_cow">Dry Mature Cow (Standard: 1.0)</option>
+                        <option value="calf">Calf / Young Livestock (Low Intake: 0.5)</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <button class="btn btn-primary" id="btn-run-estimator" style="width: 100%; margin-top: 10px;">Run Prediction & Save Snapshot</button>
+                </div>
+                
+                <!-- Right: Prediction Outcomes & History -->
+                <div class="display-card">
+                  <h4 style="color: var(--text-main);">Forecast Calculations & Historical Runs</h4>
+                  
+                  <div class="recommendation-box" id="est-outputs-box" style="margin-bottom: 20px; border-color: var(--border-light); min-height: 100px;">
+                    <p class="neutral-message">Run the calculator model to output prediction results.</p>
+                  </div>
+                  
+                  <h5>Previous Scenarios History (Saved Snapshot)</h5>
+                  <div class="visitor-ledger-container" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px; margin-top: 10px;">
+                    <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                      <thead>
+                        <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--surface-card); color: var(--text-muted);">
+                          <th style="padding: 8px;">Date</th>
+                          <th style="padding: 8px;">Model</th>
+                          <th style="padding: 8px;">Inputs</th>
+                          <th style="padding: 8px; text-align: right;">Output</th>
+                        </tr>
+                      </thead>
+                      <tbody id="est-history-tbody">
+                        <tr>
+                          <td colspan="4" style="padding: 10px; text-align: center; color: var(--text-muted); font-style: italic;">No estimator history found.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VPA 1.4: Compound Agronomy Rules & Harvest Work Orders Lifecycle -->
+            <div class="focus-block agronomy-rules-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>VPA 1.4: Compound Agronomy Rules & Harvest Work Orders</h3>
+                <span class="pill-badge warning">Automation & Cross-VPA Spoilage Control</span>
+              </div>
+              
+              <div class="diagnostic-grid">
+                <!-- Left: Compound Rule Builder & Evaluate Trigger -->
+                <div class="interaction-card">
+                  <h4 style="margin-top: 0; color: var(--text-main);">Create Compound Rule</h4>
+                  
+                  <div class="form-group">
+                    <label for="rule-title">Rule Title</label>
+                    <input type="text" id="rule-title" class="form-input" placeholder="e.g. Extreme Heatwave Spoilage Warning">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="rule-crop">Target Crop Type</label>
+                    <select id="rule-crop" class="form-input">
+                      <option value="Cabbage">Cabbage (Perishable Leafy)</option>
+                      <option value="Maize">Maize (Cereal Grain)</option>
+                      <option value="Tomatoes">Tomatoes (High Moisture)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="rule-action-type">Action Category</label>
+                    <select id="rule-action-type" class="form-input">
+                      <option value="advisory">Advisory (UI Warning + Spawns Harvest Order & POS Flash Sale)</option>
+                      <option value="actuator">Actuator Relay (Closed-Loop Timed Valve Control)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="rule-action-message">Notification Message</label>
+                    <input type="text" id="rule-action-message" class="form-input" placeholder="e.g. Severe heatwave detected: Cabbage spoilage risk in 24h.">
+                  </div>
+                  
+                  <!-- Sensor Inputs Simulation & Evaluation -->
+                  <div style="background-color: var(--surface-card); border: 1px solid var(--border-light); padding: 12px; border-radius: 8px; margin-top: 15px;">
+                    <h5 style="margin-top: 0; margin-bottom: 10px; color: var(--accent);">Sensor Telemetry Simulation</h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                      <div>
+                        <label style="font-size: 0.75rem;">Ambient Temp (°C)</label>
+                        <input type="number" id="sensor-temp" class="form-input" value="34.5">
+                      </div>
+                      <div>
+                        <label style="font-size: 0.75rem;">Soil Moisture (%)</label>
+                        <input type="number" id="sensor-moisture" class="form-input" value="18.0">
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-primary" id="btn-save-rule" style="flex: 1;">Save Rule</button>
+                    <button class="btn" id="btn-evaluate-rules" style="flex: 1; background: var(--surface-card); color: var(--accent); border: 1px solid var(--accent);">Evaluate Sensors</button>
+                  </div>
+                </div>
+                
+                <!-- Right: Active Rules & Harvest Work Orders Lifecycle -->
+                <div class="display-card">
+                  <h4 style="color: var(--text-main);">Harvest Work Orders Lifecycle (`Triggered` → `POS_Listed`)</h4>
+                  <div class="visitor-ledger-container" style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px; margin-bottom: 20px;">
+                    <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                      <thead>
+                        <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--surface-card); color: var(--text-muted);">
+                          <th style="padding: 8px;">Order ID</th>
+                          <th style="padding: 8px;">Crop</th>
+                          <th style="padding: 8px;">Spoilage Cutoff</th>
+                          <th style="padding: 8px;">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="harvest-orders-tbody">
+                        <tr>
+                          <td colspan="4" style="padding: 10px; text-align: center; color: var(--text-muted); font-style: italic;">No active harvest orders.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <h4 style="color: var(--text-main);">Active Compound Rules List</h4>
+                  <div id="rules-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+                    <!-- Dynamically populated rules cards -->
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
         
@@ -232,10 +631,17 @@
               
               <div class="security-layout">
                 <!-- SVG Viewing Zone (F/Z reading path) -->
-                <div class="map-viewing-card">
-                  <h4>Physical Perimeter Monitored Zones</h4>
-                  <div class="svg-container">
-                    <svg viewBox="0 0 600 350" class="perimeter-svg" id="perimeter-map">
+                <div class="map-viewing-card" style="position: relative;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0;">Physical Perimeter Monitored Zones & Pointer Drag</h4>
+                    <button class="btn" id="btn-toggle-heatmap" style="padding: 4px 10px; font-size: 0.75rem; background: var(--surface-card); color: var(--accent); border: 1px solid var(--accent);">Toggle Signal Heatmap</button>
+                  </div>
+                  
+                  <div class="svg-container" style="position: relative;">
+                    <!-- Canvas Coverage Heatmap Overlay -->
+                    <canvas id="heatmap-canvas" width="600" height="350" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity:0; transition: opacity 0.3s ease; border-radius: 8px; z-index: 1;"></canvas>
+                    
+                    <svg viewBox="0 0 600 350" class="perimeter-svg" id="perimeter-map" style="position: relative; z-index: 2;">
                       <!-- Grid Background -->
                       <defs>
                         <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
@@ -246,31 +652,54 @@
                       
                       <!-- Boundaries -->
                       <rect x="50" y="50" width="500" height="250" rx="10" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="2" stroke-dasharray="8 4" />
-                      <text x="60" y="45" fill="rgba(255, 255, 255, 0.4)" font-size="12" font-weight="bold">Outer Boundary</text>
+                      <text x="60" y="45" fill="rgba(255, 255, 255, 0.4)" font-size="12" font-weight="bold">Outer Boundary (500m Canvas Field)</text>
                       
-                      <!-- Node 1 (Agri-Analytics Zone) -->
-                      <g class="map-node-group" id="map-node1">
-                        <circle cx="180" cy="175" r="45" fill="rgba(255, 255, 255, 0.02)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
-                        <circle cx="180" cy="175" r="10" class="node-center offline" id="map-node1-dot" />
-                        <text x="180" y="240" text-anchor="middle" class="node-label" fill="rgba(255,255,255,0.7)">Pico Node 1 (Agri-Field)</text>
+                      <!-- Obstacles (R*Tree Indexed) -->
+                      <!-- Obstacle 1: Grain Silo (Metal: -25 dBm) -->
+                      <g class="map-obstacle" id="obstacle-silo">
+                        <rect x="180" y="87" width="90" height="52" rx="4" fill="rgba(239, 68, 68, 0.15)" stroke="var(--danger)" stroke-width="1.5" stroke-dasharray="4 2" />
+                        <text x="225" y="117" text-anchor="middle" fill="var(--danger)" font-size="10" font-weight="bold">Grain Silo (-25 dBm)</text>
+                      </g>
+                      <!-- Obstacle 2: Wooden Barn (Wood: -8 dBm) -->
+                      <g class="map-obstacle" id="obstacle-barn">
+                        <rect x="360" y="192" width="90" height="52" rx="4" fill="rgba(245, 158, 11, 0.15)" stroke="var(--warning)" stroke-width="1.5" stroke-dasharray="4 2" />
+                        <text x="405" y="222" text-anchor="middle" fill="var(--warning)" font-size="10" font-weight="bold">Barn (-8 dBm)</text>
+                      </g>
+
+                      <!-- Fresnel Line Clearance Lines & Mesh Hop Lines -->
+                      <line id="fresnel-node1" x1="300" y1="175" x2="120" y2="100" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6" />
+                      <line id="fresnel-node2" x1="300" y1="175" x2="480" y2="290" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6" />
+
+                      <!-- Draggable Node 1 -->
+                      <g class="map-node-group draggable" id="map-node1" style="cursor: grab;">
+                        <circle cx="120" cy="100" r="16" fill="rgba(16, 185, 129, 0.2)" stroke="var(--success)" stroke-width="2" id="map-node1-dot" />
+                        <text x="120" y="95" text-anchor="middle" class="node-label" fill="#fff" font-size="11" font-weight="bold">Node 1</text>
+                        <text x="120" y="130" text-anchor="middle" id="node1-rssi-maplabel" fill="var(--success)" font-size="9">-58 dBm</text>
                       </g>
                       
-                      <!-- Node 2 (Security Gate Zone) -->
-                      <g class="map-node-group" id="map-node2">
-                        <circle cx="420" cy="175" r="45" fill="rgba(255, 255, 255, 0.02)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1" />
-                        <circle cx="420" cy="175" r="10" class="node-center offline" id="map-node2-dot" />
-                        <text x="420" y="240" text-anchor="middle" class="node-label" fill="rgba(255,255,255,0.7)">Pico Node 2 (Gatehouse)</text>
+                      <!-- Draggable Node 2 -->
+                      <g class="map-node-group draggable" id="map-node2" style="cursor: grab;">
+                        <circle cx="480" cy="290" r="16" fill="rgba(245, 158, 11, 0.2)" stroke="var(--warning)" stroke-width="2" id="map-node2-dot" />
+                        <text x="480" y="285" text-anchor="middle" class="node-label" fill="#fff" font-size="11" font-weight="bold">Node 2</text>
+                        <text x="480" y="320" text-anchor="middle" id="node2-rssi-maplabel" fill="var(--warning)" font-size="9">-82 dBm</text>
                       </g>
-                      
+
                       <!-- Central Vault Hub -->
                       <g class="vault-hub">
                         <rect x="280" y="155" width="40" height="40" rx="8" fill="var(--surface-card)" stroke="var(--accent)" stroke-width="2" />
                         <text x="300" y="145" text-anchor="middle" class="hub-label" fill="var(--accent)" font-weight="bold">Vault Hub</text>
-                        <!-- Connection Links -->
-                        <line x1="280" y1="175" x2="190" y2="175" class="map-link offline" id="link-node1" stroke-dasharray="5 5" />
-                        <line x1="320" y1="175" x2="410" y2="175" class="map-link offline" id="link-node2" stroke-dasharray="5 5" />
                       </g>
                     </svg>
+                  </div>
+
+                  <!-- 24H Digital Twin Simulator Scrubber -->
+                  <div style="margin-top: 15px; background: var(--surface-card); border: 1px solid var(--border-light); padding: 12px; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                      <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);">24H Digital Twin Simulator Timeline</span>
+                      <span id="twin-time-val" style="font-size: 0.85rem; color: var(--accent); font-family: monospace; font-weight: 600;">12:00 PM (Midday Solar)</span>
+                    </div>
+                    <input type="range" id="digital-twin-scrubber" min="0" max="24" value="12" step="1" class="rssi-slider" style="width: 100%;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">Scrub time to simulate battery drain, temperature swings, and signal path propagation.</span>
                   </div>
                 </div>
                 
@@ -307,6 +736,167 @@
                 </div>
               </div>
             </div>
+            
+            <!-- VPA 2.2: Local QR Code Credential Generator & Scanner -->
+            <div class="focus-block qr-credential-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>VPA 2.2: Local QR Code Credential Generator & Scanner</h3>
+                <span class="pill-badge info" id="visitor-count-badge">0 Guests Scanned</span>
+              </div>
+              
+              <div class="security-layout">
+                <!-- Interaction Zone: Badge Generator -->
+                <div class="map-controls-card">
+                  <h4>Pre-Register Guest & Issue Badge</h4>
+                  <div class="form-group">
+                    <label for="visitor-name">Guest Full Name</label>
+                    <input type="text" id="visitor-name" class="form-input" placeholder="e.g. John Ncube">
+                  </div>
+                  <div class="form-group">
+                    <label for="visitor-id">National ID Number</label>
+                    <input type="text" id="visitor-id" class="form-input" placeholder="e.g. 08-123456A78">
+                  </div>
+                  <div class="form-group">
+                    <label for="visitor-hours">Allocated Access Duration (Hours)</label>
+                    <input type="number" id="visitor-hours" class="form-input" min="1" max="24" value="4">
+                  </div>
+                  <button class="btn btn-primary" id="btn-generate-badge" style="width: 100%;">Generate Digital QR Badge</button>
+                  
+                  <!-- Canvas QR Representation -->
+                  <div class="qr-canvas-wrapper hidden" id="qr-result-box" style="margin-top: 24px; text-align: center;">
+                    <h5>Scan this Badge at Gateway</h5>
+                    <canvas id="qr-code-canvas" width="160" height="160" style="background: white; padding: 10px; border-radius: 8px; margin: 12px auto; display: block; border: 1px solid var(--border-light);"></canvas>
+                    <p class="qr-payload-text" id="qr-payload-val" style="font-size: 0.75rem; color: var(--text-muted); word-break: break-all; font-family: monospace;"></p>
+                  </div>
+                </div>
+                
+                <!-- Viewing & Action Zone: Scanner & Ledger -->
+                <div class="map-viewing-card">
+                  <h4>Perimeter Access Scanner & Logs</h4>
+                  
+                  <div class="scanner-simulation-box">
+                    <div class="scanner-viewfinder" style="border: 2px dashed var(--accent); border-radius: 8px; padding: 20px; text-align: center; background-color: var(--surface-card); margin-bottom: 20px;">
+                      <p class="scanner-placeholder-msg" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Local Hotspot Camera Gateway</p>
+                      
+                      <!-- Action: Simulate Scan -->
+                      <button class="action-btn" id="btn-scan-sim" style="max-width: 240px; margin: 0 auto; display: block;">Simulate Badge Scan</button>
+                    </div>
+                  </div>
+                  
+                  <h5>Active Visitor Entry Logs</h5>
+                  <div class="visitor-ledger-container" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px;">
+                    <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                      <thead>
+                        <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--surface-card); color: var(--text-muted);">
+                          <th style="padding: 10px;">Guest Name</th>
+                          <th style="padding: 10px;">Check In</th>
+                          <th style="padding: 10px;">Duration</th>
+                          <th style="padding: 10px;">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="visitor-ledger-body">
+                        <tr>
+                          <td colspan="4" style="padding: 15px; text-align: center; color: var(--text-muted); font-style: italic;">No visitors checked in today.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- VPA 2.3: Guard Shift Handover & Duty Ledger -->
+            <div class="focus-block guard-handover-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>VPA 2.3: Authenticated Guard Shift Handover</h3>
+                <span class="pill-badge success" id="security-chain-badge">Handover Chain Audited</span>
+              </div>
+              
+              <div class="pos-grid">
+                <!-- Left: Shift Transfer Form -->
+                <div class="pos-checkout-card">
+                  <h4 style="margin-top: 0; color: var(--text-main);">Shift Handover Verification</h4>
+                  <form id="form-shift-handover" onsubmit="return false;">
+                    <div class="form-group">
+                      <label for="ho-incoming-guard">Incoming Guard Username</label>
+                      <input type="text" id="ho-incoming-guard" class="form-input" placeholder="e.g. operator1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="ho-incoming-pin">Incoming Guard PIN (4-Digit Verification)</label>
+                      <input type="password" id="ho-incoming-pin" class="form-input" placeholder="••••" maxlength="4" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                      <div class="form-group">
+                        <label for="ho-shift-type">Shift Schedule</label>
+                        <select id="ho-shift-type" class="form-input">
+                          <option value="day">Day Shift (06:00 - 18:00)</option>
+                          <option value="night">Night Shift (18:00 - 06:00)</option>
+                        </select>
+                      </div>
+                      
+                      <div class="form-group">
+                        <label for="ho-severity">Triage Severity Status</label>
+                        <select id="ho-severity" class="form-input">
+                          <option value="green_routine">🟢 Green: Routine/Normal</option>
+                          <option value="amber_minor">🟡 Amber: Minor Incidents</option>
+                          <option value="red_critical">🔴 Red: Critical Escalation</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="ho-events-summary">Shift Events & Incidents Summary</label>
+                      <textarea id="ho-events-summary" class="form-input" style="height: 80px; resize: none;" placeholder="Note lock status, key transfers, gate heartbeats, or alerts..." required></textarea>
+                    </div>
+                    
+                    <!-- Multi-Currency Cash Drawer Reconciliation counts -->
+                    <div class="rates-inputs" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 12px;">
+                      <h5 style="margin-bottom: 8px; color: var(--text-main);">Cash Drawer Reconciliation (Counted Cash)</h5>
+                      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <div class="form-group">
+                          <label style="font-size: 0.75rem;">Counted USD</label>
+                          <input type="number" id="ho-cash-usd" class="form-input text-right" value="0.00" step="0.01">
+                        </div>
+                        <div class="form-group">
+                          <label style="font-size: 0.75rem;">Counted ZAR</label>
+                          <input type="number" id="ho-cash-zar" class="form-input text-right" value="0.00" step="0.01">
+                        </div>
+                        <div class="form-group">
+                          <label style="font-size: 0.75rem;">Counted ZWG</label>
+                          <input type="number" id="ho-cash-zwg" class="form-input text-right" value="0.00" step="0.01">
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="btn-submit-handover" style="width: 100%; margin-top: 10px;">Authorize Transfer of Duty</button>
+                  </form>
+                </div>
+                
+                <!-- Right: Handover Ledger Logs Directory -->
+                <div class="pos-receipt-card">
+                  <h4 style="color: var(--text-main);">Chronological Shift Transfer Reports</h4>
+                  <div class="visitor-ledger-container" style="max-height: 420px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px;">
+                    <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                      <thead>
+                        <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--surface-card); color: var(--text-muted);">
+                          <th style="padding: 10px; width: 110px;">Timestamp</th>
+                          <th style="padding: 10px;">Guards (Out → In)</th>
+                          <th style="padding: 10px; width: 80px;">Severity</th>
+                          <th style="padding: 10px;">Summary Details</th>
+                        </tr>
+                      </thead>
+                      <tbody id="ho-logs-tbody">
+                        <tr>
+                          <td colspan="4" style="padding: 15px; text-align: center; color: var(--text-muted); font-style: italic;">No shift handovers logged.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
         
@@ -325,6 +915,19 @@
                 <span class="pill-badge success">Ledger Secured</span>
               </div>
               
+              <!-- VPA 3.4: Continuous Spoilage Markdown & Dynamic Pricing Banner -->
+              <div id="vpa34-flash-sale-banner" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.15)); border: 1px solid var(--danger); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h4 style="margin: 0; color: var(--danger); font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 1.1rem;">🔥</span> Cross-VPA Perishable Flash Sale Active!
+                  </h4>
+                  <p id="flash-sale-desc" style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--text-main);">
+                    Crop Spoilage Warning: Continuous decay markdown active (Up to 60% Off, Cost Floor Protected). Anti-hoarding limit: 3 cases per customer.
+                  </p>
+                </div>
+                <span class="pill-badge danger" id="flash-sale-timer-badge">Continuous Markdown</span>
+              </div>
+
               <div class="pos-grid">
                 <!-- Inputs Section (Action/Interaction Zone) -->
                 <div class="pos-checkout-card">
@@ -344,10 +947,45 @@
                     </div>
                   </div>
                   
-                  <div class="cart-total-setup">
-                    <div class="form-group">
-                      <label for="cart-amount-usd">Total Amount (USD)</label>
-                      <input type="number" id="cart-amount-usd" value="10.00" min="0.01" step="0.01" class="form-input large-input text-right">
+                  <div class="cart-total-setup" style="border-bottom: 1px solid var(--border-light); padding-bottom: 16px; margin-bottom: 16px;">
+                    <div style="display: flex; gap: 8px;">
+                      <div class="form-group" style="flex-grow: 2;">
+                        <label for="pos-product-select">Select Product</label>
+                        <select id="pos-product-select" class="form-input">
+                          <option value="">Loading products...</option>
+                        </select>
+                      </div>
+                      <div class="form-group" style="width: 80px;">
+                        <label for="pos-product-qty">Qty</label>
+                        <input type="number" id="pos-product-qty" class="form-input text-right" value="1" min="1">
+                      </div>
+                      <div style="display: flex; align-items: flex-end; margin-bottom: 10px;">
+                        <button class="btn btn-primary" id="btn-pos-add-item" style="padding: 8px 12px; min-height: 38px;">Add</button>
+                      </div>
+                    </div>
+                    
+                    <!-- Cart List Table -->
+                    <div class="visitor-ledger-container" style="max-height: 120px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 6px; margin-top: 8px;">
+                      <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem;">
+                        <thead>
+                          <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--surface-card); stroke: var(--border-light); color: var(--text-muted);">
+                            <th style="padding: 6px;">Product</th>
+                            <th style="padding: 6px; text-align: right; width: 60px;">Price</th>
+                            <th style="padding: 6px; text-align: right; width: 50px;">Qty</th>
+                            <th style="padding: 6px; text-align: right; width: 70px;">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody id="pos-cart-tbody">
+                          <tr>
+                            <td colspan="4" style="padding: 10px; text-align: center; color: var(--text-muted); font-style: italic;">Cart is empty.</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 12px;">
+                      <label for="cart-amount-usd">Invoice Total Due (USD)</label>
+                      <input type="number" id="cart-amount-usd" value="0.00" class="form-input large-input text-right" readonly style="background-color: var(--surface-card); color: var(--accent);">
                     </div>
                   </div>
                   
@@ -430,9 +1068,224 @@
                 </div>
               </div>
             </div>
+            
+            <!-- VPA 3.2: Interactive Sales Analytics & Visualizer -->
+            <div class="focus-block sales-analytics-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>VPA 3.2: Interactive Sales Analytics & Visualizer</h3>
+                <span class="pill-badge info" id="pos-analytics-badge">0 sales today</span>
+              </div>
+              
+              <div class="pos-grid">
+                <!-- Viewing Zone: Hourly Sales Trend Canvas -->
+                <div class="pos-checkout-card">
+                  <h4>Hourly Sales Volume (USD equivalent)</h4>
+                  <div class="chart-canvas-wrapper" style="background-color: var(--surface-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border-light);">
+                    <canvas id="sales-chart-canvas" width="450" height="240" style="width: 100%; display: block;"></canvas>
+                  </div>
+                </div>
+                
+                <!-- Action / Viewing Zone: Sales Aggregates & KPIs -->
+                <div class="pos-receipt-card">
+                  <h4>Business Performance Metrics</h4>
+                  
+                  <div class="kpi-metrics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                    <div class="kpi-metric-item" style="background-color: var(--surface-card); padding: 16px; border-radius: 10px; border: 1px solid var(--border-light); text-align: center;">
+                      <span class="kpi-value" id="kpi-total-revenue" style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--accent);">$0.00</span>
+                      <span class="kpi-label" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-top: 4px;">Total Revenue</span>
+                    </div>
+                    <div class="kpi-metric-item" style="background-color: var(--surface-card); padding: 16px; border-radius: 10px; border: 1px solid var(--border-light); text-align: center;">
+                      <span class="kpi-value" id="kpi-total-sales" style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--success);">0</span>
+                      <span class="kpi-label" style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-top: 4px;">Sales Count</span>
+                    </div>
+                  </div>
+                  
+                  <h5>Collected Currencies Distribution</h5>
+                  <div class="currency-distribution-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="currency-dist-row" style="display: flex; justify-content: space-between; font-size: 0.9rem; background-color: var(--surface-card); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-light);">
+                      <span>USD Cash Reserve:</span>
+                      <span class="value-bold" id="dist-usd-val" style="font-family: var(--font-display); font-weight: 600; color: var(--text-main);">$0.00</span>
+                    </div>
+                    <div class="currency-dist-row" style="display: flex; justify-content: space-between; font-size: 0.9rem; background-color: var(--surface-card); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-light);">
+                      <span>ZAR Cash Reserve:</span>
+                      <span class="value-bold" id="dist-zar-val" style="font-family: var(--font-display); font-weight: 600; color: var(--text-main);">R0.00</span>
+                    </div>
+                    <div class="currency-dist-row" style="display: flex; justify-content: space-between; font-size: 0.9rem; background-color: var(--surface-card); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-light);">
+                      <span>ZWG Cash Reserve:</span>
+                      <span class="value-bold" id="dist-zwg-val" style="font-family: var(--font-display); font-weight: 600; color: var(--text-main);">0.00 ZWG</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- VPA 3.3: Inventory Directory & Stock Alerts -->
+            <div class="focus-block inventory-monitor-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>VPA 3.3: POS Inventory & Low-Stock Alerts</h3>
+                <span class="pill-badge info">Local Stockroom</span>
+              </div>
+              
+              <div class="diagnostic-grid">
+                <!-- Left: Stock Item Registry & Wastage Controls -->
+                <div class="interaction-card">
+                  <h4 style="margin-top: 0; color: var(--text-main);">Log Spoilage / Stock Adjustments</h4>
+                  <form id="form-stock-adjust" onsubmit="return false;">
+                    <div class="form-group">
+                      <label for="sa-item-select">Select Inventory Item</label>
+                      <select id="sa-item-select" class="form-input">
+                        <option value="">Loading items...</option>
+                      </select>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="sa-type">Adjustment Action</label>
+                      <select id="sa-type" class="form-input">
+                        <option value="wastage">Log Spoilage / Wastage Loss</option>
+                        <option value="replenish">Replenish / Add Quantities</option>
+                      </select>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="sa-qty">Quantity</label>
+                      <input type="number" id="sa-qty" class="form-input" value="1.0" min="0.1" step="0.1">
+                    </div>
+                    
+                    <div class="form-group" id="sa-reason-group">
+                      <label for="sa-reason">Reason Code</label>
+                      <select id="sa-reason" class="form-input">
+                        <option value="spoiled">Spoiled / Perished Product</option>
+                        <option value="damaged">Damaged Cargo / Broken Container</option>
+                        <option value="expired">Expired Date Limit</option>
+                      </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="btn-adjust-stock" style="width: 100%;">Record Inventory Change</button>
+                  </form>
+                  
+                  <div style="margin-top: 24px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+                    <button class="action-btn text-left" id="btn-reorder-manifest" style="width: 100%;">📋 Generate Low-Stock Reorder Manifest</button>
+                  </div>
+                </div>
+                
+                <!-- Right: Active Inventory Directory List -->
+                <div class="display-card">
+                  <h4 style="color: var(--text-main);">Active Inventory Stock Ledger</h4>
+                  <div class="visitor-ledger-container" style="max-height: 380px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px;">
+                    <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                      <thead>
+                        <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--surface-card); color: var(--text-muted);">
+                          <th style="padding: 10px;">Item Name</th>
+                          <th style="padding: 10px; width: 80px;">SKU</th>
+                          <th style="padding: 10px; text-align: right; width: 90px;">Stock</th>
+                          <th style="padding: 10px; text-align: right; width: 80px;">Price</th>
+                          <th style="padding: 10px; text-align: center; width: 100px;">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="inventory-tbody">
+                        <tr>
+                          <td colspan="5" style="padding: 15px; text-align: center; color: var(--text-muted); font-style: italic;">Loading inventory...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
         
+        <!-- View: Admin Control Panel -->
+        <section id="view-admin" class="view-section" aria-hidden="true">
+          <div class="view-header-desc">
+            <h2>Administrator Control Gateway</h2>
+            <p>Approve pending accounts, manage user roles, audit cryptographic logs, and check security chain verification.</p>
+          </div>
+          
+          <div class="vpa-container">
+            <div class="focus-block user-management-block">
+              <div class="card-header">
+                <h3>User Accounts & Credentials Control</h3>
+                <span class="pill-badge info" id="active-user-kpi">0 Users</span>
+              </div>
+              
+              <div class="diagnostic-grid">
+                <!-- Left: Create User Account -->
+                <div class="interaction-card">
+                  <h4>Create User Account</h4>
+                  <form id="form-create-user" onsubmit="return false;">
+                    <div class="form-group">
+                      <label for="create-username">Username</label>
+                      <input type="text" id="create-username" class="form-input" placeholder="e.g. operator2" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="create-password">Initial Password (min 12 chars)</label>
+                      <input type="password" id="create-password" class="form-input" placeholder="••••••••••••" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="create-role">User Role</label>
+                      <select id="create-role" class="form-input">
+                        <option value="operator">Operator (Default)</option>
+                        <option value="admin">Administrator</option>
+                      </select>
+                    </div>
+                    <button class="btn btn-primary" id="btn-create-user-submit" style="width: 100%;">Create Account</button>
+                  </form>
+                </div>
+                
+                <!-- Right: Active Users List Table -->
+                <div class="display-card" style="overflow-x: auto;">
+                  <h4>Registered Users Directory</h4>
+                  <div class="visitor-ledger-container" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px;">
+                    <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                      <thead>
+                        <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--surface-card); color: var(--text-muted);">
+                          <th style="padding: 10px;">Username</th>
+                          <th style="padding: 10px;">Role</th>
+                          <th style="padding: 10px;">Status</th>
+                          <th style="padding: 10px; text-align: center;">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="admin-users-table-body">
+                        <!-- Filled dynamically in app.js -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Audit Logs Chained Block -->
+            <div class="focus-block audit-log-block" style="margin-top: 40px;">
+              <div class="card-header">
+                <h3>Tamper-Evident Chained Audit Logs</h3>
+                <span class="pill-badge success" id="audit-integrity-badge">Audit Chain Verified</span>
+              </div>
+              
+              <div style="background-color: var(--surface-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-light);">
+                <h4>Chained Audit Log Trail (Latest 50 Entries)</h4>
+                
+                <div class="visitor-ledger-container" style="max-height: 350px; overflow-y: auto; border: 1px solid var(--border-light); border-radius: 8px; margin-top: 12px;">
+                  <table class="visitor-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem; font-family: monospace;">
+                    <thead>
+                      <tr style="border-bottom: 1px solid var(--border-light); background-color: var(--bg-main); color: var(--text-muted);">
+                        <th style="padding: 8px; width: 60px;">Seq</th>
+                        <th style="padding: 8px; width: 140px;">Timestamp</th>
+                        <th style="padding: 8px; width: 90px;">Actor</th>
+                        <th style="padding: 8px; width: 120px;">Action</th>
+                        <th style="padding: 8px;">Details</th>
+                        <th style="padding: 8px; width: 160px;">Chained Record Hash</th>
+                      </tr>
+                    </thead>
+                    <tbody id="admin-audit-table-body">
+                      <!-- Filled dynamically in app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   </div>

@@ -550,14 +550,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Grid & Layout systems for VPAs */
-.scheduler-grid, .security-layout, .pos-grid {
+.scheduler-grid, .security-layout, .pos-grid, .diagnostic-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 32px;
 }
 
 @media (max-width: 900px) {
-  .scheduler-grid, .security-layout, .pos-grid {
+  .scheduler-grid, .security-layout, .pos-grid, .diagnostic-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -787,7 +787,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 .slider-group {
@@ -1039,4 +1039,222 @@ h1, h2, h3, h4, h5, h6 {
     margin-left: 0;
     padding: 20px;
   }
+}
+
+/* --- CYCLE 2 STYLING --- */
+.diagnostic-wizard-block .action-btn {
+  text-align: left;
+}
+
+.visitor-ledger-container::-webkit-scrollbar {
+  width: 6px;
+}
+.visitor-ledger-container::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+.visitor-table tr {
+  transition: background-color var(--transition-speed) ease;
+}
+.visitor-table tr:hover {
+  background-color: var(--surface-card-hover);
+}
+
+.kpi-metric-item {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+.kpi-metric-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+/* --- AUTHENTICATION & OVERLAYS STYLING --- */
+.auth-overlay {
+  transition: opacity 0.3s ease;
+}
+.auth-card {
+  border: 1px solid var(--border-light);
+  background: var(--surface-card);
+  backdrop-filter: blur(8px);
+  transform: scale(0.95);
+  animation: authFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes authFadeIn {
+  to {
+    transform: scale(1);
+  }
+}
+
+.auth-subtitle {
+  font-family: var(--font-body);
+}
+
+.auth-alert {
+  font-weight: 500;
+  transition: all 0.2s ease;
+  animation: shakeAlert 0.4s ease;
+}
+
+@keyframes shakeAlert {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.user-profile-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideUpProfile 0.3s ease;
+}
+
+@keyframes slideUpProfile {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.user-avatar {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* User Status Badges */
+.pill-badge.active {
+  background-color: var(--success-glow);
+  color: var(--success);
+}
+.pill-badge.pending {
+  background-color: var(--warning-glow);
+  color: var(--warning);
+}
+.pill-badge.disabled {
+  background-color: var(--danger-glow);
+  color: var(--danger);
+}
+
+/* Forensic Mode UI Cue */
+body.forensics-active {
+  border: 4px solid var(--danger);
+}
+
+/* Cycle 3 Enhancements */
+
+/* Static accessible inventory badges */
+.badge-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.badge-stock.safe {
+  background-color: var(--success-glow);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.badge-stock.warning {
+  background-color: var(--warning-glow);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+}
+
+.badge-stock.danger {
+  background-color: var(--danger-glow);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+/* Keyboard Hotkey KBD element style */
+kbd {
+  background-color: var(--surface-card-hover);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  color: var(--text-main);
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: bold;
+  line-height: 1;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+/* Triage Severity Indicators */
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 8px;
+  text-transform: capitalize;
+}
+
+.severity-badge.green_routine {
+  background-color: var(--success-glow);
+  color: var(--success);
+}
+
+.severity-badge.amber_minor {
+  background-color: var(--warning-glow);
+  color: var(--warning);
+}
+
+.severity-badge.red_critical {
+  background-color: var(--danger-glow);
+  color: var(--danger);
+}
+
+/* Form layout adjustment for sliders */
+.rssi-slider {
+  accent-color: var(--accent);
+}
+
+/* CYCLE 4 STYLES */
+.map-node-group.draggable {
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.05s ease-out;
+}
+
+.map-node-group.draggable:active, .map-node-group.dragging {
+  cursor: grabbing;
+}
+
+.map-node-group circle {
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.work-order-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.work-order-status.triggered {
+  background-color: var(--danger-glow);
+  color: var(--danger);
+}
+
+.work-order-status.assigned {
+  background-color: var(--warning-glow);
+  color: var(--warning);
+}
+
+.work-order-status.harvested {
+  background-color: var(--info-glow);
+  color: var(--info);
+}
+
+.work-order-status.pos_listed {
+  background-color: var(--success-glow);
+  color: var(--success);
 }
