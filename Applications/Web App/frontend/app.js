@@ -112,26 +112,67 @@ function switchView(target) {
   }
 }
 
+function switchDashboardSubView(subId) {
+  document.querySelectorAll('.dash-subview').forEach(view => {
+    if (view.id === subId) {
+      view.classList.add('active');
+      view.style.display = 'block';
+    } else {
+      view.classList.remove('active');
+      view.style.display = 'none';
+    }
+  });
+}
+
+function handleSubNavClick(mainTarget, subId, btnEl) {
+  // 1. Maintain main navigation active glow in left sidebar
+  document.querySelectorAll('.nav-item-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.target === mainTarget);
+  });
+  document.querySelectorAll('.mobile-nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.target === mainTarget);
+  });
+
+  // 2. Maintain active section visibility
+  document.querySelectorAll('.view-section').forEach(sec => {
+    const isActive = (sec.id === `view-${mainTarget}`);
+    sec.classList.toggle('active', isActive);
+    sec.style.display = isActive ? 'block' : 'none';
+  });
+
+  // 3. Highlight clicked subnav pill button
+  const bar = document.getElementById('subnav-pill-bar');
+  if (bar) {
+    bar.querySelectorAll('.tab-pill-btn').forEach(b => b.classList.remove('active'));
+  }
+  if (btnEl) {
+    btnEl.classList.add('active');
+  }
+
+  // 4. Toggle subviews or scroll
+  if (mainTarget === 'dashboard') {
+    switchDashboardSubView(subId);
+  } else {
+    const el = document.getElementById(subId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+}
+
 // Expose globally for inline onclick handlers
 window.switchView = switchView;
 window.switchViewInternal = switchView;
+window.switchDashboardSubView = switchDashboardSubView;
+window.handleSubNavClick = handleSubNavClick;
 
 function initNavigation() {
   const sidebarButtons = document.querySelectorAll('.nav-item-btn');
-  const horizontalTabs = document.querySelectorAll('.tab-pill-btn');
   const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
 
-  // Attach click listeners to all tab types
+  // Attach click listeners to main navigation items only
   sidebarButtons.forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.target));
-  });
-
-  horizontalTabs.forEach(tab => {
-    tab.addEventListener('click', () => switchView(tab.dataset.view));
-  });
-
-  mobileNavItems.forEach(item => {
-    item.addEventListener('click', () => switchView(item.dataset.target));
   });
 
   mobileNavItems.forEach(item => {

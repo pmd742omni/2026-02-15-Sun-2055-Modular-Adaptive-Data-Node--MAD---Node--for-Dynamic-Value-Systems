@@ -130,10 +130,12 @@ class TestMADNSecurity(unittest.TestCase):
         self.assertEqual(rows[1]["prev_hash"], rows[0]["record_hash"])
         self.assertEqual(rows[2]["prev_hash"], rows[1]["record_hash"])
         
+        import hmac
+        hmac_key = os.environ.get("MADN_HMAC_SECRET", "default_secret_key_12345!").encode('utf-8')
         # Verify hashes mathematically
         for r in rows:
             payload = f"{r['prev_hash']}:{r['seq']}:{r['nonce']}:{r['timestamp']}:{r['actor']}:{r['action']}:{r['details']}"
-            expected_hash = hashlib.sha256(payload.encode('utf-8')).hexdigest()
+            expected_hash = hmac.new(hmac_key, payload.encode('utf-8'), hashlib.sha256).hexdigest()
             self.assertEqual(r["record_hash"], expected_hash)
             
         # Simulate an attacker tampering with entry 2 in the database file
@@ -148,7 +150,7 @@ class TestMADNSecurity(unittest.TestCase):
         # Chain verification: check if recalculating row 2 matches its stored hash
         r2 = hacked_rows[1]
         payload = f"{r2['prev_hash']}:{r2['seq']}:{r2['nonce']}:{r2['timestamp']}:{r2['actor']}:{r2['action']}:{r2['details']}"
-        recalculated_hash_2 = hashlib.sha256(payload.encode('utf-8')).hexdigest()
+        recalculated_hash_2 = hmac.new(hmac_key, payload.encode('utf-8'), hashlib.sha256).hexdigest()
         
         # Check that a tamper event is detected!
         self.assertNotEqual(r2["record_hash"], recalculated_hash_2)
