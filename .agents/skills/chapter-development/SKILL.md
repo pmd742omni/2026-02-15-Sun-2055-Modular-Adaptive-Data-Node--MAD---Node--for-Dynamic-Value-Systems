@@ -22,8 +22,8 @@ Execute this workflow whenever the developer specifies:
 
 ### Target Directory
 All chapter Markdown files **MUST** be written to the standard chapters folder:
-`2026-03-30 Mon 0833 Chapters/` (relative to workspace root) or:
-`c:\Users\ignaz\OneDrive\Documents\Projects\2026-02-15 Sun 2055 Modular Adaptive Data Node (MAD - Node) for Dynamic Value Systems\2026-03-30 Mon 0833 Chapters\`
+`01_Documentation_and_Thesis/Chapters/` (relative to workspace root) or:
+`c:\Users\ignaz\OneDrive\Documents\Projects\2026-02-15 Sun 2055 Modular Adaptive Data Node (MAD - Node) for Dynamic Value Systems\01_Documentation_and_Thesis\Chapters\`
 
 ### Real Machine Timestamp Requirement
 - Every chapter file **MUST** begin with an authoritative local machine timestamp prefix: `YYYY-MM-DD HHMM`.
@@ -68,7 +68,7 @@ When drafting chapter contents, enforce strict academic and technical standards:
 - **Contextual Alignment**: Emphasize MADN's operating environment in Sub-Saharan Africa (Bulawayo and Tsholotsho), off-grid power resilience, local Wi-Fi micro-cloud autonomy, multi-currency tri-ledger (USD/ZAR/ZWG), and *Ukunciphisa* cost reduction parameters (93%+ capital savings).
 
 ### Step 4: File Publishing
-1. Generate each sub-section Markdown file in `2026-03-30 Mon 0833 Chapters/` prefixed with the acquired Python machine timestamp.
+1. Generate each sub-section Markdown file in `01_Documentation_and_Thesis/Chapters/` prefixed with the acquired Python machine timestamp.
 2. Generate the unified complete chapter file combining all sub-sections.
 3. Verify file paths using `list_dir`.
 
