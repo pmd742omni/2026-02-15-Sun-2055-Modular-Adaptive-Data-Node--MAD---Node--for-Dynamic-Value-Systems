@@ -19,3 +19,10 @@ Whenever the user states **"develop chapter"**, **"write chapter"**, **"create c
 3. Audit codebase, backend test results, system internals, math models, and hardware benchmarks.
 4. Output individual sub-section files (`YYYY-MM-DD HHMM 5.X Section Title.md`) and a unified compiled chapter file (`YYYY-MM-DD HHMM Chapter X_ Title.md`) into `01_Documentation_and_Thesis/Chapters/`.
 
+## Tri-Node Architecture & Composable RBAC Standard
+1. **Operator Node**: Zero-installation web client executing in modern browsers (:8000). Handles dynamic pricing views, touch POS, peer-to-peer transfers, and live receipt vault lookups.
+2. **Data Node**: Standalone storage and discovery service (:8002) broadcasting periodic UDP multicast heartbeats (224.0.0.251:8001). Provides localized key-value cache and offline store replication.
+3. **Vault Node**: Security coordinator and multi-currency tri-ledger (:8000) enforcing scrypt/TOTP credentials, SQLite WAL concurrency (`BEGIN IMMEDIATE`), and HMAC-SHA256 bearer signatures.
+4. **Automated Verification Matrix**: Always execute the full test suite (`pytest test_customer_banking.py test_business_operators.py test_multibiz_and_vouchers.py test_stage1_core.py -v`) before creating documentation or thesis updates.
+
+

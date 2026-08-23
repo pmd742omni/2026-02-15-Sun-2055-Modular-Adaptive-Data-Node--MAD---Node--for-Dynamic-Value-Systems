@@ -57,10 +57,11 @@ graph TD
   - Provide a responsive VisionPro glassmorphic Single Page Application (SPA) compatible with any modern mobile or desktop browser.
   - Dynamically render views and navigation pills based on active user roles: `admin`, `agronomist`, `guard`, `merchant`, `customer`, and `guest`.
   - Secure authentication via `scrypt` password hashing, RFC 6238 TOTP two-factor authentication, CSRF double-submit cookies, and 15-minute step-up privileged elevation.
-* **FR3: Manual Agricultural Lifecycle Tracking**:
+* **FR3: Manual Agricultural Lifecycle & Production Cost Accounting**:
   - **Planting Log**: Capture Crop Name/Variety, Plot/Bed Identifier, Planting Timestamp, Seeding Density ($\text{seeds}/\text{m}^2$), Target Maturity Date, and Initial Soil Hydration.
-  - **Harvest Log**: Capture Crop ID, Harvest Timestamp, Total Harvested Mass ($\text{kg}$ or $\text{tons}$), Harvest Quality Grade (Grade A/B/C), and Storage Facility.
-  - **Yield Disposition Allocation**: Interactive allocation splitting harvest mass between **Self-Consumption** (subsistence/community reserve) and **Composable Enterprise POS Sales**.
+  - **Production Cost Accounting**: Itemize production expenditures throughout the cycle: seeds ($C_{\text{seeds}}$), fertilizers ($C_{\text{fert}}$), irrigation fuel/power ($C_{\text{water}}$), field/harvesting labor ($C_{\text{labor}}$), pest control ($C_{\text{pest}}$), packaging ($C_{\text{pack}}$), and logistics ($C_{\text{logistics}}$) to compute $C_{\text{total}}$.
+  - **Harvest Log & Allocation**: Capture Harvest Timestamp, Total Mass $M_{\text{harvest}}$ ($\text{kg}$), Quality Grade, Storage Location, and split between **Self-Consumption** $M_{\text{self}}$ and **Commercial POS Sales** $M_{\text{comm}}$.
+  - **Automated Price Derivation**: Calculate wholesale unit cost floor $P_{\text{cost}} = \frac{C_{\text{total}}}{M_{\text{comm}}}$ and base listing price $P_{\text{base}} = P_{\text{cost}} \cdot (1 + \mu_{\text{target}})$ automatically.
 * **FR4: Manual Security Gatekeeping & Visitor Management**:
   - **Visitor Access Form**: Record National ID/Passport Number, Full Name, Time In (`time_in`), Time Out (`time_out`), Destination Environment (Main Office, Crop Silos, Farm Quadrant B, Machine Shed), Purpose of Visit, Escort/Host Officer Name, and Status (`Active`, `Checked-Out`, `Overstay Flagged`).
   - Searchable real-time visitor registry accessible offline during power blackouts.

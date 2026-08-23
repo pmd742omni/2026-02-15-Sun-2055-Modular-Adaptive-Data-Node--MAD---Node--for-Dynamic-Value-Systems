@@ -740,3 +740,279 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 10px;
 }
+
+/* =====================================================================
+   STAGE 1 CORE: ROLE SELECTOR & BADGES
+   ===================================================================== */
+.role-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-capsule);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+.role-badge-admin { background: rgba(124, 77, 255, 0.2); color: #b388ff; border-color: rgba(124, 77, 255, 0.4); }
+.role-badge-agronomist { background: rgba(0, 230, 118, 0.2); color: #69f0ae; border-color: rgba(0, 230, 118, 0.4); }
+.role-badge-guard { background: rgba(0, 229, 255, 0.2); color: #18ffff; border-color: rgba(0, 229, 255, 0.4); }
+.role-badge-merchant { background: rgba(255, 171, 0, 0.2); color: #ffd740; border-color: rgba(255, 171, 0, 0.4); }
+.role-badge-customer { background: rgba(236, 72, 153, 0.2); color: #f472b6; border-color: rgba(236, 72, 153, 0.4); }
+.role-badge-guest { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.4); }
+
+.role-switcher-select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-capsule);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.role-switcher-select:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--accent-cyan);
+}
+
+/* =====================================================================
+   STAGE 1 CORE: CLUSTER & DATA NODE TOPOLOGY CARDS
+   ===================================================================== */
+.cluster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.node-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.node-card:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 229, 255, 0.15);
+}
+.node-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.node-status-online {
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
+  animation: pulse-green 2s infinite;
+}
+.node-status-offline {
+  background: var(--danger);
+  box-shadow: 0 0 8px var(--danger);
+}
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.7); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(0, 230, 118, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+}
+
+/* =====================================================================
+   STAGE 1 CORE: HYBRID SOCIAL MEDIA HUB (4-IN-1)
+   ===================================================================== */
+.social-stories-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 8px 2px 14px 2px;
+}
+.story-bubble {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.story-ring {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #f59e0b, #ec4899, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+.story-bubble:hover .story-ring {
+  transform: scale(1.06);
+}
+.story-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #141a26;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.story-author-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  max-width: 65px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.social-feed-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.social-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.2s ease;
+}
+.social-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.social-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.social-card-author-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.social-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.social-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: color 0.15s ease;
+}
+.social-action-btn:hover {
+  color: var(--accent-cyan);
+}
+.social-carousel-container {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin: 12px 0;
+  border-radius: 14px;
+}
+.social-carousel-img {
+  max-height: 240px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* =====================================================================
+   STAGE 1 CORE: DYNAMIC EXPONENTIAL DECAY POS TICKER
+   ===================================================================== */
+.decay-price-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(0, 229, 255, 0.06);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+.decay-live-price {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+.decay-discount-tag {
+  display: inline-block;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+.decay-floor-active-tag {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+/* =====================================================================
+   PRINT & THERMAL RECEIPT SLIP STYLING (58mm / 80mm ESC/POS)
+   ===================================================================== */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #modal-thermal-receipt, #modal-thermal-receipt * {
+    visibility: visible;
+  }
+  #modal-thermal-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 8px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  #modal-thermal-receipt h3,
+  #modal-thermal-receipt p,
+  #modal-thermal-receipt span,
+  #modal-thermal-receipt td,
+  #modal-thermal-receipt th,
+  #modal-thermal-receipt code,
+  #modal-thermal-receipt strong {
+    color: #000000 !important;
+  }
+  #modal-thermal-receipt button {
+    display: none !important;
+  }
+  #receipt-qr-wrapper {
+    background: #ffffff !important;
+    margin: 8px auto !important;
+  }
+}
+

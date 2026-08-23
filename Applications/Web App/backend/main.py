@@ -18,8 +18,18 @@ try:
         add_inventory_item, adjust_inventory_qty, log_wastage,
         execute_checkout_transaction, write_shift_handover, verify_shift_handover_chain,
         get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices,
-        track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices
+        track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices,
+        compute_production_cost_and_base_price, calculate_continuous_decay_price, calculate_mixed_tender_change,
+        create_planting, list_plantings, log_production_costs, get_production_costs,
+        log_harvest_and_sync_inventory, list_harvests, list_dispositions,
+        checkin_visitor, checkout_visitor, list_visitors, get_active_visitors,
+        create_social_post, list_social_posts, add_social_comment, get_social_comments, tip_social_post,
+        create_business, get_all_businesses, get_business_by_id,
+        mint_offline_voucher, verify_and_redeem_voucher, get_voucher_by_id, generate_receipt_data,
+        assign_business_operator, get_business_operators, get_operator_permissions, revoke_business_operator, has_business_permission,
+        create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts
     )
+    from .node_discovery import discovery_manager
     from .auth_utils import (
         verify_password,
         hash_password,
@@ -35,8 +45,18 @@ except ImportError:
         add_inventory_item, adjust_inventory_qty, log_wastage,
         execute_checkout_transaction, write_shift_handover, verify_shift_handover_chain,
         get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices,
-        track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices
+        track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices,
+        compute_production_cost_and_base_price, calculate_continuous_decay_price, calculate_mixed_tender_change,
+        create_planting, list_plantings, log_production_costs, get_production_costs,
+        log_harvest_and_sync_inventory, list_harvests, list_dispositions,
+        checkin_visitor, checkout_visitor, list_visitors, get_active_visitors,
+        create_social_post, list_social_posts, add_social_comment, get_social_comments, tip_social_post,
+        create_business, get_all_businesses, get_business_by_id,
+        mint_offline_voucher, verify_and_redeem_voucher, get_voucher_by_id, generate_receipt_data,
+        assign_business_operator, get_business_operators, get_operator_permissions, revoke_business_operator, has_business_permission,
+        create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts
     )
+    from node_discovery import discovery_manager
     from auth_utils import (
         verify_password,
         hash_password,
@@ -59,13 +79,18 @@ DUMMY_HASH = "0000000000000000000000000000000000000000000000000000000000000000"
 app = FastAPI(
     title="MADN Offline Hub API",
     description="Offline-first API running locally on the Raspberry Pi 4 Vault hub.",
-    version="1.0.0"
+    version="1.1.0"
 )
 
-# Startup DB initializations
+# Startup & Shutdown Initializations
 @app.on_event("startup")
 def startup_event():
     init_db()
+    discovery_manager.start()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    discovery_manager.stop()
 
 # Security Headers, Device Tracking & Content-Security-Policy (CSP) Middleware
 @app.middleware("http")
@@ -949,31 +974,72 @@ async def adjust_stock_wastage(item_id: str, request: Request, current_user = De
 @app.post("/api/pos/checkout", dependencies=[Depends(get_current_user)])
 async def pos_checkout(request: Request, current_user = Depends(get_current_user)):
     # 1. Capture Idempotency Key from request headers
-    client_req_id = request.headers.get("X-Client-Request-Id")
-    if not client_req_id:
-        raise HTTPException(status_code=400, detail="Missing X-Client-Request-Id header for transaction idempotency")
+    client_req_id = request.headers.get("X-Client-Request-Id") or f"req-{uuid.uuid4().hex[:12]}"
         
     body = await request.json()
     total_due = float(body.get("total_due_usd", 0.0))
     tenders = body.get("tenders", [])
     items = body.get("items", [])
+    business_id = body.get("business_id", "biz-green-valley")
+    issue_voucher = bool(body.get("issue_voucher_change", False))
+    vouch_amount = float(body.get("voucher_change_amount", 0.0) or 0.0)
+    vouch_curr = body.get("voucher_change_currency", "ZWG")
+
+    # If simple items format used (e.g. cart_items + tendered_usd)
+    cart_items = body.get("cart_items", [])
+    if cart_items and not items:
+        items = []
+        db = get_db()
+        for ci in cart_items:
+            cursor = db.execute("SELECT id, price_usd FROM inventory WHERE id = ?", (ci["id"],))
+            row = cursor.fetchone()
+            if row:
+                items.append({
+                    "inventory_id": row["id"],
+                    "quantity": float(ci["qty"]),
+                    "price_usd_at_sale": float(row["price_usd"])
+                })
+        db.close()
+        total_due = sum(i["quantity"] * i["price_usd_at_sale"] for i in items)
+
+        # Build tenders from tendered amounts if provided
+        t_usd = float(body.get("tendered_usd", 0.0) or 0.0)
+        t_zar = float(body.get("tendered_zar", 0.0) or 0.0)
+        t_zwg = float(body.get("tendered_zwg", 0.0) or 0.0)
+        tenders = []
+        if t_usd > 0:
+            tenders.append({"currency": "USD", "amount_tendered": t_usd, "exchange_rate": 1.0, "amount_usd_equiv": t_usd})
+        if t_zar > 0:
+            tenders.append({"currency": "ZAR", "amount_tendered": t_zar, "exchange_rate": 18.5, "amount_usd_equiv": round(t_zar / 18.5, 2)})
+        if t_zwg > 0:
+            tenders.append({"currency": "ZWG", "amount_tendered": t_zwg, "exchange_rate": 26.5, "amount_usd_equiv": round(t_zwg / 26.5, 2)})
+        if not tenders:
+            tenders.append({"currency": "USD", "amount_tendered": total_due, "exchange_rate": 1.0, "amount_usd_equiv": total_due})
     
     if not items or not tenders:
         raise HTTPException(status_code=400, detail="Tenders and items lists are required")
         
-    # Validate split totals
-    tenders_total = sum(float(t["amount_usd_equiv"]) for t in tenders)
-    if abs(tenders_total - total_due) > 0.01:
-         raise HTTPException(status_code=400, detail=f"Tenders total equivalent (${tenders_total:.2f}) does not match invoice total (${total_due:.2f})")
-         
+    customer_user = body.get("customer_username")
+    payment_method = body.get("payment_method", "cash")
+
     try:
         response_data = execute_checkout_transaction(
             operator_username=current_user["username"],
             total_due=total_due,
             client_req_id=client_req_id,
             tenders=tenders,
-            items=items
+            items=items,
+            business_id=business_id,
+            issue_voucher_change=issue_voucher,
+            voucher_change_amount=vouch_amount,
+            voucher_change_currency=vouch_curr,
+            customer_username=customer_user,
+            payment_method=payment_method
         )
+        # Attach receipt metadata
+        tx_id = response_data.get("transaction_id")
+        if tx_id:
+            response_data["receipt"] = generate_receipt_data(tx_id)
         return response_data
     except ValueError as val_err:
         raise HTTPException(status_code=400, detail=str(val_err))
@@ -1077,5 +1143,479 @@ async def get_pos_promotions():
     items = calculate_pos_catalog_prices()
     return items
 
+
+# =====================================================================
+# STAGE 1 CORE: CLUSTER NODE DISCOVERY ENDPOINTS
+# =====================================================================
+
+@app.get("/api/nodes/discovered")
+def get_discovered_nodes():
+    """Returns all active Data Nodes, Vault Gateways, and Operator Nodes discovered via UDP Multicast."""
+    nodes = discovery_manager.get_cluster_nodes()
+    return {"status": "success", "cluster_nodes": nodes, "count": len(nodes)}
+
+
+# =====================================================================
+# STAGE 1 CORE: AGRICULTURE & PRODUCTION COST ENDPOINTS
+# =====================================================================
+
+@app.get("/api/agri/plantings")
+def get_plantings():
+    return {"status": "success", "plantings": list_plantings()}
+
+@app.post("/api/agri/plantings")
+async def add_planting_endpoint(request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    crop_variety = body.get("crop_variety", "").strip()
+    plot_bed_id = body.get("plot_bed_id", "").strip()
+    planting_date_utc = body.get("planting_date_utc") or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    seeding_density = float(body.get("seeding_density", 0.0) or 0.0)
+    target_maturity_date_utc = body.get("target_maturity_date_utc")
+    initial_soil_hydration_pct = float(body.get("initial_soil_hydration_pct", 0.0) or 0.0)
+    notes = body.get("notes", "")
+
+    if not crop_variety or not plot_bed_id:
+        raise HTTPException(status_code=400, detail="Crop variety and Plot ID are required.")
+
+    res = create_planting(crop_variety, plot_bed_id, planting_date_utc, seeding_density, target_maturity_date_utc, initial_soil_hydration_pct, current_user["username"], notes)
+    write_audit_log(current_user["username"], "AGRI_PLANTING_CREATED", f"Created planting {crop_variety} in {plot_bed_id}")
+    return {"status": "success", "data": res}
+
+@app.get("/api/agri/costs")
+def get_costs_endpoint(planting_id: str = None):
+    if not planting_id:
+        raise HTTPException(status_code=400, detail="planting_id is required")
+    costs = get_production_costs(planting_id)
+    return {"status": "success", "costs": costs}
+
+@app.post("/api/agri/costs")
+async def add_costs_endpoint(request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    planting_id = body.get("planting_id")
+    if not planting_id:
+        raise HTTPException(status_code=400, detail="planting_id is required")
+    costs = body.get("costs", {})
+    res = log_production_costs(planting_id, costs, current_user["username"])
+    write_audit_log(current_user["username"], "AGRI_COSTS_LOGGED", f"Logged production costs for {planting_id}")
+    return {"status": "success", "data": res}
+
+@app.post("/api/agri/calculate-price")
+async def calculate_price_endpoint(request: Request):
+    body = await request.json()
+    costs = body.get("costs", {})
+    mass_harvest_kg = float(body.get("mass_harvest_kg", 0.0) or 0.0)
+    mass_self_kg = float(body.get("mass_self_kg", 0.0) or 0.0)
+    markup_pct = float(body.get("markup_pct", 1.0) or 1.0)
+    res = compute_production_cost_and_base_price(costs, mass_harvest_kg, mass_self_kg, markup_pct)
+    return {"status": "success", "calculated": res}
+
+@app.get("/api/agri/harvests")
+def get_harvests_endpoint():
+    return {"status": "success", "harvests": list_harvests()}
+
+@app.post("/api/agri/harvests")
+async def add_harvest_endpoint(request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    planting_id = body.get("planting_id")
+    crop_name = body.get("crop_name", "").strip()
+    harvest_date_utc = body.get("harvest_date_utc") or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    mass_harvest_kg = float(body.get("mass_harvest_kg", 0.0) or 0.0)
+    quality_grade = body.get("quality_grade", "Grade A")
+    storage_location = body.get("storage_location", "Farm Cold Room #1")
+    mass_self_kg = float(body.get("mass_self_kg", 0.0) or 0.0)
+    target_markup_pct = float(body.get("target_markup_pct", 1.0) or 1.0)
+    half_life_days = float(body.get("shelf_life_half_life_days", 2.0) or 2.0)
+
+    if not planting_id or not crop_name or mass_harvest_kg <= 0:
+        raise HTTPException(status_code=400, detail="Planting ID, crop name, and positive harvest mass are required.")
+
+    res = log_harvest_and_sync_inventory(
+        planting_id, crop_name, harvest_date_utc, mass_harvest_kg,
+        quality_grade, storage_location, mass_self_kg, target_markup_pct,
+        half_life_days, current_user["username"]
+    )
+    write_audit_log(current_user["username"], "AGRI_HARVEST_LOGGED", f"Logged harvest of {mass_harvest_kg}kg {crop_name}")
+    return {"status": "success", "data": res}
+
+@app.get("/api/agri/dispositions")
+def get_dispositions_endpoint(harvest_id: str = None):
+    return {"status": "success", "dispositions": list_dispositions(harvest_id)}
+
+
+# =====================================================================
+# STAGE 1 CORE: SECURITY VISITOR GATEKEEPER ENDPOINTS
+# =====================================================================
+
+@app.get("/api/security/visitors")
+def get_visitors_endpoint(search: str = None, destination: str = None, status: str = None):
+    return {"status": "success", "visitors": list_visitors(search, destination, status)}
+
+@app.get("/api/security/visitors/active")
+def get_active_visitors_endpoint():
+    return {"status": "success", "active_visitors": get_active_visitors()}
+
+@app.post("/api/security/visitors/checkin")
+async def checkin_visitor_endpoint(request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    national_id = body.get("national_id", "").strip()
+    full_name = body.get("full_name", "").strip()
+    destination_env = body.get("destination_env", "Main Office").strip()
+    purpose = body.get("purpose", "").strip()
+    escort_officer = body.get("escort_officer", "").strip()
+    notes = body.get("notes", "")
+
+    if not national_id or not full_name:
+        raise HTTPException(status_code=400, detail="National ID and full name are required.")
+
+    res = checkin_visitor(national_id, full_name, destination_env, purpose, escort_officer, current_user["username"], notes)
+    write_audit_log(current_user["username"], "VISITOR_CHECKIN", f"Checked in visitor {full_name} ({national_id}) to {destination_env}")
+    return {"status": "success", "data": res}
+
+@app.post("/api/security/visitors/checkout")
+async def checkout_visitor_endpoint(request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    visitor_id = body.get("visitor_id")
+    if not visitor_id:
+        raise HTTPException(status_code=400, detail="visitor_id is required.")
+    res = checkout_visitor(visitor_id, current_user["username"])
+    write_audit_log(current_user["username"], "VISITOR_CHECKOUT", f"Checked out visitor {visitor_id}")
+    return {"status": "success", "data": res}
+
+
+# =====================================================================
+# STAGE 1 CORE: HYBRID SOCIAL MEDIA HUB ENDPOINTS
+# =====================================================================
+
+@app.get("/api/social/posts")
+def get_social_posts_endpoint(post_type: str = None):
+    return {"status": "success", "posts": list_social_posts(post_type)}
+
+@app.get("/api/social/stories")
+def get_social_stories_endpoint():
+    return {"status": "success", "stories": list_social_posts(post_type="story")}
+
+@app.post("/api/social/posts")
+async def add_social_post_endpoint(request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    post_type = body.get("post_type", "thread")
+    content_text = body.get("content_text", "")
+    media_urls = body.get("media_urls", [])
+    tags = body.get("tags", [])
+
+    if not content_text and not media_urls:
+        raise HTTPException(status_code=400, detail="Content or media is required.")
+
+    res = create_social_post(post_type, current_user["username"], content_text, media_urls, tags)
+    return {"status": "success", "data": res}
+
+@app.get("/api/social/posts/{post_id}/comments")
+def get_comments_endpoint(post_id: str):
+    return {"status": "success", "comments": get_social_comments(post_id)}
+
+@app.post("/api/social/posts/{post_id}/comments")
+async def add_comment_endpoint(post_id: str, request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    text = body.get("comment_text", "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Comment text cannot be empty.")
+    res = add_social_comment(post_id, current_user["username"], text)
+    return {"status": "success", "data": res}
+
+@app.post("/api/social/posts/{post_id}/tip")
+async def tip_post_endpoint(post_id: str, request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    currency = body.get("currency", "USD").upper()
+    amount = float(body.get("amount", 0.0) or 0.0)
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Tip amount must be positive.")
+    res = tip_social_post(post_id, current_user["username"], currency, amount)
+    return {"status": "success", "data": res}
+
+
+# =====================================================================
+# STAGE 1 CORE: POS MIXED-TENDER & MARKETPLACE CATALOG ENDPOINTS
+# =====================================================================
+
+@app.get("/api/marketplace/catalog")
+def get_marketplace_catalog():
+    """Returns marketplace items with dynamic decay pricing and multi-currency rates."""
+    db = get_db()
+    cursor = db.execute("SELECT * FROM inventory WHERE quantity > 0")
+    raw_items = [dict(r) for r in cursor.fetchall()]
+    db.close()
+
+    rate_zar = 18.5
+    rate_zwg = 26.5
+
+    catalog = []
+    for item in raw_items:
+        base_p = float(item.get("price_usd") or 0.0)
+        cost_p = float(item.get("cost_price_usd") or 0.0)
+
+        decay_info = calculate_continuous_decay_price(
+            base_price_usd=base_p,
+            cost_floor_usd=cost_p,
+            half_life_days=2.0,
+            harvest_time_iso=datetime.datetime.now(datetime.timezone.utc).isoformat()
+        )
+        current_usd = decay_info["current_price_usd"]
+        item["current_price_usd"] = current_usd
+        item["price_zar"] = round(current_usd * rate_zar, 2)
+        item["price_zwg"] = round(current_usd * rate_zwg, 2)
+        item["discount_pct"] = decay_info["discount_pct"]
+        item["is_floor_active"] = decay_info["is_floor_active"]
+        catalog.append(item)
+
+    return {"status": "success", "catalog": catalog, "exchange_rates": {"ZAR": rate_zar, "ZWG": rate_zwg}}
+
+@app.post("/api/pos/calculate-tender")
+async def calculate_tender_endpoint(request: Request):
+    body = await request.json()
+    total_usd = float(body.get("total_usd", 0.0) or 0.0)
+    t_usd = float(body.get("tendered_usd", 0.0) or 0.0)
+    t_zar = float(body.get("tendered_zar", 0.0) or 0.0)
+    t_zwg = float(body.get("tendered_zwg", 0.0) or 0.0)
+    r_zar = float(body.get("rate_zar", 18.5) or 18.5)
+    r_zwg = float(body.get("rate_zwg", 26.5) or 26.5)
+
+# =====================================================================
+# MULTI-BUSINESS, OFFLINE VOUCHERS & RECEIPT ENDPOINTS
+# =====================================================================
+
+@app.get("/api/businesses")
+def list_businesses_endpoint():
+    """List all registered business entities."""
+    return {"status": "success", "businesses": get_all_businesses()}
+
+@app.post("/api/businesses", dependencies=[Depends(require_admin)])
+async def create_business_endpoint(request: Request, current_user = Depends(get_current_user)):
+    """Register a new business enterprise."""
+    body = await request.json()
+    name = body.get("name", "").strip()
+    category = body.get("category", "Agriculture").strip()
+    phone = body.get("contact_phone", "").strip()
+    address = body.get("location_address", "").strip()
+    tax_id = body.get("tax_id", "").strip()
+    header = body.get("receipt_header", "").strip()
+    footer = body.get("receipt_footer_note", "").strip()
+    curr = body.get("currency_preference", "USD").strip()
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Business name is required.")
+
+    biz = create_business(name, category, phone, address, tax_id, header, footer, curr, current_user["username"])
+    return {"status": "success", "business": biz}
+
+@app.get("/api/businesses/{biz_id}")
+def get_business_endpoint(biz_id: str):
+    biz = get_business_by_id(biz_id)
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business entity not found.")
+    return {"status": "success", "business": biz}
+
+@app.post("/api/vouchers/mint", dependencies=[Depends(get_current_user)])
+async def mint_voucher_endpoint(request: Request, current_user = Depends(get_current_user)):
+    """Mint an offline cryptographic bearer voucher for change or credit."""
+    body = await request.json()
+    biz_id = body.get("business_id", "biz-green-valley")
+    val = float(body.get("value_amount", 0.0) or 0.0)
+    curr = body.get("currency", "ZWG").upper()
+    tx_id = body.get("issued_for_tx_id")
+
+    if val <= 0:
+        raise HTTPException(status_code=400, detail="Voucher amount must be positive.")
+
+    voucher = mint_offline_voucher(biz_id, val, curr, issued_by_node_id="node-vault-01", issued_for_tx_id=tx_id)
+    return {"status": "success", "voucher": voucher}
+
+@app.post("/api/vouchers/redeem", dependencies=[Depends(get_current_user)])
+async def redeem_voucher_endpoint(request: Request, current_user = Depends(get_current_user)):
+    """Scan and redeem an offline cryptographic bearer voucher."""
+    body = await request.json()
+    vid = body.get("vid", "").strip()
+    biz_id = body.get("business_id")
+    tx_id = body.get("redeemed_by_tx_id")
+
+    if not vid:
+        raise HTTPException(status_code=400, detail="Voucher ID is required.")
+
+    res = verify_and_redeem_voucher(vid, business_id=biz_id, redeemed_by_tx_id=tx_id)
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("detail", "Voucher redemption failed."))
+
+    return {"status": "success", "redemption": res}
+
+@app.get("/api/vouchers/{vid}")
+def get_voucher_endpoint(vid: str):
+    v = get_voucher_by_id(vid)
+    if not v:
+        raise HTTPException(status_code=404, detail="Voucher not found.")
+    return {"status": "success", "voucher": v}
+
+@app.get("/api/pos/receipt/{tx_id}")
+def get_pos_receipt_endpoint(tx_id: str):
+    receipt = generate_receipt_data(tx_id)
+    if not receipt:
+        raise HTTPException(status_code=404, detail="Transaction receipt not found.")
+    return {"status": "success", "receipt": receipt}
+
+# =====================================================================
+# HIERARCHICAL RBAC & BUSINESS OPERATOR DELEGATION ENDPOINTS
+# =====================================================================
+
+@app.get("/api/businesses/{biz_id}/operators", dependencies=[Depends(get_current_user)])
+async def list_business_operators_endpoint(biz_id: str, current_user = Depends(get_current_user)):
+    """List operators assigned to a business (accessible by business admin or super admin)."""
+    perms = get_operator_permissions(biz_id, current_user["username"])
+    if "admin" not in perms and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only Business Administrators can view operator roster.")
+    return {"status": "success", "business_id": biz_id, "operators": get_business_operators(biz_id)}
+
+@app.post("/api/businesses/{biz_id}/operators", dependencies=[Depends(get_current_user)])
+async def assign_business_operator_endpoint(biz_id: str, request: Request, current_user = Depends(get_current_user)):
+    """Assign or update operator role and subsystem permissions for a business."""
+    perms = get_operator_permissions(biz_id, current_user["username"])
+    if "admin" not in perms and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only Business Administrators can manage operator permissions.")
+    
+    body = await request.json()
+    username = body.get("username", "").strip()
+    role_in_business = body.get("role_in_business", "operator").strip()
+    permissions = body.get("permissions", [])
+
+    if not username:
+        raise HTTPException(status_code=400, detail="Username is required.")
+
+    # Validate that username exists in users table
+    with get_db() as db:
+        cursor = db.execute("SELECT id FROM users WHERE username = ?", (username,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail=f"User '{username}' does not exist.")
+
+    op = assign_business_operator(
+        business_id=biz_id,
+        username=username,
+        role_in_business=role_in_business,
+        permissions=permissions,
+        granted_by=current_user["username"]
+    )
+    return {"status": "success", "operator": op}
+
+@app.delete("/api/businesses/{biz_id}/operators/{operator_username}", dependencies=[Depends(get_current_user)])
+async def revoke_business_operator_endpoint(biz_id: str, operator_username: str, current_user = Depends(get_current_user)):
+    """Revoke operator access from a business."""
+    perms = get_operator_permissions(biz_id, current_user["username"])
+    if "admin" not in perms and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only Business Administrators can revoke operator access.")
+
+    revoke_business_operator(biz_id, operator_username, revoked_by=current_user["username"])
+    return {"status": "success", "message": f"Operator '{operator_username}' revoked from business {biz_id}"}
+
+@app.get("/api/businesses/{biz_id}/my-permissions", dependencies=[Depends(get_current_user)])
+async def get_my_business_permissions_endpoint(biz_id: str, current_user = Depends(get_current_user)):
+    """Return the calling user's granted permissions for the active business."""
+    perms = get_operator_permissions(biz_id, current_user["username"])
+    return {
+        "status": "success",
+        "business_id": biz_id,
+        "username": current_user["username"],
+        "permissions": perms,
+        "is_business_admin": "admin" in perms or current_user["role"] == "admin"
+    }
+
+# =====================================================================
+# CUSTOMER DIGITAL BANKING & RECEIPT VAULT ENDPOINTS
+# =====================================================================
+
+@app.get("/api/banking/wallet", dependencies=[Depends(get_current_user)])
+def get_my_wallet_endpoint(current_user = Depends(get_current_user)):
+    """Fetch authenticated user's digital wallet account details and multi-currency balances."""
+    wallet = get_wallet_by_username(current_user["username"])
+    return {"status": "success", "wallet": wallet}
+
+@app.get("/api/banking/ledger", dependencies=[Depends(get_current_user)])
+def get_my_ledger_endpoint(limit: int = 50, current_user = Depends(get_current_user)):
+    """Fetch authenticated user's wallet transaction ledger history."""
+    entries = get_wallet_ledger(current_user["username"], limit=limit)
+    return {"status": "success", "username": current_user["username"], "ledger": entries}
+
+@app.post("/api/banking/topup", dependencies=[Depends(get_current_user)])
+async def topup_wallet_endpoint(request: Request, current_user = Depends(get_current_user)):
+    """Deposit funds into a user's wallet (or self-deposit)."""
+    body = await request.json()
+    currency = body.get("currency", "USD").strip().upper()
+    amount = float(body.get("amount", 0.0))
+    target_username = body.get("username", current_user["username"]).strip()
+    notes = body.get("notes", "Cash Top-up at Node Terminal")
+
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Top-up amount must be greater than zero.")
+
+    res = topup_wallet(
+        username=target_username,
+        currency=currency,
+        amount=amount,
+        notes=notes,
+        performed_by=current_user["username"]
+    )
+    return {"status": "success", "result": res}
+
+@app.post("/api/banking/transfer", dependencies=[Depends(get_current_user)])
+async def transfer_wallet_endpoint(request: Request, current_user = Depends(get_current_user)):
+    """Execute a peer-to-peer (P2P) wallet transfer between users."""
+    body = await request.json()
+    to_user = body.get("to_user", "").strip()
+    currency = body.get("currency", "USD").strip().upper()
+    amount = float(body.get("amount", 0.0))
+    notes = body.get("notes", "P2P Transfer")
+
+    if not to_user:
+        raise HTTPException(status_code=400, detail="Recipient username is required.")
+    if to_user == current_user["username"]:
+        raise HTTPException(status_code=400, detail="Cannot transfer funds to yourself.")
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Transfer amount must be greater than zero.")
+
+    # Check recipient exists
+    with get_db() as db:
+        cursor = db.execute("SELECT id FROM users WHERE username = ?", (to_user,))
+        if not cursor.fetchone():
+            raise HTTPException(status_code=404, detail=f"Recipient '@{to_user}' does not exist.")
+
+    try:
+        res = execute_wallet_transfer(
+            from_user=current_user["username"],
+            to_user=to_user,
+            currency=currency,
+            amount=amount,
+            tx_type="p2p_transfer",
+            notes=notes
+        )
+        return {"status": "success", "transfer": res}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/banking/deposit-voucher", dependencies=[Depends(get_current_user)])
+async def deposit_voucher_endpoint(request: Request, current_user = Depends(get_current_user)):
+    """Convert an offline cryptographic bearer voucher into liquid wallet balance."""
+    body = await request.json()
+    vid = body.get("vid", "").strip()
+    if not vid:
+        raise HTTPException(status_code=400, detail="Voucher ID is required.")
+
+    res = deposit_voucher_to_wallet(username=current_user["username"], vid=vid)
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("detail", "Voucher deposit failed."))
+
+    return {"status": "success", "deposit": res}
+
+@app.get("/api/banking/receipts", dependencies=[Depends(get_current_user)])
+def get_my_receipts_endpoint(query: Optional[str] = None, current_user = Depends(get_current_user)):
+    """Fetch customer's archived digital receipts from their personal receipt vault."""
+    receipts = get_customer_receipts(current_user["username"], query=query)
+    return {"status": "success", "username": current_user["username"], "receipts": receipts}
+
+
 # Serve static frontend folder (last route matches remaining files)
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+
