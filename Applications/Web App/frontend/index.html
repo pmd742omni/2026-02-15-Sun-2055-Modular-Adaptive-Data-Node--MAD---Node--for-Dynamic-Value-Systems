@@ -588,6 +588,42 @@
         </div>
       </form>
     </div>
+
+    <!-- Modal 10: Generate Portable Node Pack Modal -->
+    <div class="auth-card glass-panel" id="modal-generate-portable-node" style="padding: 28px; width: 460px; max-width: 95%; text-align: left; display: none;">
+      <div class="auth-header" style="text-align: center; margin-bottom: 18px;">
+        <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: #fff;">📦 Generate Portable Node Pack</h3>
+        <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Export a standalone, self-bootstrapping node bundle with its own web UI</p>
+      </div>
+      <form id="form-generate-portable-node" onsubmit="return false;">
+        <div style="margin-bottom: 14px;">
+          <label for="gen-node-name" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Node Name</label>
+          <input type="text" id="gen-node-name" class="search-input" style="width: 100%; padding: 10px 14px; font-size: 0.88rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Matopos_DataNode_02">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div>
+            <label for="gen-node-type" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Node Role</label>
+            <select id="gen-node-type" class="search-input" style="width: 100%; padding: 10px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; color: #fff;">
+              <option value="data_node">Data Node (Edge Storage)</option>
+              <option value="vault_node">Peer Vault Node</option>
+              <option value="hybrid_node">Hybrid Node (Storage + Vault)</option>
+            </select>
+          </div>
+          <div>
+            <label for="gen-node-port" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Port Number</label>
+            <input type="number" id="gen-node-port" class="search-input" style="width: 100%; padding: 10px 14px; font-size: 0.88rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="8005" min="1024" max="65535">
+          </div>
+        </div>
+        <div style="margin-bottom: 18px;">
+          <label for="gen-node-quota" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Storage Quota (MB)</label>
+          <input type="number" id="gen-node-quota" class="search-input" style="width: 100%; padding: 10px 14px; font-size: 0.88rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="2048" min="256" step="256">
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="flex-grow: 1;">Cancel</button>
+          <button type="button" class="btn-pill-primary" onclick="submitGenerateNodePack()" style="flex-grow: 1; margin: 0; background: linear-gradient(135deg, #38bdf8, #0284c7);">Create Bundle 🚀</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- 3-PANEL VISIONPRO MAIN CONTAINER -->
@@ -1375,14 +1411,17 @@
       <!-- SECTION 6: CLUSTER & DATA NODE TOPOLOGY -->
       <section class="view-section" id="view-cluster">
         <div class="glass-panel" id="cluster-nodes-box" style="padding: 28px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
             <div>
               <h3>📡 Discovered Mesh Data Nodes & Topology</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted);">
-                Autonomous edge nodes discovered via UDP Multicast (<code>224.0.0.251:8001</code>).
+                Autonomous edge nodes discovered via UDP Multicast (<code>224.0.0.251:8001</code>) with remote lifecycle activation controls.
               </p>
             </div>
-            <button class="btn-pill-secondary" onclick="loadDiscoveredClusterNodes()">Rescan Cluster 🔄</button>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn-pill-primary" onclick="openGenerateNodeModal()" style="margin: 0; background: linear-gradient(135deg, #38bdf8, #0284c7);">📦 Export Portable Node Pack</button>
+              <button class="btn-pill-secondary" onclick="loadDiscoveredClusterNodes()">Rescan Cluster 🔄</button>
+            </div>
           </div>
 
           <div class="cluster-grid" id="cluster-nodes-grid">
@@ -1390,7 +1429,36 @@
           </div>
         </div>
 
-        <div class="glass-panel" id="cluster-multicast-box" style="padding: 28px;">
+        <!-- Exported Standalone Node Packages Panel -->
+        <div class="glass-panel" id="cluster-exported-box" style="padding: 28px; margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3>📦 Generated Standalone Node Packages</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Self-bootstrapping node bundles residing in <code>Applications/Exported_Nodes/</code> ready to copy to any machine.
+              </p>
+            </div>
+            <button class="btn-pill-secondary" onclick="loadExportedNodePackages()">Refresh Packs 🔄</button>
+          </div>
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Node Name</th>
+                  <th>Role</th>
+                  <th>Port</th>
+                  <th>Bundle Location</th>
+                  <th>Quick Launch Command</th>
+                </tr>
+              </thead>
+              <tbody id="exported-nodes-table-body">
+                <tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Scanning for exported packages...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel" id="cluster-multicast-box" style="padding: 28px; margin-top: 24px;">
           <h3>🌐 UDP Multicast Beacon Specifications</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 14px;">
             <div class="glass-panel" style="padding: 16px; background: rgba(255,255,255,0.02);">

@@ -1,4 +1,5 @@
 import os
+import sys
 import secrets
 import time
 import uuid
@@ -65,6 +66,17 @@ except ImportError:
         hash_session_token,
         generate_totp_secret
     )
+
+# Add Applications root directory for node generator engine
+APPS_ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if APPS_ROOT_DIR not in sys.path:
+    sys.path.append(APPS_ROOT_DIR)
+
+try:
+    from node_generator import generate_portable_node, list_exported_nodes
+except ImportError:
+    generate_portable_node = None
+    list_exported_nodes = None
 
 # Weak password list (common breached passwords checking)
 WEAK_PASSWORDS = {
@@ -1145,7 +1157,7 @@ async def get_pos_promotions():
 
 
 # =====================================================================
-# STAGE 1 CORE: CLUSTER NODE DISCOVERY ENDPOINTS
+# STAGE 1 CORE: CLUSTER NODE DISCOVERY & PORTABLE GENERATION ENDPOINTS
 # =====================================================================
 
 @app.get("/api/nodes/discovered")
@@ -1153,6 +1165,59 @@ def get_discovered_nodes():
     """Returns all active Data Nodes, Vault Gateways, and Operator Nodes discovered via UDP Multicast."""
     nodes = discovery_manager.get_cluster_nodes()
     return {"status": "success", "cluster_nodes": nodes, "count": len(nodes)}
+
+@app.post("/api/cluster/nodes/{node_id}/toggle-active", dependencies=[Depends(get_current_user)])
+async def toggle_node_active_endpoint(node_id: str, request: Request, current_user = Depends(get_current_user)):
+    """Remotely activate or deactivate a discovered Data Node across the local network."""
+    body = await request.json()
+    target_state = bool(body.get("is_active", True))
+    
+    # Locate node in discovered registry
+    nodes = discovery_manager.get_cluster_nodes(max_age=60.0)
+    target_node = next((n for n in nodes if n["node_id"] == node_id), None)
+    
+    if not target_node:
+        raise HTTPException(status_code=404, detail=f"Node '{node_id}' not found in cluster discovery cache.")
+
+    ip = target_node.get("ip", "127.0.0.1")
+    port = target_node.get("port", 8002)
+
+    res = discovery_manager.toggle_remote_node_state(ip=ip, port=port, active=target_state)
+    write_audit_log(current_user["username"], "NODE_LIFECYCLE_TOGGLE", f"Set node {node_id} ({ip}:{port}) active={target_state}")
+    return {"status": "success", "result": res, "node_id": node_id, "is_active": target_state}
+
+@app.post("/api/cluster/nodes/generate-portable", dependencies=[Depends(require_admin)])
+async def generate_portable_node_endpoint(request: Request, current_user = Depends(get_current_user)):
+    """Generate a self-contained, standalone portable node package with its own web UI & start.py."""
+    if not generate_portable_node:
+        raise HTTPException(status_code=500, detail="Portable Node Generator engine is unavailable.")
+
+    body = await request.json()
+    name = body.get("name", "Edge_Data_Node").strip()
+    node_type = body.get("node_type", "data_node").strip().lower()
+    port = int(body.get("port", 8005))
+    storage_quota_mb = int(body.get("storage_quota_mb", 2048))
+
+    if port in (8000, 8001):
+        raise HTTPException(status_code=400, detail="Port 8000 (Vault) and 8001 (Multicast) are reserved.")
+
+    res = generate_portable_node(
+        name=name,
+        node_type=node_type,
+        port=port,
+        storage_quota_mb=storage_quota_mb,
+        parent_vault_url="http://127.0.0.1:8000"
+    )
+    write_audit_log(current_user["username"], "PORTABLE_NODE_GENERATED", f"Generated portable {node_type} '{name}' on port {port}")
+    return {"status": "success", "package": res}
+
+@app.get("/api/cluster/nodes/exported-list", dependencies=[Depends(get_current_user)])
+def get_exported_nodes_endpoint():
+    """List all previously generated standalone portable node packages."""
+    if not list_exported_nodes:
+        return {"status": "success", "exported_nodes": []}
+    return {"status": "success", "exported_nodes": list_exported_nodes()}
+
 
 
 # =====================================================================

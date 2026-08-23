@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MADN Node | Khumalo_Millers_Node</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --card-bg: rgba(20, 27, 45, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #38bdf8;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --accent-amber: #f59e0b;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 15% 15%, #1e1b4b 0%, #0a0e17 60%, #030712 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+    .container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
+    .header-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(20px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .node-title { display: flex; align-items: center; gap: 12px; }
+    .node-icon { font-size: 2rem; }
+    .node-h1 { font-size: 1.4rem; font-weight: 700; }
+    .node-sub { font-size: 0.8rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .status-active { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-deactive { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.3); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      backdrop-filter: blur(20px);
+    }
+    .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; color: #fff; }
+    .controls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(20px);
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .btn-emerald { background: var(--accent-emerald); color: #fff; }
+    .btn-emerald:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-rose { background: var(--accent-rose); color: #fff; }
+    .btn-rose:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 1px solid var(--card-border); color: var(--text-main); }
+    .btn-outline:hover { background: rgba(255,255,255,0.05); }
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      backdrop-filter: blur(20px);
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th, td { padding: 12px; border-bottom: 1px solid var(--card-border); }
+    th { color: var(--text-muted); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-card">
+      <div class="node-title">
+        <div class="node-icon">📦</div>
+        <div>
+          <h1 class="node-h1">Khumalo_Millers_Node</h1>
+          <div class="node-sub">ID: data-node-khumalo_millers_node-5eaa91 | Port: 8011 | Role: DATA_NODE</div>
+        </div>
+      </div>
+      <div id="node-status-badge" class="status-badge status-active">🟢 Active</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Storage Engine</div>
+        <div class="stat-value" style="font-size: 1.2rem; color: var(--accent-cyan);">SQLite WAL</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Free Storage</div>
+        <div class="stat-value" id="stat-free-mb">-- MB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">KV Records</div>
+        <div class="stat-value" id="stat-records">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Mesh Beacon</div>
+        <div class="stat-value" style="font-size: 1.2rem; color: var(--accent-amber);">224.0.0.251:8001</div>
+      </div>
+    </div>
+
+    <div class="controls-card">
+      <h3 style="margin-bottom: 14px;">Node Lifecycle Operations</h3>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button id="btn-activate" class="btn btn-emerald" onclick="toggleActive(true)">⚡ Activate Node</button>
+        <button id="btn-deactivate" class="btn btn-rose" onclick="toggleActive(false)">⏸️ Deactivate Node</button>
+        <button class="btn btn-outline" onclick="loadNodeData()">🔄 Refresh</button>
+        <a href="http://127.0.0.1:8000" target="_blank" style="text-decoration:none;"><button class="btn btn-outline">🌐 Open Parent Vault</button></a>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <h3 style="margin-bottom: 14px;">Local Storage Key-Value Browser</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Collection</th>
+            <th>Key</th>
+            <th>Data Preview</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="kv-tbody">
+          <tr><td colspan="4" style="text-align:center; color: var(--text-muted);">Loading storage records...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function loadNodeData() {
+      try {
+        const res = await fetch('/api/node/status');
+        const data = await res.json();
+        const badge = document.getElementById('node-status-badge');
+        if (data.is_active) {
+          badge.className = 'status-badge status-active';
+          badge.innerText = '🟢 Active';
+        } else {
+          badge.className = 'status-badge status-deactive';
+          badge.innerText = '🔴 Deactivated (Standby)';
+        }
+        if (data.storage) {
+          document.getElementById('stat-free-mb').innerText = (data.storage.free_mb || 0).toLocaleString() + ' MB';
+        }
+        loadRecords();
+      } catch (e) {
+        console.error("Status fetch error:", e);
+      }
+    }
+
+    async function loadRecords() {
+      try {
+        const res = await fetch('/api/storage/list?limit=25');
+        const data = await res.json();
+        const tbody = document.getElementById('kv-tbody');
+        const recs = data.records || [];
+        document.getElementById('stat-records').innerText = recs.length;
+        if (recs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted);">No records currently stored.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = recs.map(r => `
+          <tr>
+            <td><strong style="color: var(--accent-cyan);">${r.collection}</strong></td>
+            <td><code style="font-size:0.8rem;">${r.key}</code></td>
+            <td style="color: var(--text-muted); max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.data}</td>
+            <td style="font-size:0.75rem;">${r.updated_at}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error("Records fetch error:", e);
+      }
+    }
+
+    async function toggleActive(targetState) {
+      const endpoint = targetState ? '/api/node/activate' : '/api/node/deactivate';
+      try {
+        const res = await fetch(endpoint, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Updated');
+        loadNodeData();
+      } catch (e) {
+        alert('Action failed: ' + e.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadNodeData);
+  </script>
+</body>
+</html>

@@ -98,5 +98,25 @@ class NodeDiscoveryManager:
         except Exception:
             return False
 
+    def get_remote_node_status(self, ip: str, port: int) -> dict:
+        try:
+            url = f"http://{ip}:{port}/api/node/status"
+            resp = requests.get(url, timeout=2.0)
+            if resp.status_code == 200:
+                return resp.json()
+        except Exception as e:
+            logger.debug(f"Status check failed for {ip}:{port} - {e}")
+        return {"is_active": False, "status": "unreachable"}
+
+    def toggle_remote_node_state(self, ip: str, port: int, active: bool) -> dict:
+        endpoint = "/api/node/activate" if active else "/api/node/deactivate"
+        try:
+            url = f"http://{ip}:{port}{endpoint}"
+            resp = requests.post(url, timeout=3.0)
+            return resp.json()
+        except Exception as e:
+            return {"status": "error", "message": f"Could not contact node at {ip}:{port}: {e}"}
+
 
 discovery_manager = NodeDiscoveryManager()
+

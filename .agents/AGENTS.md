@@ -21,8 +21,10 @@ Whenever the user states **"develop chapter"**, **"write chapter"**, **"create c
 
 ## Tri-Node Architecture & Composable RBAC Standard
 1. **Operator Node**: Zero-installation web client executing in modern browsers (:8000). Handles dynamic pricing views, touch POS, peer-to-peer transfers, and live receipt vault lookups.
-2. **Data Node**: Standalone storage and discovery service (:8002) broadcasting periodic UDP multicast heartbeats (224.0.0.251:8001). Provides localized key-value cache and offline store replication.
-3. **Vault Node**: Security coordinator and multi-currency tri-ledger (:8000) enforcing scrypt/TOTP credentials, SQLite WAL concurrency (`BEGIN IMMEDIATE`), and HMAC-SHA256 bearer signatures.
-4. **Automated Verification Matrix**: Always execute the full test suite (`pytest test_customer_banking.py test_business_operators.py test_multibiz_and_vouchers.py test_stage1_core.py -v`) before creating documentation or thesis updates.
+2. **Data Node**: Standalone storage and discovery service (:8002) broadcasting periodic UDP multicast heartbeats (224.0.0.251:8001). Exposes remote lifecycle endpoints (`/api/node/activate`, `/api/node/deactivate`).
+3. **Vault Node**: Security coordinator and multi-currency tri-ledger (:8000) enforcing scrypt/TOTP credentials, SQLite WAL concurrency (`BEGIN IMMEDIATE`), HMAC-SHA256 bearer signatures, and self-replicating portable node packaging (`node_generator.py`).
+4. **Portable Bootstrapper (`Applications/start.py`)**: Zero-config launcher auto-resolving Python dependencies, supervising multi-node child processes, and providing an interactive terminal dashboard.
+5. **Automated Verification Matrix**: Always execute the full 25-test suite (`pytest test_portable_node_generation.py test_customer_banking.py test_business_operators.py test_multibiz_and_vouchers.py test_stage1_core.py -v`) before creating documentation or thesis updates.
+
 
 

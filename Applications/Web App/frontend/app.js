@@ -517,6 +517,10 @@ function initNavigation() {
       loadCustomerReceipts();
       loadWalletLedger();
     }
+    if (target === 'cluster') {
+      loadDiscoveredClusterNodes();
+      loadExportedNodePackages();
+    }
   };
 }
 
@@ -553,6 +557,7 @@ function loadAllSubsystemData() {
   loadPosProducts();
   loadMarketplaceCatalog();
   loadDiscoveredClusterNodes();
+  loadExportedNodePackages();
   if (state.currentRole === 'admin') {
     loadAdminUsers();
     loadAdminDevices();
@@ -1851,10 +1856,11 @@ async function submitDepositVoucher() {
 }
 
 // =====================================================================
-// STAGE 1 CORE: CLUSTER TOPOLOGY MODULE (UDP MULTICAST DISCOVERY)
+// STAGE 1 CORE: CLUSTER TOPOLOGY & PORTABLE NODE GENERATOR MODULE
 // =====================================================================
 function initClusterModule() {
-  // Loaded on startup
+  loadDiscoveredClusterNodes();
+  loadExportedNodePackages();
 }
 
 async function loadDiscoveredClusterNodes() {
@@ -1868,28 +1874,126 @@ async function loadDiscoveredClusterNodes() {
     if (!grid) return;
 
     if (state.clusterNodes.length === 0) {
-      grid.innerHTML = `<div class="glass-panel" style="padding: 24px; text-align: center; color: var(--text-muted);">No external Data Nodes broadcasting beacons right now. Launching Applications/Data_Node/data_node.py will broadcast on UDP 224.0.0.251:8001.</div>`;
+      grid.innerHTML = `<div class="glass-panel" style="padding: 24px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">No external Data Nodes broadcasting beacons right now. Launching <code>python start.py</code> or <code>python Applications/Data_Node/data_node.py</code> will broadcast discovery heartbeats on UDP 224.0.0.251:8001.</div>`;
       return;
     }
 
-    grid.innerHTML = state.clusterNodes.map(n => `
-      <div class="node-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <strong style="color: #fff; font-size: 1.1rem;">${n.node_id}</strong>
-          <span class="node-status-dot ${n.status === 'online' ? 'node-status-online' : 'node-status-offline'}"></span>
-        </div>
+    grid.innerHTML = state.clusterNodes.map(n => {
+      const meta = n.metadata || {};
+      const isActive = meta.is_active !== false;
+      const statusBadge = isActive ? '<span style="color:#10b981; font-weight:700;">🟢 Active</span>' : '<span style="color:#f43f5e; font-weight:700;">🔴 Deactivated (Standby)</span>';
+      const toggleAction = isActive ? 'Deactivate' : 'Activate';
+      const toggleColor = isActive ? 'border: 1px solid rgba(244,63,94,0.4); color: #f43f5e;' : 'border: 1px solid rgba(16,185,129,0.4); color: #10b981;';
 
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Role: <strong style="color: var(--accent-cyan);">${n.role}</strong></p>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Address: <code>${n.ip}:${n.port}</code></p>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Free Storage: <strong>${n.free_mb || 0} MB</strong></p>
+      return `
+        <div class="node-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <strong style="color: #fff; font-size: 1.05rem; font-family: monospace;">${n.node_id}</strong>
+            ${statusBadge}
+          </div>
 
-        <div style="font-size: 0.72rem; color: var(--text-muted);">
-          <span>Last Heartbeat: ${n.last_seen ? n.last_seen.substring(11, 19) : 'Just now'}</span>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Name: <strong style="color: #fff;">${meta.node_name || n.node_id}</strong></p>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Role: <span class="role-pill-badge">${(n.node_type || 'data_node').toUpperCase()}</span></p>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Network Address: <code style="color: var(--accent-cyan);">${n.ip}:${n.port}</code></p>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">Free Storage: <strong>${meta.free_mb ? meta.free_mb.toLocaleString() + ' MB' : 'Available'}</strong></p>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px; gap: 8px;">
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Age: ${n.age_seconds || 0}s</span>
+            <button class="btn-pill-small" style="${toggleColor}" onclick="toggleNodeActiveState('${n.node_id}', ${!isActive})">
+              ${toggleAction} Node ⚡
+            </button>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (e) {
     console.error("Failed to load cluster nodes:", e);
+  }
+}
+
+async function toggleNodeActiveState(nodeId, targetState) {
+  try {
+    const res = await secureFetch(`/api/cluster/nodes/${encodeURIComponent(nodeId)}/toggle-active`, {
+      method: "POST",
+      body: JSON.stringify({ is_active: targetState })
+    });
+    const data = await res.json();
+    if (res.ok && data.status === "success") {
+      alert(`Node '${nodeId}' set to ${targetState ? 'ACTIVE' : 'DEACTIVATED'}!`);
+      loadDiscoveredClusterNodes();
+    } else {
+      alert("Failed to toggle node: " + (data.detail || "Error"));
+    }
+  } catch (e) {
+    alert("Node toggle error: " + e.message);
+  }
+}
+
+function openGenerateNodeModal() {
+  document.getElementById('modal-overlay').style.display = 'flex';
+  document.getElementById('modal-generate-portable-node').style.display = 'block';
+}
+
+async function submitGenerateNodePack() {
+  const name = document.getElementById('gen-node-name').value.trim();
+  const nType = document.getElementById('gen-node-type').value;
+  const port = parseInt(document.getElementById('gen-node-port').value || "8005", 10);
+  const quota = parseInt(document.getElementById('gen-node-quota').value || "2048", 10);
+
+  if (!name) {
+    alert("Please enter a Node Name.");
+    return;
+  }
+
+  try {
+    const res = await secureFetch("/api/cluster/nodes/generate-portable", {
+      method: "POST",
+      body: JSON.stringify({
+        name: name,
+        node_type: nType,
+        port: port,
+        storage_quota_mb: quota
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.status === "success") {
+      const pkg = data.package;
+      alert(`📦 Standalone Portable Node Pack '${name}' Created!\n\nFolder: ${pkg.node_dir}\nPort: ${pkg.port}\nLaunch: python "${pkg.node_dir}/start.py"`);
+      hideModals();
+      loadExportedNodePackages();
+    } else {
+      alert("Bundle generation failed: " + (data.detail || "Error"));
+    }
+  } catch (e) {
+    alert("Generation error: " + e.message);
+  }
+}
+
+async function loadExportedNodePackages() {
+  try {
+    const res = await secureFetch("/api/cluster/nodes/exported-list");
+    if (!res.ok) return;
+    const data = await res.json();
+    const packs = data.exported_nodes || [];
+    const tbody = document.getElementById('exported-nodes-table-body');
+    if (!tbody) return;
+
+    if (packs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:16px; color: var(--text-muted);">No standalone node packages generated yet. Click "Export Portable Node Pack" above to create one.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = packs.map(p => `
+      <tr>
+        <td><strong style="color: #fff;">${p.node_name || p.node_id}</strong></td>
+        <td><span class="role-pill-badge">${(p.node_type || 'data_node').toUpperCase()}</span></td>
+        <td><code style="color: var(--accent-cyan); font-weight:700;">:${p.port}</code></td>
+        <td style="font-size:0.75rem; color: var(--text-muted); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.node_dir || 'Applications/Exported_Nodes/'}</td>
+        <td><code style="font-size:0.78rem; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:6px;">python "${p.node_dir ? p.node_dir + '/start.py' : 'start.py'}"</code></td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    console.error("Failed to load exported node packages:", e);
   }
 }
 

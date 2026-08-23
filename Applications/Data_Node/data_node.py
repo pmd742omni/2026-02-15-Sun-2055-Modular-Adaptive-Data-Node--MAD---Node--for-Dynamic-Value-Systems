@@ -28,6 +28,7 @@ logger = logging.getLogger("madn.data_node")
 NODE_ID = os.getenv("MADN_DATA_NODE_ID", f"data-node-{uuid.uuid4().hex[:8]}")
 NODE_PORT = int(os.getenv("MADN_DATA_NODE_PORT", "8002"))
 DATA_DIR = os.getenv("MADN_DATA_DIR", "./data_store")
+IS_ACTIVE = True
 
 storage = DataNodeStorage(data_dir=DATA_DIR)
 broadcaster = None
@@ -35,7 +36,7 @@ broadcaster = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global broadcaster
+    global broadcaster, IS_ACTIVE
     logger.info(f"Starting Standalone Data Node: {NODE_ID} on port {NODE_PORT}")
     stats = storage.get_storage_stats()
     broadcaster = BeaconBroadcaster(
@@ -45,10 +46,12 @@ async def lifespan(app: FastAPI):
         metadata={
             "storage_engine": "sqlite_wal",
             "free_mb": stats["free_mb"],
-            "db_path": stats["db_path"]
+            "db_path": stats["db_path"],
+            "is_active": IS_ACTIVE
         }
     )
-    broadcaster.start()
+    if IS_ACTIVE:
+        broadcaster.start()
     yield
     if broadcaster:
         broadcaster.stop()
@@ -76,12 +79,43 @@ class PutRecordRequest(BaseModel):
 def health():
     stats = storage.get_storage_stats()
     return {
-        "status": "healthy",
+        "status": "healthy" if IS_ACTIVE else "deactivated",
         "node_id": NODE_ID,
         "node_type": "data_node",
         "port": NODE_PORT,
+        "is_active": IS_ACTIVE,
         "storage": stats
     }
+
+
+@app.get("/api/node/status")
+def get_node_status():
+    stats = storage.get_storage_stats()
+    return {
+        "node_id": NODE_ID,
+        "node_type": "data_node",
+        "port": NODE_PORT,
+        "is_active": IS_ACTIVE,
+        "storage": stats
+    }
+
+
+@app.post("/api/node/activate")
+def activate_node():
+    global IS_ACTIVE, broadcaster
+    IS_ACTIVE = True
+    if broadcaster and not broadcaster.running:
+        broadcaster.start()
+    return {"status": "success", "message": f"Data Node {NODE_ID} is now ACTIVE", "is_active": True}
+
+
+@app.post("/api/node/deactivate")
+def deactivate_node():
+    global IS_ACTIVE, broadcaster
+    IS_ACTIVE = False
+    if broadcaster and broadcaster.running:
+        broadcaster.stop()
+    return {"status": "success", "message": f"Data Node {NODE_ID} is now DEACTIVATED (Standby)", "is_active": False}
 
 
 @app.get("/api/storage/stats")
@@ -91,6 +125,8 @@ def get_stats():
 
 @app.post("/api/storage/put")
 def put_record(req: PutRecordRequest):
+    if not IS_ACTIVE:
+        raise HTTPException(status_code=503, detail="Data Node is currently DEACTIVATED (Standby Mode).")
     storage.put_record(req.collection, req.key, req.data)
     return {"status": "success", "collection": req.collection, "key": req.key}
 
