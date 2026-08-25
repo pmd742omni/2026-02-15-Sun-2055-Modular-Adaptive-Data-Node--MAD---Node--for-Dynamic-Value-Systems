@@ -24,16 +24,16 @@ Execute this workflow whenever the developer specifies:
 ## 2. Directory & Naming Conventions
 
 ### Target Directory
-All chapter Markdown files **MUST** be written to the standard chapters folder:
-`01_Documentation_and_Thesis/Chapters/` (relative to workspace root) or:
-`c:\Users\ignaz\OneDrive\Documents\Projects\2026-02-15 Sun 2055 Modular Adaptive Data Node (MAD - Node) for Dynamic Value Systems\01_Documentation_and_Thesis\Chapters\`
+All chapter Markdown files **MUST** be written to the standard chapters folder using relative paths:
+`../../../01_Documentation_and_Thesis/Chapters/` (relative from this skill) or `./01_Documentation_and_Thesis/Chapters/` (relative from workspace root).
 
 ### Real Machine Timestamp Requirement
 - Every chapter file **MUST** begin with an authoritative local machine timestamp prefix: `YYYY-MM-DD HHMM`.
-- Timestamps **MUST** be acquired dynamically from the system using the Python utility script:
+- Timestamps **MUST** be acquired dynamically from the system using the relative Python utility script:
   ```bash
-  python .agents/skills/chapter-development/scripts/get_chapter_timestamp.py
+  python ./scripts/get_chapter_timestamp.py
   ```
+  *(or from workspace root: `python .agents/skills/chapter-development/scripts/get_chapter_timestamp.py`)*
 - **CRITICAL**: Do NOT generate artificial future time offsets or hardcoded timestamps. Use real system time collected at runtime via Python.
 
 ### File Schema & Structure
@@ -49,16 +49,16 @@ For any given chapter (e.g., Chapter 5), the workflow generates:
 ## 3. Core Execution Steps
 
 ### Step 1: Context & Codebase Audit
-Before drafting text, thoroughly explore the repository context:
-1. **Core Codebase**: Inspect `Applications/Web App/backend` (`database.py`, `main.py`, `auth_utils.py`) and `Applications/Web App/frontend`.
-2. **System Internals**: Read `Applications/Web App/SYSTEM_INTERNALS.md` for low-level equations, database concurrency models, and security architectures.
-3. **Previous Chapters**: Review previous chapters (e.g., Chapter 3 methodology, Chapter 4 system design, `Shopping List for the Prototype.md`) to maintain narrative continuity.
-4. **Empirical Benchmarks & Test Suite**: Run or inspect backend test outputs (`test_auth.py`, `test_cycle3.py`, `test_cycle4.py`, `test_endpoints_live.py`) to extract exact runtime numbers, latencies, current draws, and success rates.
+Before drafting text, thoroughly explore the repository context using relative paths:
+1. **Core Codebase**: Inspect `../../../Applications/Web App/backend` (`database.py`, `main.py`, `auth_utils.py`) and `../../../Applications/Web App/frontend`.
+2. **System Internals**: Read `../../../Applications/Web App/SYSTEM_INTERNALS.md` for low-level equations, database concurrency models, and security architectures.
+3. **Previous Chapters**: Review previous chapters in `../../../01_Documentation_and_Thesis/Chapters/` to maintain narrative continuity.
+4. **Empirical Benchmarks & Test Suite**: Run or inspect backend test suites (`test_agri_fields_and_store.py`, `test_customer_banking.py`, `test_business_operators.py`, `test_multibiz_and_vouchers.py`, `test_portable_node_generation.py`, `test_stage1_core.py`, `test_auth.py`) to extract exact runtime numbers, latencies, current draws, and success rates.
 
 ### Step 2: Timestamp Acquisition via Python
-Run the timestamp utility to acquire the current machine local timestamp string:
+Run the timestamp utility using a relative path to acquire the current machine local timestamp string:
 ```bash
-python .agents/skills/chapter-development/scripts/get_chapter_timestamp.py
+python ./scripts/get_chapter_timestamp.py
 ```
 Parse `filename_prefix` (e.g., `2026-08-12 1854`).
 
@@ -71,7 +71,7 @@ When drafting chapter contents, enforce strict academic and technical standards:
 - **Contextual Alignment**: Emphasize MADN's operating environment in Sub-Saharan Africa (Bulawayo and Tsholotsho), off-grid power resilience, local Wi-Fi micro-cloud autonomy, multi-currency tri-ledger (USD/ZAR/ZWG), and *Ukunciphisa* cost reduction parameters (93%+ capital savings).
 
 ### Step 4: File Publishing
-1. Generate each sub-section Markdown file in `01_Documentation_and_Thesis/Chapters/` prefixed with the acquired Python machine timestamp.
+1. Generate each sub-section Markdown file in `../../../01_Documentation_and_Thesis/Chapters/` prefixed with the acquired Python machine timestamp.
 2. Generate the unified complete chapter file combining all sub-sections.
 3. Verify file paths using `list_dir`.
 

@@ -22,6 +22,7 @@ try:
         get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices,
         track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices,
         compute_production_cost_and_base_price, calculate_continuous_decay_price, calculate_mixed_tender_change,
+        create_field, list_fields, delete_field,
         create_planting, list_plantings, log_production_costs, get_production_costs,
         log_harvest_and_sync_inventory, list_harvests, list_dispositions,
         checkin_visitor, checkout_visitor, list_visitors, get_active_visitors,
@@ -32,7 +33,8 @@ try:
         get_all_currencies, get_currency_by_code, add_currency, update_currency, delete_currency, sync_all_collections_to_data_nodes,
         search_global_currency_catalog, get_global_currency_by_code, validate_currency_code_collision, sync_global_currencies_from_data_node,
         create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts,
-        get_user_profile, update_user_profile, register_or_rotate_node_key, list_node_communication_keys, get_node_communication_key
+        get_user_profile, update_user_profile, register_or_rotate_node_key, list_node_communication_keys, get_node_communication_key,
+        generate_system_sku
     )
     from .node_discovery import discovery_manager
     from .auth_utils import (
@@ -52,6 +54,7 @@ except ImportError:
         get_nodes_telemetry, update_node_position_lww, evaluate_agricultural_rules, calculate_pos_catalog_prices,
         track_device_activity, is_device_blocked, block_device, unblock_device, get_tracked_devices,
         compute_production_cost_and_base_price, calculate_continuous_decay_price, calculate_mixed_tender_change,
+        create_field, list_fields, delete_field,
         create_planting, list_plantings, log_production_costs, get_production_costs,
         log_harvest_and_sync_inventory, list_harvests, list_dispositions,
         checkin_visitor, checkout_visitor, list_visitors, get_active_visitors,
@@ -62,7 +65,8 @@ except ImportError:
         get_all_currencies, get_currency_by_code, add_currency, update_currency, delete_currency, sync_all_collections_to_data_nodes,
         search_global_currency_catalog, get_global_currency_by_code, validate_currency_code_collision, sync_global_currencies_from_data_node,
         create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts,
-        get_user_profile, update_user_profile, register_or_rotate_node_key, list_node_communication_keys, get_node_communication_key
+        get_user_profile, update_user_profile, register_or_rotate_node_key, list_node_communication_keys, get_node_communication_key,
+        generate_system_sku
     )
     from node_discovery import discovery_manager
     from auth_utils import (
@@ -1045,7 +1049,7 @@ async def admin_verify_handover_chain():
     is_valid = verify_shift_handover_chain()
     return {"status": "success" if is_valid else "compromised", "valid": is_valid}
 
-# --- CYCLE 3: INVENTORY & POS CHECKOUT ---
+# --- BUSINESS SUBSYSTEM: INVENTORY & POS CHECKOUT ---
 
 @app.get("/api/inventory", dependencies=[Depends(get_current_user)])
 async def list_inventory():
@@ -1054,33 +1058,127 @@ async def list_inventory():
     items = [dict(row) for row in cursor.fetchall()]
     db.close()
     
-    # Calculate low stock status dynamically
+    # Calculate low stock status dynamically and parse JSON strings
     for item in items:
-        item["low_stock"] = item["quantity"] <= item["low_stock_threshold"]
+        item["low_stock"] = item["quantity"] <= item.get("low_stock_threshold", 5.0)
+        if isinstance(item.get("specifications"), str) and item["specifications"]:
+            try:
+                item["specifications"] = json.loads(item["specifications"])
+            except Exception:
+                pass
+        if isinstance(item.get("extra_attributes"), str) and item["extra_attributes"]:
+            try:
+                item["extra_attributes"] = json.loads(item["extra_attributes"])
+            except Exception:
+                pass
     return items
 
-@app.post("/api/inventory", dependencies=[Depends(require_admin)])
-async def add_new_stock_item(request: Request, admin = Depends(require_admin)):
+@app.get("/api/inventory/categories")
+async def get_inventory_categories():
+    db = get_db()
+    cursor = db.execute("SELECT DISTINCT category, subcategory FROM inventory WHERE category != ''")
+    rows = cursor.fetchall()
+    db.close()
+    cats_map = {}
+    cats_list = []
+    for r in rows:
+        c = r["category"]
+        sc = r["subcategory"]
+        if c not in cats_map:
+            cats_map[c] = []
+            cats_list.append({"category": c, "subcategories": []})
+        if sc and sc not in cats_map[c]:
+            cats_map[c].append(sc)
+            for item in cats_list:
+                if item["category"] == c and sc not in item["subcategories"]:
+                    item["subcategories"].append(sc)
+    return {"status": "success", "categories": cats_list, "category_map": cats_map}
+
+@app.post("/api/inventory", dependencies=[Depends(get_current_user)])
+async def add_new_stock_item(request: Request, current_user = Depends(get_current_user)):
     body = await request.json()
     name = body.get("name", "").strip()
     sku = body.get("sku", "").strip()
-    qty = float(body.get("quantity", 0.0))
-    unit = body.get("unit", "pcs").strip()
-    price = float(body.get("price_usd", 0.0))
-    threshold = float(body.get("low_stock_threshold", 5.0))
+    qty = float(body.get("quantity", 0.0) or 0.0)
+    unit = body.get("unit", "pcs").strip() or "pcs"
+    price = float(body.get("price_usd", 0.0) or 0.0)
+    cost_price = float(body.get("cost_price_usd", 0.0) or (price * 0.6 if price > 0 else 0.0))
+    threshold = float(body.get("low_stock_threshold", 5.0) or 5.0)
+    business_id = body.get("business_id", "biz-default")
     
-    if not name or not sku:
-        raise HTTPException(status_code=400, detail="Item name and SKU are required")
+    # Optional modular attributes
+    barcode = body.get("barcode", "").strip()
+    category = body.get("category", "").strip()
+    subcategory = body.get("subcategory", "").strip()
+    brand = body.get("brand", "").strip()
+    description = body.get("description", "").strip()
+    specifications = body.get("specifications") or {}
+    image_url = body.get("image_url", "").strip()
+    wholesale_price = float(body.get("wholesale_price_usd", 0.0) or 0.0)
+    wholesale_min_qty = float(body.get("wholesale_min_qty", 0.0) or 0.0)
+    extra_attributes = body.get("extra_attributes") or {}
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Product name is required")
         
+    if price <= 0:
+        raise HTTPException(status_code=400, detail="Selling price (Retail Price) must be greater than 0")
+        
+    if cost_price < 0:
+        raise HTTPException(status_code=400, detail="Cost price cannot be negative")
+        
+    if not sku:
+        sku = generate_system_sku(name, category)
+
     db = get_db()
-    cursor = db.execute("SELECT id FROM inventory WHERE name = ? OR sku = ?", (name, sku))
+    cursor = db.execute("SELECT id FROM inventory WHERE name = ? OR (sku != '' AND sku = ?)", (name, sku))
     if cursor.fetchone():
         db.close()
-        raise HTTPException(status_code=400, detail="Item name or SKU already registered")
+        raise HTTPException(status_code=400, detail="An item with this name or SKU is already registered")
     db.close()
     
-    item_id = add_inventory_item(name, sku, qty, unit, price, threshold, admin["username"])
-    return {"status": "success", "id": item_id}
+    item_id = add_inventory_item(
+        name=name, 
+        sku=sku, 
+        quantity=qty, 
+        unit=unit, 
+        price_usd=price, 
+        threshold=threshold, 
+        actor=current_user["username"], 
+        cost_price_usd=cost_price, 
+        business_id=business_id,
+        barcode=barcode,
+        category=category,
+        subcategory=subcategory,
+        brand=brand,
+        description=description,
+        specifications=specifications,
+        image_url=image_url,
+        wholesale_price_usd=wholesale_price,
+        wholesale_min_qty=wholesale_min_qty,
+        extra_attributes=extra_attributes
+    )
+    write_audit_log(current_user["username"], "STORE_PRODUCT_ADDED", f"Added store product '{name}' (SKU: {sku}, Qty: {qty} {unit}, Price: ${price:.2f}, Cost: ${cost_price:.2f})")
+    return {
+        "status": "success",
+        "id": item_id,
+        "name": name,
+        "sku": sku,
+        "price_usd": price,
+        "cost_price_usd": cost_price,
+        "quantity": qty,
+        "unit": unit,
+        "low_stock_threshold": threshold,
+        "barcode": barcode,
+        "category": category,
+        "subcategory": subcategory,
+        "brand": brand,
+        "description": description,
+        "specifications": specifications,
+        "image_url": image_url,
+        "wholesale_price_usd": wholesale_price,
+        "wholesale_min_qty": wholesale_min_qty
+    }
 
 @app.put("/api/inventory/{item_id}/adjust", dependencies=[Depends(get_current_user)])
 async def adjust_stock_manually(item_id: str, request: Request, current_user = Depends(get_current_user)):
@@ -1377,8 +1475,37 @@ def register_cluster_key_endpoint(payload: NodeKeyRegistrationPayload, current_u
 
 
 # =====================================================================
-# STAGE 1 CORE: AGRICULTURE & PRODUCTION COST ENDPOINTS
+# STAGE 1 CORE: AGRICULTURAL FIELDS & PLANTINGS ENDPOINTS
 # =====================================================================
+@app.get("/api/agri/fields")
+def get_fields():
+    return {"status": "success", "fields": list_fields()}
+
+@app.post("/api/agri/fields")
+async def add_field_endpoint(request: Request, current_user = Depends(get_current_user)):
+    body = await request.json()
+    name = body.get("name", "").strip()
+    code = body.get("code", "").strip()
+    area_size = float(body.get("area_size", 1.0) or 1.0)
+    area_unit = body.get("area_unit", "hectares").strip() or "hectares"
+    soil_type = body.get("soil_type", "Loamy").strip() or "Loamy"
+    irrigation_type = body.get("irrigation_type", "Drip").strip() or "Drip"
+    notes = body.get("notes", "")
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Field name is required")
+
+    res = create_field(name, code=code, area_size=area_size, area_unit=area_unit, soil_type=soil_type, irrigation_type=irrigation_type, notes=notes, created_by=current_user["username"])
+    write_audit_log(current_user["username"], "AGRI_FIELD_CREATED", f"Created farm field '{name}' ({area_size} {area_unit})")
+    return {"status": "success", "field": res}
+
+@app.delete("/api/agri/fields/{field_id}")
+def delete_field_endpoint(field_id: str, current_user = Depends(get_current_user)):
+    deleted = delete_field(field_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Field not found")
+    write_audit_log(current_user["username"], "AGRI_FIELD_DELETED", f"Deleted farm field {field_id}")
+    return {"status": "success", "field_id": field_id}
 
 @app.get("/api/agri/plantings")
 def get_plantings():
@@ -1387,20 +1514,41 @@ def get_plantings():
 @app.post("/api/agri/plantings")
 async def add_planting_endpoint(request: Request, current_user = Depends(get_current_user)):
     body = await request.json()
-    crop_variety = body.get("crop_variety", "").strip()
+    field_id = body.get("field_id", "").strip()
+    field_name = body.get("field_name", "").strip()
     plot_bed_id = body.get("plot_bed_id", "").strip()
+    crop_variety = body.get("crop_variety", "").strip()
     planting_date_utc = body.get("planting_date_utc") or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    area_utilized = float(body.get("area_utilized", 1.0) or 1.0)
+    area_unit = body.get("area_unit", "hectares").strip() or "hectares"
     seeding_density = float(body.get("seeding_density", 0.0) or 0.0)
     target_maturity_date_utc = body.get("target_maturity_date_utc")
     initial_soil_hydration_pct = float(body.get("initial_soil_hydration_pct", 0.0) or 0.0)
     notes = body.get("notes", "")
 
-    if not crop_variety or not plot_bed_id:
-        raise HTTPException(status_code=400, detail="Crop variety and Plot ID are required.")
+    if not crop_variety:
+        raise HTTPException(status_code=400, detail="Crop variety is required.")
+    
+    if not field_id and not plot_bed_id:
+        raise HTTPException(status_code=400, detail="Please select a Field / Plot for this planting.")
 
-    res = create_planting(crop_variety, plot_bed_id, planting_date_utc, seeding_density, target_maturity_date_utc, initial_soil_hydration_pct, current_user["username"], notes)
-    write_audit_log(current_user["username"], "AGRI_PLANTING_CREATED", f"Created planting {crop_variety} in {plot_bed_id}")
-    return {"status": "success", "data": res}
+    res = create_planting(
+        crop_variety=crop_variety,
+        plot_bed_id=plot_bed_id,
+        planting_date_utc=planting_date_utc,
+        seeding_density=seeding_density,
+        target_maturity_date_utc=target_maturity_date_utc,
+        initial_soil_hydration_pct=initial_soil_hydration_pct,
+        created_by=current_user["username"],
+        notes=notes,
+        field_id=field_id,
+        field_name=field_name,
+        area_utilized=area_utilized,
+        area_unit=area_unit
+    )
+    target_loc = field_name or plot_bed_id or "Field"
+    write_audit_log(current_user["username"], "AGRI_PLANTING_CREATED", f"Created planting {crop_variety} in {target_loc}")
+    return {"status": "success", "planting": res, "data": res}
 
 @app.get("/api/agri/costs")
 def get_costs_endpoint(planting_id: str = None):

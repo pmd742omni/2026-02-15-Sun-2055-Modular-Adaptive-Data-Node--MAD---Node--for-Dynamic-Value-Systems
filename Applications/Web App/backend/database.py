@@ -9,6 +9,7 @@ import json
 import hmac
 import datetime
 import math
+import re
 from typing import Optional, List, Dict, Any, Tuple
 try:
     from .auth_utils import hash_password
@@ -180,7 +181,19 @@ def init_db():
         quantity REAL NOT NULL DEFAULT 0.0,
         unit TEXT NOT NULL DEFAULT 'pcs',
         price_usd REAL NOT NULL DEFAULT 0.0,
-        low_stock_threshold REAL NOT NULL DEFAULT 5.0
+        cost_price_usd REAL NOT NULL DEFAULT 0.0,
+        low_stock_threshold REAL NOT NULL DEFAULT 5.0,
+        barcode TEXT DEFAULT '',
+        category TEXT DEFAULT '',
+        subcategory TEXT DEFAULT '',
+        brand TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        specifications TEXT DEFAULT '{}',
+        image_url TEXT DEFAULT '',
+        wholesale_price_usd REAL DEFAULT 0.0,
+        wholesale_min_qty REAL DEFAULT 0.0,
+        extra_attributes TEXT DEFAULT '{}',
+        business_id TEXT DEFAULT 'biz-green-valley'
     );
     """)
 
@@ -373,6 +386,22 @@ def init_db():
     """)
 
     # Stage 1 Core Tables: Agriculture, Security Gatekeeper, and Social Media
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS agri_fields (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        code TEXT,
+        area_size REAL DEFAULT 1.0,
+        area_unit TEXT DEFAULT 'hectares',
+        soil_type TEXT DEFAULT 'Loamy',
+        irrigation_type TEXT DEFAULT 'Drip Irrigation',
+        status TEXT DEFAULT 'active',
+        notes TEXT,
+        created_by TEXT NOT NULL,
+        created_at_utc TEXT NOT NULL
+    );
+    """)
+
     db.execute("""
     CREATE TABLE IF NOT EXISTS agri_plantings (
         id TEXT PRIMARY KEY,
@@ -701,12 +730,29 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
-    # PRAGMA Migration: add cost_price_usd column to inventory
+    # PRAGMA Migration: add modular product columns to inventory
     cursor = db.execute("PRAGMA table_info(inventory)")
     cols = [row["name"] for row in cursor.fetchall()]
-    if "cost_price_usd" not in cols:
-        db.execute("ALTER TABLE inventory ADD COLUMN cost_price_usd REAL DEFAULT 0.0;")
-        db.commit()
+    for col_name, col_def in [
+        ("cost_price_usd", "REAL DEFAULT 0.0"),
+        ("barcode", "TEXT DEFAULT ''"),
+        ("category", "TEXT DEFAULT ''"),
+        ("subcategory", "TEXT DEFAULT ''"),
+        ("brand", "TEXT DEFAULT ''"),
+        ("description", "TEXT DEFAULT ''"),
+        ("specifications", "TEXT DEFAULT '{}'"),
+        ("image_url", "TEXT DEFAULT ''"),
+        ("wholesale_price_usd", "REAL DEFAULT 0.0"),
+        ("wholesale_min_qty", "REAL DEFAULT 0.0"),
+        ("extra_attributes", "TEXT DEFAULT '{}'"),
+        ("business_id", "TEXT DEFAULT 'biz-green-valley'")
+    ]:
+        if col_name not in cols:
+            try:
+                db.execute(f"ALTER TABLE inventory ADD COLUMN {col_name} {col_def};")
+                db.commit()
+            except sqlite3.OperationalError:
+                pass
 
     # PRAGMA Migrations: add business_id column across tenant-scoped tables
     for t_name in ["inventory", "agri_plantings", "agri_harvests", "transactions", "social_posts"]:
@@ -718,6 +764,22 @@ def init_db():
                 db.commit()
         except sqlite3.OperationalError:
             pass
+
+    # PRAGMA Migrations: add field_id, field_name, area_utilized to agri_plantings
+    cursor = db.execute("PRAGMA table_info(agri_plantings)")
+    agri_cols = [row["name"] for row in cursor.fetchall()]
+    for col_name, col_def in [
+        ("field_id", "TEXT"),
+        ("field_name", "TEXT DEFAULT ''"),
+        ("area_utilized", "REAL DEFAULT 1.0"),
+        ("area_unit", "TEXT DEFAULT 'hectares'")
+    ]:
+        if col_name not in agri_cols:
+            try:
+                db.execute(f"ALTER TABLE agri_plantings ADD COLUMN {col_name} {col_def};")
+                db.commit()
+            except sqlite3.OperationalError:
+                pass
 
     # Seed default configurations
     cursor = db.execute("SELECT COUNT(*) as count FROM calculator_config")
@@ -733,96 +795,11 @@ def init_db():
         """, ("crop_yield_ratio", 0.45, 1, now))
         db.commit()
 
-    # Seed sample inventory items
-    cursor = db.execute("SELECT COUNT(*) as count FROM inventory")
-    if cursor.fetchone()["count"] == 0:
-        samples = [
-            ("Maize Seed (10kg Bag)", "MAIZE-10KG", 15.0, "bags", 25.00, 15.00, 5.0),
-            ("Nitrogen Fertilizer (50kg Bag)", "FERT-NITRO", 8.0, "bags", 45.00, 28.00, 3.0),
-            ("Livestock Dip Concentrate (1L)", "DIP-CONC-1L", 4.0, "bottles", 32.50, 20.00, 2.0),
-            ("Irrigation Dripper Nozzles (Pack of 50)", "IRRIG-NOZ-50", 12.0, "packs", 15.00, 9.00, 4.0),
-            ("Fresh Harvest Cabbage (Case)", "CABBAGE-CASE", 20.0, "cases", 18.00, 8.00, 4.0)
-        ]
-        for name, sku, qty, unit, price, cost, threshold in samples:
-            item_id = str(uuid.uuid4())
-            db.execute("""
-                INSERT INTO inventory (id, name, sku, quantity, unit, price_usd, cost_price_usd, low_stock_threshold)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (item_id, name, sku, qty, unit, price, cost, threshold))
-        db.commit()
-    else:
-        # Update cost_price_usd if zero
-        db.execute("UPDATE inventory SET cost_price_usd = price_usd * 0.6 WHERE cost_price_usd = 0.0;")
-        db.commit()
+    # Zero-seed inventory initialization: Real items are added by operators or synced from harvests
+    # No artificial dummy products seeded into store
 
-    # Seed Cycle 4 Default R*Tree Map Obstacles
-    cursor = db.execute("SELECT COUNT(*) as count FROM map_obstacles_meta")
-    if cursor.fetchone()["count"] == 0:
-        obstacles = [
-            (1, "Grain Silo (Metal Reinforced)", 30.0, 45.0, 25.0, 40.0, 25.0),
-            (2, "Wooden Equipment Barn", 60.0, 75.0, 55.0, 70.0, 8.0)
-        ]
-        for obs_id, name, x_min, x_max, y_min, y_max, atten in obstacles:
-            db.execute("INSERT INTO map_obstacles_meta (id, name, attenuation_db) VALUES (?, ?, ?)", (obs_id, name, atten))
-            db.execute("INSERT INTO map_obstacles_rtree (id, x_min, x_max, y_min, y_max) VALUES (?, ?, ?, ?, ?)", (obs_id, x_min, x_max, y_min, y_max))
-        db.commit()
-
-    # Seed Cycle 4 Default Security Nodes
-    cursor = db.execute("SELECT COUNT(*) as count FROM security_nodes")
-    if cursor.fetchone()["count"] == 0:
-        now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        default_nodes = [
-            ("node-1", "North Perimeter Gate", 20.0, 15.0, 1, 0, 95.0, now_utc, now_utc, "server"),
-            ("node-2", "South Feed Storage", 80.0, 85.0, 1, 0, 88.0, now_utc, now_utc, "server"),
-            ("node-3", "East Solar Array", 85.0, 20.0, 1, 0, 15.0, now_utc, now_utc, "server"),
-            ("node-4", "West Water Reservoir", 15.0, 80.0, 1, 0, 90.0, now_utc, now_utc, "server")
-        ]
-        for nid, lbl, x, y, on, alm, bat, pos_t, bat_t, cid in default_nodes:
-            db.execute("""
-                INSERT INTO security_nodes (id, label, x_pct, y_pct, online, alarm, battery_pct, position_last_modified_utc, battery_last_modified_utc, client_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (nid, lbl, x, y, on, alm, bat, pos_t, bat_t, cid))
-        db.commit()
-
-    # Seed Cycle 4 Default Agricultural Rules
-    cursor = db.execute("SELECT COUNT(*) as count FROM agricultural_rules")
-    if cursor.fetchone()["count"] == 0:
-        now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        rules = [
-            (
-                "rule-1",
-                "Extreme Heatwave Spoilage Warning",
-                "Cabbage",
-                json.dumps([{"metric": "temperature", "op": ">", "val": 32.0}]),
-                "advisory",
-                "Severe heatwave detected: Cabbage spoilage risk in 24h. Spawning Harvest Work Order & POS Flash Sale.",
-                None,
-                None,
-                1,
-                now_utc
-            ),
-            (
-                "rule-2",
-                "Automated Nighttime Irrigation",
-                "Maize",
-                json.dumps([
-                    {"metric": "soil_moisture", "op": "<", "val": 20.0},
-                    {"metric": "time", "op": "between", "val": "18:00-06:00"}
-                ]),
-                "actuator",
-                "Nighttime soil dry. Opening Drip Irrigation Valve #1 until moisture > 45%.",
-                "irrigation_valve_1",
-                "soil_moisture > 45",
-                1,
-                now_utc
-            )
-        ]
-        for rid, ttl, crop, cond, act_t, msg, target, stop_cond, active, modified in rules:
-            db.execute("""
-                INSERT INTO agricultural_rules (id, title, crop_type, conditions_json, action_type, action_message, actuator_target, actuator_stop_condition, is_active, last_modified_utc)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (rid, ttl, crop, cond, act_t, msg, target, stop_cond, active, modified))
-        db.commit()
+    # Zero-seed policy: All map obstacles, security nodes, rules, and store products
+    # are strictly operator-managed and created dynamically without artificial dummy entries.
     
     # 2. Seed bootstrap admin
     cursor = db.execute("SELECT COUNT(*) as count FROM users")
@@ -1046,16 +1023,91 @@ def update_calculator_config(key: str, value: float, actor: str) -> bool:
     write_audit_log(actor, "UPDATE_CONFIG", f"Updated config key '{key}' to value {value} (v{new_version})")
     return True
 
-def add_inventory_item(name: str, sku: str, quantity: float, unit: str, price_usd: float, threshold: float, actor: str) -> str:
+def generate_system_sku(name: str, category: str = "") -> str:
+    """Systematically automatically assigns an internal tracking SKU."""
+    clean_name = re.sub(r'[^A-Za-z0-9]', '', name).upper()
+    prefix = clean_name[:4] if len(clean_name) >= 4 else (clean_name + "PROD")[:4]
+    cat_tag = ""
+    if category:
+        clean_cat = re.sub(r'[^A-Za-z0-9]', '', category).upper()
+        if clean_cat:
+            cat_tag = f"-{clean_cat[:3]}"
+    rand_suffix = uuid.uuid4().hex[:4].upper()
+    return f"{prefix}{cat_tag}-{rand_suffix}"
+
+def add_inventory_item(
+    name: str, 
+    sku: str, 
+    quantity: float, 
+    unit: str, 
+    price_usd: float, 
+    threshold: float, 
+    actor: str, 
+    cost_price_usd: float = 0.0, 
+    business_id: str = "biz-default",
+    barcode: str = "",
+    category: str = "",
+    subcategory: str = "",
+    brand: str = "",
+    description: str = "",
+    specifications: any = None,
+    image_url: str = "",
+    wholesale_price_usd: float = 0.0,
+    wholesale_min_qty: float = 0.0,
+    extra_attributes: any = None
+) -> str:
     db = get_db()
     try:
         item_id = str(uuid.uuid4())
+        cost_price = float(cost_price_usd or (price_usd * 0.6))
+        
+        # Systematically auto-assign SKU if not provided
+        if not sku or not sku.strip():
+            sku = generate_system_sku(name, category)
+        else:
+            sku = sku.strip()
+
+        specs_str = json.dumps(specifications) if isinstance(specifications, (dict, list)) else str(specifications or "{}")
+        extras_str = json.dumps(extra_attributes) if isinstance(extra_attributes, (dict, list)) else str(extra_attributes or "{}")
+
         db.execute("""
-            INSERT INTO inventory (id, name, sku, quantity, unit, price_usd, low_stock_threshold)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (item_id, name, sku, quantity, unit, price_usd, threshold))
+            INSERT INTO inventory (
+                id, name, sku, quantity, unit, price_usd, cost_price_usd, low_stock_threshold,
+                barcode, category, subcategory, brand, description, specifications, image_url,
+                wholesale_price_usd, wholesale_min_qty, extra_attributes, business_id
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            item_id, name, sku, float(quantity), str(unit or 'pcs'), float(price_usd), float(cost_price), float(threshold or 5.0),
+            str(barcode or ''), str(category or ''), str(subcategory or ''), str(brand or ''), str(description or ''),
+            specs_str, str(image_url or ''), float(wholesale_price_usd or 0.0), float(wholesale_min_qty or 0.0),
+            extras_str, str(business_id or 'biz-default')
+        ))
         db.commit()
         write_audit_log(actor, "ADD_INVENTORY", f"Added item '{name}' (SKU: {sku}) with initial quantity {quantity} {unit}")
+        
+        # Sync immediately with connected Data Node
+        sync_record_to_data_nodes("inventory", item_id, {
+            "id": item_id,
+            "name": name,
+            "sku": sku,
+            "quantity": float(quantity),
+            "unit": str(unit or 'pcs'),
+            "price_usd": float(price_usd),
+            "cost_price_usd": float(cost_price),
+            "low_stock_threshold": float(threshold or 5.0),
+            "barcode": str(barcode or ''),
+            "category": str(category or ''),
+            "subcategory": str(subcategory or ''),
+            "brand": str(brand or ''),
+            "description": str(description or ''),
+            "specifications": specifications if isinstance(specifications, dict) else {},
+            "image_url": str(image_url or ''),
+            "wholesale_price_usd": float(wholesale_price_usd or 0.0),
+            "wholesale_min_qty": float(wholesale_min_qty or 0.0),
+            "business_id": str(business_id or 'biz-default'),
+            "added_by": actor
+        })
         return item_id
     finally:
         db.close()
@@ -1856,19 +1908,94 @@ def calculate_mixed_tender_change(total_usd: float, tendered_usd: float = 0.0, t
 
 
 # =====================================================================
-# STAGE 1 CORE: AGRICULTURE CRUD
+# STAGE 1 CORE: AGRICULTURE CRUD & FIELD MANAGEMENT
 # =====================================================================
 
-def create_planting(crop_variety: str, plot_bed_id: str, planting_date_utc: str, seeding_density: float, target_maturity_date_utc: str, initial_soil_hydration_pct: float, created_by: str, notes: str = "") -> dict:
-    planting_id = f"plant-{uuid.uuid4().hex[:8]}"
+def create_field(name: str, code: str = "", area_size: float = 1.0, area_unit: str = "hectares", soil_type: str = "Loamy", irrigation_type: str = "Drip Irrigation", notes: str = "", created_by: str = "operator") -> dict:
+    field_id = f"fld-{uuid.uuid4().hex[:8]}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    clean_code = code.strip() if code and code.strip() else f"FLD-{field_id[4:8].upper()}"
     with get_db() as db:
         db.execute("""
-            INSERT INTO agri_plantings (id, crop_variety, plot_bed_id, planting_date_utc, seeding_density, target_maturity_date_utc, initial_soil_hydration_pct, status, created_by, created_at_utc, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'growing', ?, ?, ?)
-        """, (planting_id, crop_variety, plot_bed_id, planting_date_utc, seeding_density, target_maturity_date_utc, initial_soil_hydration_pct, created_by, now_utc, notes))
+            INSERT INTO agri_fields (id, name, code, area_size, area_unit, soil_type, irrigation_type, status, notes, created_by, created_at_utc)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
+        """, (field_id, name, clean_code, float(area_size or 1.0), area_unit or "hectares", soil_type or "Loamy", irrigation_type or "Drip Irrigation", notes or "", created_by, now_utc))
         db.commit()
-    return {"id": planting_id, "crop_variety": crop_variety, "plot_bed_id": plot_bed_id, "status": "growing"}
+    
+    field_data = {
+        "id": field_id,
+        "name": name,
+        "code": clean_code,
+        "area_size": float(area_size or 1.0),
+        "area_unit": area_unit or "hectares",
+        "soil_type": soil_type or "Loamy",
+        "irrigation_type": irrigation_type or "Drip Irrigation",
+        "status": "active",
+        "notes": notes or "",
+        "created_by": created_by,
+        "created_at_utc": now_utc
+    }
+    sync_record_to_data_nodes("agri_fields", field_id, field_data)
+    return field_data
+
+
+def list_fields() -> list:
+    with get_db() as db:
+        cursor = db.execute("SELECT * FROM agri_fields ORDER BY created_at_utc DESC")
+        rows = [dict(r) for r in cursor.fetchall()]
+    return rows
+
+
+def delete_field(field_id: str) -> bool:
+    with get_db() as db:
+        cursor = db.execute("DELETE FROM agri_fields WHERE id = ?", (field_id,))
+        db.commit()
+        return cursor.rowcount > 0
+
+
+def create_planting(crop_variety: str, plot_bed_id: str = "", planting_date_utc: str = "", seeding_density: float = 0.0, target_maturity_date_utc: str = "", initial_soil_hydration_pct: float = 0.0, created_by: str = "operator", notes: str = "", field_id: str = "", field_name: str = "", area_utilized: float = 1.0, area_unit: str = "hectares") -> dict:
+    planting_id = f"plant-{uuid.uuid4().hex[:8]}"
+    now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    if not planting_date_utc:
+        planting_date_utc = now_utc
+
+    # Resolve field name if field_id is provided
+    resolved_field_name = field_name or plot_bed_id
+    if field_id and not field_name:
+        with get_db() as db:
+            cursor = db.execute("SELECT name FROM agri_fields WHERE id = ?", (field_id,))
+            row = cursor.fetchone()
+            if row:
+                resolved_field_name = row["name"]
+
+    resolved_plot_bed_id = plot_bed_id or resolved_field_name or "Field-Plot"
+
+    with get_db() as db:
+        db.execute("""
+            INSERT INTO agri_plantings (id, crop_variety, plot_bed_id, field_id, field_name, area_utilized, area_unit, planting_date_utc, seeding_density, target_maturity_date_utc, initial_soil_hydration_pct, status, created_by, created_at_utc, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'growing', ?, ?, ?)
+        """, (planting_id, crop_variety, resolved_plot_bed_id, field_id or "", resolved_field_name, float(area_utilized or 1.0), area_unit or "hectares", planting_date_utc, float(seeding_density or 0.0), target_maturity_date_utc or "", float(initial_soil_hydration_pct or 0.0), created_by, now_utc, notes or ""))
+        db.commit()
+    
+    planting_data = {
+        "id": planting_id,
+        "crop_variety": crop_variety,
+        "plot_bed_id": resolved_plot_bed_id,
+        "field_id": field_id,
+        "field_name": resolved_field_name,
+        "area_utilized": float(area_utilized or 1.0),
+        "area_unit": area_unit or "hectares",
+        "planting_date_utc": planting_date_utc,
+        "seeding_density": float(seeding_density or 0.0),
+        "target_maturity_date_utc": target_maturity_date_utc,
+        "initial_soil_hydration_pct": float(initial_soil_hydration_pct or 0.0),
+        "status": "growing",
+        "created_by": created_by,
+        "created_at_utc": now_utc,
+        "notes": notes or ""
+    }
+    sync_record_to_data_nodes("agri_plantings", planting_id, planting_data)
+    return planting_data
 
 
 def list_plantings() -> list:
@@ -1897,6 +2024,16 @@ def log_production_costs(planting_id: str, costs: dict, logged_by: str) -> dict:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (cost_id, planting_id, c_seeds, c_fert, c_water, c_labor, c_pest, c_pack, c_log, c_over, total, logged_by, now_utc))
         db.commit()
+    
+    cost_data = {
+        "id": cost_id,
+        "planting_id": planting_id,
+        "costs": costs,
+        "total_cost_usd": total,
+        "logged_by": logged_by,
+        "logged_at_utc": now_utc
+    }
+    sync_record_to_data_nodes("agri_production_costs", cost_id, cost_data)
     return {"id": cost_id, "planting_id": planting_id, "total_cost_usd": total}
 
 
@@ -1910,7 +2047,7 @@ def get_production_costs(planting_id: str) -> list:
 def log_harvest_and_sync_inventory(planting_id: str, crop_name: str, harvest_date_utc: str, mass_harvest_kg: float, quality_grade: str, storage_location: str, mass_self_kg: float, target_markup_pct: float, shelf_life_half_life_days: float, logged_by: str) -> dict:
     """
     Logs harvest, aggregates planting costs, automatically derives P_cost & P_base,
-    and inserts commercial batch into POS inventory.
+    and inserts commercial batch into POS inventory, replicating to Data Nodes.
     """
     harvest_id = f"harv-{uuid.uuid4().hex[:8]}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -1969,7 +2106,7 @@ def log_harvest_and_sync_inventory(planting_id: str, crop_name: str, harvest_dat
 
         db.commit()
 
-    return {
+    harvest_data = {
         "harvest_id": harvest_id,
         "planting_id": planting_id,
         "crop_name": crop_name,
@@ -1978,8 +2115,20 @@ def log_harvest_and_sync_inventory(planting_id: str, crop_name: str, harvest_dat
         "mass_comm_kg": mass_comm,
         "wholesale_cost_floor_usd": cost_floor,
         "base_price_usd": base_price,
-        "inventory_item_id": inv_id
+        "inventory_item_id": inv_id,
+        "harvest_date_utc": harvest_date_utc
     }
+    sync_record_to_data_nodes("agri_harvests", harvest_id, harvest_data)
+    sync_record_to_data_nodes("inventory", inv_id, {
+        "id": inv_id,
+        "name": item_name,
+        "quantity": mass_comm,
+        "unit": "kg",
+        "price_usd": base_price,
+        "cost_price_usd": cost_floor
+    })
+
+    return harvest_data
 
 
 def list_harvests() -> list:
@@ -3150,6 +3299,24 @@ def sync_all_collections_to_data_nodes() -> dict:
         for k in keys:
             sync_record_to_data_nodes("communication_keys", k["node_id"], k)
         results["synced_collections"].append("communication_keys")
+
+        # 5. Sync agricultural fields
+        fields = list_fields()
+        for f in fields:
+            sync_record_to_data_nodes("agri_fields", f["id"], f)
+        results["synced_collections"].append("agri_fields")
+
+        # 6. Sync agricultural plantings
+        plantings = list_plantings()
+        for p in plantings:
+            sync_record_to_data_nodes("agri_plantings", p["id"], p)
+        results["synced_collections"].append("agri_plantings")
+
+        # 7. Sync agricultural harvests
+        harvests = list_harvests()
+        for h in harvests:
+            sync_record_to_data_nodes("agri_harvests", h["id"], h)
+        results["synced_collections"].append("agri_harvests")
         
         results["status"] = "success"
     except Exception as e:

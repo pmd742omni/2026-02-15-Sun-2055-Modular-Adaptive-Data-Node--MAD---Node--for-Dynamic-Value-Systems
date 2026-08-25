@@ -4,7 +4,7 @@ Universal .agents Directory & Rules Optimizer for MADN
 =====================================================
 Dynamically discovers all skills under .agents/skills/ and ensures that
 .agents/AGENTS.md and agent guidelines are consistently structured, indexed,
-and aligned with current and future architectural standards.
+and aligned with current and future architectural standards using relative paths.
 """
 
 import os
@@ -48,36 +48,52 @@ def optimize_agents_directory():
     for name, path in skills:
         print(f"    - {name} ({os.path.relpath(path, root)})")
 
-    # Generate or synchronize AGENTS.md
+    # Generate or synchronize AGENTS.md using strict relative paths
     agents_md_content = """# Project Rules & Customizations
 
-## Progress Tracking Rule ("Document Now")
+## 1. Progress Tracking Rule ("Document Now")
 Whenever the user states **"document now"**, **"document progress"**, or requests a new checkpoint:
-1. Refer to and follow the instructions in the `document-now` skill ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/document-now/SKILL.md)).
-2. Synchronize `Applications/Web App/SYSTEM_INTERNALS.md`, `Applications/Web App/USER_MANUAL.md`, and `Applications/Web App/PROJECT_CHECKLIST.md` with relative destination paths (`./`, `../`, `../../`).
-3. Synthesize progress, create the progress tracking file under `progress tracking/YYYY-MM-DD_HHMM_Description.md` following the required schema (including Ndebele version codename, 10-year-old child target explanations and next steps, and developer attributions).
+1. Refer to and follow the instructions in the `document-now` skill ([SKILL.md](./skills/document-now/SKILL.md)).
+2. Synchronize `../Applications/Web App/SYSTEM_INTERNALS.md`, `../Applications/Web App/USER_MANUAL.md`, and `../Applications/Web App/PROJECT_CHECKLIST.md` with relative destination paths (`./`, `../`, `../../`).
+3. Synthesize progress, dynamically assign an authentic, culturally rich Ndebele version codename via the LLM (validated for uniqueness), and create `../progress tracking/YYYY-MM-DD_HHMM_Description.md` following the required schema (including 10-year-old child target explanations, child-friendly next steps, and developer attributions).
 4. Stage all changes (`git add .`) and execute a git commit with the message format: `YYYY-MM-DD Day HHMM: [Title] ([Codename] [Version])`.
 
-## System Internals Documentation Rule ("System Internals")
-Whenever the user states **"update system internals"**, **"generate internals doc"**, or requests deep technical reference documentation:
-1. Refer to and follow the instructions in the `system-internals-doc` skill ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/system-internals-doc/SKILL.md)).
-2. Audit the system architecture, database locks, scrypt/TOTP security parameters, mesh routing, multi-currency tri-ledger, and continuous exponential decay math.
-3. Update `Applications/Web App/SYSTEM_INTERNALS.md` with low-level technical reference details, Mermaid diagrams, and LaTeX equations.
+## 2. LLM Thesis Chapter Development Rule ("Chapter Development" / "Develop Chapter")
+Whenever the user states **"develop chapter"**, **"write chapter"**, **"create chapter"**, or requests academic thesis writing:
+1. Refer to and follow the instructions in the `chapter-development` skill ([SKILL.md](./skills/chapter-development/SKILL.md)).
+2. **LLM Authorship Mandate**: All chapters, literature reviews, theoretical foundations, system design analyses, and empirical benchmark evaluations are authored directly by the LLM (Antigravity) using scholarly prose, KaTeX mathematics, and empirical evidence.
+3. Acquire the authoritative local machine timestamp string (`YYYY-MM-DD HHMM`) via `python .agents/skills/chapter-development/scripts/get_chapter_timestamp.py`.
+4. Output individual sub-section files (`YYYY-MM-DD HHMM 5.X Section Title.md`) and unified compiled chapter files (`YYYY-MM-DD HHMM Chapter X_ Title.md`) into `../01_Documentation_and_Thesis/Chapters/`.
 
-## Chapter Development Rule ("Chapter Development" / "Develop Chapter")
-Whenever the user states **"develop chapter"**, **"write chapter"**, **"create chapter"**, or requests development of a thesis chapter:
-1. Refer to and follow the instructions in the `chapter-development` skill ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/chapter-development/SKILL.md)).
-2. Acquire the authoritative local machine system timestamp string (`YYYY-MM-DD HHMM`) by running `python .agents/skills/chapter-development/scripts/get_chapter_timestamp.py` dynamically at runtime.
-3. Audit codebase, backend test results, system internals, math models, and hardware benchmarks.
-4. Output individual sub-section files (`YYYY-MM-DD HHMM 5.X Section Title.md`) and a unified compiled chapter file (`YYYY-MM-DD HHMM Chapter X_ Title.md`) into `01_Documentation_and_Thesis/Chapters/`.
-
-## Dynamic Value Milestone Release Rule ("Milestone Release" / "Sync Chapters and Document")
+## 3. Universal Milestone Release Rule ("Milestone Release" / "Sync Chapters and Document")
 Whenever the user states **"milestone release"**, **"sync chapters and document"**, or requests a new feature release milestone:
-1. Refer to and follow the instructions in the `dynamic-value-milestone` skill ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/dynamic-value-milestone/SKILL.md)).
-2. Execute the full automated verification suite (`pytest -v`).
-3. Automatically generate updated sub-section and compiled chapter files into a newly created versioned directory `01_Documentation_and_Thesis/Chapters/YYYY-MM-DD Day HHMM Version YYYY-MM-DD Day HHMM/`.
-4. Optimize `.agents` directory rules for universal Modular Adaptive Data Node systems.
-5. Trigger the `document-now` progress tracking skill to synchronize `SYSTEM_INTERNALS.md`, `USER_MANUAL.md`, `PROJECT_CHECKLIST.md`, register the version codename, and execute the Git commit.
+1. Refer to and follow the instructions in the `dynamic-value-milestone` skill ([SKILL.md](./skills/dynamic-value-milestone/SKILL.md)).
+2. Execute the automated verification suite (`pytest -v`).
+3. Dynamically generate and synchronize updated sub-section and compiled chapter files into a newly created versioned directory `../01_Documentation_and_Thesis/Chapters/YYYY-MM-DD Day HHMM Version YYYY-MM-DD Day HHMM/`.
+4. Trigger `.agents` optimization and the `document-now` progress tracking skill to register the new version and commit.
+
+## 4. Adaptive System Evolution Rule ("Track Evolution" / "Suggest Adjustments")
+Whenever the user states **"track evolution"**, **"suggest adjustments"**, **"analyze architecture"**, or **"optimize madn"**:
+1. Refer to and follow the instructions in the `madn-evolution-tracker` skill ([SKILL.md](./skills/madn-evolution-tracker/SKILL.md)).
+2. Intelligently inspect git history and architectural changes over time across frontend, backend, Data Node, and Vault Node.
+3. Deliver a structured Architectural Diagnostic & Systematic Adjustment Plan with concrete, actionable enhancements.
+
+## 5. Intelligent Feature Scaffolding Rule ("Scaffold Feature" / "Create Subsystem")
+Whenever the user states **"scaffold feature [name]"**, **"create subsystem [name]"**, or requests implementing a new modular component:
+1. Refer to and follow the instructions in the `madn-feature-scaffold` skill ([SKILL.md](./skills/madn-feature-scaffold/SKILL.md)).
+2. Scaffold across the 5 architectural tiers: SQLite WAL schema, FastAPI REST endpoints, Data Node sync, glassmorphic Operator UI, and automated pytest suite.
+
+## 6. Automated System Verification Rule ("Verify System" / "Health Check")
+Whenever the user states **"verify system"**, **"health check"**, or **"audit security"**:
+1. Refer to and follow the instructions in the `madn-system-verifier` skill ([SKILL.md](./skills/madn-system-verifier/SKILL.md)).
+2. Audit scrypt/TOTP security parameters, SQLite WAL locks, zero-seed balances, and run full test suites.
+
+## 7. System Internals Documentation Rule ("System Internals")
+Whenever the user states **"update system internals"**, **"generate internals doc"**, or requests deep technical reference documentation:
+1. Refer to and follow the instructions in the `system-internals-doc` skill ([SKILL.md](./skills/system-internals-doc/SKILL.md)).
+2. Update `../Applications/Web App/SYSTEM_INTERNALS.md` with low-level technical reference details, Mermaid diagrams, and LaTeX equations.
+
+---
 
 ## Tri-Node Architecture & Composable Dynamic Value Systems Standard
 1. **Operator Node**: Zero-installation web client executing in modern browsers (:8000). Handles dynamic pricing views, touch POS, peer-to-peer transfers, and live receipt vault lookups.
@@ -88,7 +104,7 @@ Whenever the user states **"milestone release"**, **"sync chapters and document"
    - Global World Currency & Cryptocurrency Registry (170+ ISO fiats + 50+ cryptos) with continuous online collection and offline air-gapped fallback.
    - Real-time multi-tier collision validation (`OFFICIAL_ISO_FIAT`, `MAJOR_CRYPTO`, `EXISTING_ACTIVE_CURRENCY`, `UNIQUE_AVAILABLE`) to protect financial namespaces.
    - Zero-seed balances rule: All accounts initialize strictly with `0.00` balances.
-5. **Portable Bootstrapper (`Applications/start.py`)**: Zero-config launcher auto-resolving Python dependencies, supervising multi-node child processes, and providing an interactive terminal dashboard.
+5. **Portable Bootstrapper (`../Applications/start.py`)**: Zero-config launcher auto-resolving Python dependencies, supervising multi-node child processes, and providing an interactive terminal dashboard.
 6. **Automated Verification Matrix**: Always execute the full test suite (`pytest -v`) before creating documentation or thesis updates.
 """
 

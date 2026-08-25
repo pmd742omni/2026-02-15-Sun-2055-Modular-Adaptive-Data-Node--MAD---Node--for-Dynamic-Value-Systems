@@ -26,7 +26,7 @@ class TestDeviceManagement(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         
         # 2. Login as admin to fetch devices
-        login_res = self.client.post("/api/auth/login", json={"username": "admin", "password": "adminpassword"})
+        login_res = self.client.post("/api/auth/login", json={"username": "admin", "password": "Password123!"})
         self.assertEqual(login_res.status_code, 200)
         
         # 3. Fetch tracked devices

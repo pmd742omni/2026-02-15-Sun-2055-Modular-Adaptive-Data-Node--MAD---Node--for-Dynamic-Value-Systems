@@ -116,9 +116,27 @@
   - `[x]` Create `global_currency_catalog` table in `./backend/database.py` with multi-tier collision detection (`validate_currency_code_collision`)
   - `[x]` Add REST endpoints `GET /api/currencies/catalog`, `GET /api/currencies/validate`, `POST /api/currencies/catalog/sync`
   - `[x]` Integrate real-time collision badge, "Adopt Official Standard 🪄" button, and World Catalog Explorer in `./frontend/app.js` and `./frontend/index.html`
-- `[x]` **Automated Verification Harness**
-  - `[x]` Updated `./backend/test_customer_banking.py` with dynamic currency creation and collision prevention tests
-  - `[x]` Executed full 27-test regression matrix with 100% pass rate (`pytest -v`)
+## [x] Modular Dynamic Field Product Engine & Business Subsystem
+- `[x]` **Core Inventory Architecture & System SKU Generation**
+  - `[x]` Enhanced `./backend/database.py` with columns: `cost_price_usd`, `barcode`, `category`, `subcategory`, `brand`, `description`, `specifications`, `image_url`, `wholesale_price_usd`, `wholesale_min_qty`, `extra_attributes`, `business_id`
+  - `[x]` Deterministic system SKU generation function `generate_system_sku(name, category)` in `./backend/database.py`
+  - `[x]` Enforced mandatory non-negative Cost Price (COGS) and positive Selling Price validations in `./backend/main.py`
+  - `[x]` Zero dummy data cleanup across all initialization tables
+- `[x]` **Modular Dynamic Intake Interface & Empty State POS Bypass**
+  - `[x]` Rebranded all frontend navigation, dashboard cards, and subnav tabs from legacy "POS & Market" to **💼 Business**
+  - `[x]` Implemented empty-state POS bypass: When catalog item count is $N=0$, the POS terminal hides the checkout register and renders a direct store setup intake form
+  - `[x]` Built modular product intake modal (`#modal-add-store-product`) with clickable dynamic attribute pills:
+    - `+ 🖼️ Image`: File upload reader converting to base64 Data URL + direct URL input + live preview thumbnail
+    - `+ 🏷️ Barcode`: Universal scannable product identifier (EAN/UPC/ISBN) with automatic random generator
+    - `+ 🗂️ Category & Subcategory`: Taxonomic hierarchy builder with quick presets (`Drinks > Energy Drinks`, `Hardware > Cables`, `Crops > Grains`, `Electronics > Solar`)
+    - `+ 🏢 Brand / Manufacturer`: Manufacturer branding attribute
+    - `+ 📝 Description & Specs`: Textarea plus dynamic key-value spec rows with `+ Add Custom Specification`
+    - `+ 💎 Wholesale Price`: Bulk tier unit price & minimum order quantity
+    - `+ ⚠️ Low Stock Threshold`: Custom alert trigger
+- `[x]` **Decentralized Data Node Replication & Integration Tests**
+  - `[x]` Immediate background replication of all registered products to standalone Data Node (`:8002`) key-value storage
+  - `[x]` Automated integration tests in `./backend/test_agri_fields_and_store.py` (100% pass rate)
+  - `[x]` Full test regression matrix: 39 passed, 3 skipped live server tests, 0 failed
 
 ---
 
@@ -131,3 +149,4 @@
 - `[ ]` **Frontend SPA UI Integration**
   - `[ ]` Add Peer Mesh Sync Center in Cluster view with manual `[ 🔄 Sync Mesh Data ]` action
   - `[ ]` Add Wi-Fi token QR slip renderer to POS checkout receipts
+

@@ -1,5 +1,6 @@
 import requests
 import json
+import pytest
 
 BASE_URL = "http://127.0.0.1:8000"
 
@@ -7,6 +8,12 @@ def test_live_flow():
     print("--- STARTING LIVE API INTEGRATION TEST ---")
     session = requests.Session()
     
+    try:
+        res_health = session.get(f"{BASE_URL}/api/health", timeout=1.0)
+    except Exception:
+        pytest.skip("Live Vault Node server is not currently running on port 8000. Skipping live HTTP tests.")
+        return
+
     # 1. Test Session check (should be 401 Unauthorized since we are not logged in)
     print("\n[Step 1] Verifying /api/auth/session yields 401...")
     res = session.get(f"{BASE_URL}/api/auth/session")

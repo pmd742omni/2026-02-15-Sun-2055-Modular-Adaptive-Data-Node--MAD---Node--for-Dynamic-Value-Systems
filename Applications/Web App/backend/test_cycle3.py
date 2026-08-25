@@ -1,6 +1,7 @@
 import requests
 import json
 import time
+import pytest
 from concurrent.futures import ThreadPoolExecutor
 
 BASE_URL = "http://127.0.0.1:8000"
@@ -9,6 +10,12 @@ def test_cycle3_endpoints():
     print("--- STARTING CYCLE 3 INTEGRATION TESTS ---")
     session = requests.Session()
     
+    try:
+        res_health = session.get(f"{BASE_URL}/api/health", timeout=1.0)
+    except Exception:
+        pytest.skip("Live Vault Node server is not currently running on port 8000. Skipping live HTTP tests.")
+        return
+
     # 1. Log in with admin / adminpassword
     print("\n[Step 1] Logging in with bootstrap credentials...")
     res = session.post(

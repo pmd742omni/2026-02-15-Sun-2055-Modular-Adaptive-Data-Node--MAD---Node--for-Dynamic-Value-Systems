@@ -63,15 +63,15 @@ flowchart TD
 ### Phase 3: Autonomous `.agents` Directory Optimization
 
 1. **Dynamic Skill Discovery (`optimize_agents.py`)**:
-   - Scans `.agents/skills/` for all active skill manifests.
-   - Automatically maintains [.agents/AGENTS.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/AGENTS.md) with updated rule references and cross-links.
+   - Scans `../` for all active skill manifests.
+   - Automatically maintains `[.agents/AGENTS.md](../../AGENTS.md)` with updated rule references and cross-links.
 2. Ensures all subsystem standards (Tri-Node architecture, dynamic multi-ledger, offline mesh, zero-seed balances, security locks) remain synchronized.
 
 ---
 
 ### Phase 4: Document Now Progress Tracking & Git Commit
 
-Execute the standard `document-now` workflow ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/document-now/SKILL.md)):
+Execute the standard `document-now` workflow ([SKILL.md](../document-now/SKILL.md)):
 1. **Synchronize System Documents**:
    - `Applications/Web App/SYSTEM_INTERNALS.md`
    - `Applications/Web App/USER_MANUAL.md`

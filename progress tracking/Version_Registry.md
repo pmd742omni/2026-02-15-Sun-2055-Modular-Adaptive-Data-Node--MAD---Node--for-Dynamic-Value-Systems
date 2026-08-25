@@ -1,6 +1,6 @@
-# Master Version Registry — Modular Adaptive Data Node (MADN)
+# Version and Codename Registry
 
-| Version | Codename | Meaning | Date & Time | Progress Tracking File |
+| Version | Ndebele Codename | Meaning / Translation | Date & Time | Progress File |
 | :--- | :--- | :--- | :--- | :--- |
 | **1.0.0** | `Isisekelo` |  | 2026-05-13 13:31 | [2026-05-13_1331_Initial_Git_Setup.md](./2026-05-13_1331_Initial_Git_Setup.md) |
 | **1.0.1** | `Inqubo` |  | 2026-05-13 13:48 | [2026-05-13_1348_Chapter_3_Methodology_Planning.md](./2026-05-13_1348_Chapter_3_Methodology_Planning.md) |
@@ -29,7 +29,9 @@
 | **1.18.2** | `Ukuthuthuka` | Progress / Growth | Wednesday, 22 July 2026, 10:16 AM (local time) | [2026-07-22_1016_Portable_Skill_Bootstrapping.md](./2026-07-22_1016_Portable_Skill_Bootstrapping.md) |
 | **1.18.3** | `Ukuhlanganisa` | Integration / Fusion | Wednesday, 22 July 2026, 10:27 AM (local time) | [2026-07-22_1027_System_Internals_Documentation_and_Skill.md](./2026-07-22_1027_System_Internals_Documentation_and_Skill.md) |
 | **1.18.4** | `Ukufakazela` | Verification / Proof / Attestation | Wednesday, 12 August 2026, 07:36 PM (local time) | [2026-08-12_1936_Chapter_5_Results_Testing_and_Analysis_Compilation.md](./2026-08-12_1936_Chapter_5_Results_Testing_and_Analysis_Compilation.md) |
+| **1.19.0** | `Ukuvuselela` | Renewal / Redevelopment / Revitalization | Thursday, 20 August 2026, 09:23 PM (local time) | [2026-08-20_2123_4_Node_Taxonomy_and_Complete_Chapters_Suite_Redevelopment.md](./2026-08-20_2123_4_Node_Taxonomy_and_Complete_Chapters_Suite_Redevelopment.md) |
 | **1.19.1** | `Ukulonda` | Preserving / Safe Keeping | Sunday, 23 August 2026, 07:22 PM (local time) | [2026-08-23_1922_Customer_Banking_and_Receipt_Vault.md](./2026-08-23_1922_Customer_Banking_and_Receipt_Vault.md) |
 | **1.19.2** | `Ukudlulisa` | Transmission / Transfer / Portability | Sunday, 23 August 2026, 08:24 PM (local time) | [2026-08-23_2024_Portable_Applications_and_Node_Generator.md](./2026-08-23_2024_Portable_Applications_and_Node_Generator.md) |
 | **1.19.3** | `Ingxubevange` | Diverse Mixture / Multi-Asset Fusion | Tuesday, 25 August 2026, 09:40 AM (local time) | [2026-08-25_0940_Dynamic_MultiCurrency_World_Catalog_And_ZiG_Integration.md](./2026-08-25_0940_Dynamic_MultiCurrency_World_Catalog_And_ZiG_Integration.md) |
 | **1.19.4** | `Ukuhlonipha` | Compliance / Respect | Tuesday, 25 August 2026, 01:09 PM (local time) | [2026-08-25_1309_Dynamic_Value_Milestone_Skill_And_Chapter_Sync.md](./2026-08-25_1309_Dynamic_Value_Milestone_Skill_And_Chapter_Sync.md) |
+| **1.19.5** | `Inhweba` | Commerce / Commercial Enterprise / Trade | 2026-08-25 | [2026-08-25_1907_Business_Subsystem_and_Modular_Product_Engine.md](./2026-08-25_1907_Business_Subsystem_and_Modular_Product_Engine.md) |

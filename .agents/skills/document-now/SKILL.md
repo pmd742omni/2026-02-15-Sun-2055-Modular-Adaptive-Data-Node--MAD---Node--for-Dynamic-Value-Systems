@@ -22,10 +22,12 @@ Execute this workflow immediately when the developer specifies:
 ## 2. Execution Workflow
 
 ### Step -1: Zero-Config Self-Bootstrapping
-Before performing progress analysis or creating files, execute the workspace bootstrap command:
+Before performing progress analysis or creating files, execute the workspace bootstrap command using relative paths:
 ```bash
-python .agents/skills/document-now/scripts/version_registry.py bootstrap
+python ./scripts/version_registry.py bootstrap
 ```
+*(or from workspace root: `python .agents/skills/document-now/scripts/version_registry.py bootstrap`)*
+
 This command automatically:
 1. Detects the current project root directory dynamically.
 2. Creates the `progress tracking/` folder if it does not exist.
@@ -36,10 +38,12 @@ This command automatically:
 ---
 
 ### Step 0: Collect System Date & Time Stamps
-Run the timestamp utility script to obtain authoritative, formatted system date and time strings:
+Run the timestamp utility script using relative paths to obtain authoritative, formatted system date and time strings:
 ```bash
-python .agents/skills/document-now/scripts/get_timestamp.py
+python ./scripts/get_timestamp.py
 ```
+*(or from workspace root: `python .agents/skills/document-now/scripts/get_timestamp.py`)*
+
 Use the JSON output values:
 - `file_prefix`: For progress filename `progress tracking/{file_prefix}_Description.md`.
 - `human_date_time`: For the `## Date & Time` section in the progress markdown file.
@@ -53,13 +57,13 @@ Review the conversation transcript, git diffs, modified files, and recent prompt
 2. **Progress**: Bullet points detailing specific technical, functional, and mathematical additions.
 3. **Next Version Number**: Compute the next version number by running:
    ```bash
-   python .agents/skills/document-now/scripts/version_registry.py next-version
+   python ./scripts/version_registry.py next-version
    ```
 4. **LLM Contextual Ndebele Codename Assignment & Uniqueness Check (Mandatory)**:
    The LLM (Antigravity) creatively and contextually assigns an authentic, culturally rich Ndebele word with its meaning reflecting the core spirit of the milestone (e.g. *Ukukhanya* - Clarity/Illumination, *Ingxubevange* - Synergy/Mosaic, *Ukuhlakanipha* - Wisdom/Intelligence, *Isiphephelo* - Sovereign Haven, *Ingqalasizinda* - Infrastructure, *Ukuvumelana* - Consensus/Harmonization, *Imvuselelo* - Revival/Renaissance, *Inzuzo* - Value/Prosperity, *Ubunye* - Mesh Unity, etc.).
    Then validate that it has not been previously used by running:
    ```bash
-   python .agents/skills/document-now/scripts/version_registry.py check <proposed_codename>
+   python ./scripts/version_registry.py check <proposed_codename>
    ```
    If `"unique": false` is returned, select another authentic Ndebele word and re-check until `"unique": true` is confirmed!
 5. **Child-Friendly Explanation**: Write an English explanation of the version codename targeted at a 10-year-old child.
@@ -69,7 +73,7 @@ Review the conversation transcript, git diffs, modified files, and recent prompt
 ---
 
 ### Step 2: Create a Progress Tracking File
-Create a new Markdown file inside the `progress tracking/` directory in the project root:
+Create a new Markdown file inside the relative `progress tracking/` directory in the project root:
 
 - **Path Format**: `progress tracking/YYYY-MM-DD_HHMM_Description.md` (no day name in the filename, use underscores only).
 - **Required File Schema**:
@@ -110,7 +114,7 @@ Before registering the version, audit and synchronize the three core documentati
 ### Step 4: Register Version in Registry Database via Python
 Execute the version registration script to append the new version details to `progress tracking/version_registry.json` and `progress tracking/Version_Registry.md`:
 ```bash
-python .agents/skills/document-now/scripts/version_registry.py register <version> <codename> "<meaning>" "<date_str>" <filename>
+python ./scripts/version_registry.py register <version> <codename> "<meaning>" "<date_str>" <filename>
 ```
 
 ---

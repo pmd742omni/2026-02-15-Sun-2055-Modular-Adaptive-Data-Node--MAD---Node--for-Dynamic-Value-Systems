@@ -1140,6 +1140,16 @@ function initNavigation() {
     if (typeof updateSubNav === 'function') {
       updateSubNav(target);
     }
+    if (target === 'vpa1') {
+      loadAgriFields();
+      loadPlantings();
+      loadHarvests();
+      loadDispositions();
+    }
+    if (target === 'vpa3') {
+      loadPosProducts();
+      loadMarketplaceCatalog();
+    }
     if (target === 'admin') {
       loadCurrencies();
       loadAdminUsers();
@@ -1187,6 +1197,7 @@ function loadAllSubsystemData() {
   loadCustomerWallet();
   loadCustomerReceipts();
   loadWalletLedger();
+  loadAgriFields();
   loadPlantings();
   loadHarvests();
   loadDispositions();
@@ -1195,6 +1206,7 @@ function loadAllSubsystemData() {
   loadSocialStories();
   loadSocialPosts();
   loadPosProducts();
+  loadBusinessCatalog();
   loadMarketplaceCatalog();
   loadDiscoveredClusterNodes();
   loadExportedNodePackages();
@@ -1294,7 +1306,7 @@ function updateDashboardLiveFeeds() {
 }
 
 // =====================================================================
-// STAGE 1 CORE: AGRICULTURE MODULE
+// STAGE 1 CORE: AGRICULTURE MODULE & FIELD MANAGEMENT
 // =====================================================================
 function initAgriModule() {
   const btnAgriCalc = document.getElementById('btn-calculate-agri');
@@ -1303,10 +1315,147 @@ function initAgriModule() {
   }
 }
 
+function toggleFieldForm() {
+  const form = document.getElementById('new-field-form-container');
+  if (form) {
+    form.style.display = (form.style.display === 'none' || !form.style.display) ? 'block' : 'none';
+  }
+}
+
+async function loadAgriFields() {
+  try {
+    const res = await secureFetch("/api/agri/fields");
+    if (!res.ok) return;
+    const data = await res.json();
+    state.agriFields = data.fields || [];
+
+    const tbody = document.getElementById('agri-fields-table-body');
+    const fieldSelect = document.getElementById('planting-field-select');
+    const warningBox = document.getElementById('planting-no-fields-warning');
+
+    if (warningBox) {
+      warningBox.style.display = state.agriFields.length === 0 ? 'block' : 'none';
+    }
+
+    if (tbody) {
+      if (state.agriFields.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No farm fields registered yet. Click <strong style="color: #00e5ff;">"+ Add Farm Field"</strong> above to define your first plot.</td></tr>`;
+      } else {
+        tbody.innerHTML = state.agriFields.map(f => `
+          <tr>
+            <td><code style="color: var(--accent-cyan); font-weight: 700;">${f.id}</code></td>
+            <td><strong>${f.name}</strong></td>
+            <td><span style="font-family: monospace; color: var(--text-muted);">${f.code || 'N/A'}</span></td>
+            <td><strong>${f.area_size} ${f.area_unit}</strong></td>
+            <td>${f.soil_type || 'Loamy'}</td>
+            <td>${f.irrigation_type || 'Drip'}</td>
+            <td><span style="padding: 2px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); color: #10b981; font-size: 0.75rem; font-weight: 700;">${(f.status || 'active').toUpperCase()}</span></td>
+            <td>
+              <button class="btn-pill-small" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3);" onclick="deleteField('${f.id}')">Delete 🗑️</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    if (fieldSelect) {
+      if (state.agriFields.length === 0) {
+        fieldSelect.innerHTML = `<option value="">-- No fields available. Click "+ New Field" first --</option>`;
+      } else {
+        fieldSelect.innerHTML = `
+          <option value="">-- Select a registered farm field --</option>
+          ${state.agriFields.map(f => `
+            <option value="${f.id}" data-name="${f.name}" data-area="${f.area_size}" data-unit="${f.area_unit}">
+              ${f.name} (${f.area_size} ${f.area_unit} • ${f.soil_type})
+            </option>
+          `).join('')}
+        `;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load agricultural fields:", e);
+  }
+}
+
+async function submitNewField() {
+  const name = document.getElementById('field-name-input').value.trim();
+  const code = document.getElementById('field-code-input').value.trim();
+  const size = parseFloat(document.getElementById('field-area-size-input').value || "1.0");
+  const unit = document.getElementById('field-area-unit-input').value;
+  const soil = document.getElementById('field-soil-type-input').value;
+  const irrig = document.getElementById('field-irrigation-input').value;
+  const notes = document.getElementById('field-notes-input').value.trim();
+
+  if (!name) {
+    alert("Field name is required.");
+    return;
+  }
+
+  try {
+    const res = await secureFetch("/api/agri/fields", {
+      method: "POST",
+      body: JSON.stringify({
+        name: name,
+        code: code,
+        area_size: size,
+        area_unit: unit,
+        soil_type: soil,
+        irrigation_type: irrig,
+        notes: notes
+      })
+    });
+
+    if (res.ok) {
+      toggleFieldForm();
+      document.getElementById('field-name-input').value = "";
+      document.getElementById('field-code-input').value = "";
+      document.getElementById('field-notes-input').value = "";
+      await loadAgriFields();
+      alert(`Farm field "${name}" registered and synchronized to Data Node storage!`);
+    } else {
+      const err = await res.json();
+      alert("Failed to save field: " + (err.detail || "Unknown error"));
+    }
+  } catch (e) {
+    alert("Error registering field: " + e.message);
+  }
+}
+
+async function deleteField(fieldId) {
+  if (!confirm("Are you sure you want to delete this farm field?")) return;
+  try {
+    const res = await secureFetch(`/api/agri/fields/${fieldId}`, { method: "DELETE" });
+    if (res.ok) {
+      loadAgriFields();
+    }
+  } catch (e) {
+    alert("Failed to delete field: " + e.message);
+  }
+}
+
+function onPlantingFieldSelected() {
+  const select = document.getElementById('planting-field-select');
+  if (!select) return;
+  const opt = select.selectedOptions[0];
+  if (opt && opt.dataset.area) {
+    const areaInput = document.getElementById('planting-area-utilized');
+    const unitInput = document.getElementById('planting-area-unit');
+    if (areaInput) areaInput.value = opt.dataset.area;
+    if (unitInput && opt.dataset.unit) unitInput.value = opt.dataset.unit;
+  }
+}
+
 function togglePlantingForm() {
   const form = document.getElementById('new-planting-form-container');
   if (form) {
-    form.style.display = (form.style.display === 'none' || !form.style.display) ? 'block' : 'none';
+    const isShowing = form.style.display === 'block';
+    form.style.display = isShowing ? 'none' : 'block';
+    if (!isShowing) {
+      const dInput = document.getElementById('planting-date-input');
+      if (dInput && !dInput.value) {
+        dInput.value = new Date().toISOString().substring(0, 10);
+      }
+    }
   }
 }
 
@@ -1324,46 +1473,72 @@ async function loadPlantings() {
     }
 
     const tbody = document.getElementById('agri-plantings-table-body');
-    const select = document.getElementById('harvest-planting-select');
+    const harvestSelect = document.getElementById('harvest-planting-select');
+    const costSelect = document.getElementById('calc-planting-select');
 
     if (tbody) {
       if (state.plantings.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No active crop plantings found. Click <strong style="color: #10b981;">"+ Add Planting"</strong> above to record your first plot.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No active crop plantings found. Select a field and click <strong style="color: #10b981;">"+ New Planting Plan"</strong> above.</td></tr>`;
       } else {
         tbody.innerHTML = state.plantings.map(p => `
           <tr>
             <td><strong style="font-family: monospace; color: var(--accent-cyan);">${p.id}</strong></td>
+            <td><strong style="color: #fff;">${p.field_name || p.plot_bed_id || 'Main Field'}</strong></td>
             <td><strong>${p.crop_variety}</strong></td>
-            <td>${p.plot_bed_id}</td>
             <td>${p.planting_date_utc ? p.planting_date_utc.substring(0, 10) : 'N/A'}</td>
-            <td>${p.seeding_density || 0} /m²</td>
-            <td><span style="color: var(--success); font-weight: 600;">${p.initial_soil_hydration_pct || 0}%</span></td>
-            <td><span style="padding: 2px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); color: #10b981; font-size: 0.75rem; font-weight: 700;">${p.status.toUpperCase()}</span></td>
-            <td><button class="btn-pill-small" onclick="selectPlantingForHarvest('${p.id}', '${p.crop_variety}')">Harvest 🚜</button></td>
+            <td>${p.target_maturity_date_utc ? p.target_maturity_date_utc.substring(0, 10) : 'Approx. 90d'}</td>
+            <td>${p.area_utilized || 1.0} ${p.area_unit || 'ha'}</td>
+            <td><span style="padding: 2px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); color: #10b981; font-size: 0.75rem; font-weight: 700;">${(p.status || 'growing').toUpperCase()}</span></td>
+            <td>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-pill-small" onclick="selectPlantingForCostCalc('${p.id}', '${p.crop_variety}', '${p.field_name || p.plot_bed_id}')">Costs 💰</button>
+                <button class="btn-pill-small" onclick="selectPlantingForHarvest('${p.id}', '${p.crop_variety}')">Harvest 🚜</button>
+              </div>
+            </td>
           </tr>
         `).join('');
       }
     }
 
-    if (select) {
-      select.innerHTML = state.plantings.map(p => `
-        <option value="${p.id}">${p.crop_variety} (${p.plot_bed_id})</option>
-      `).join('');
-    }
+    const plantingOptions = state.plantings.length === 0 
+      ? `<option value="">-- No active plantings available --</option>`
+      : `
+        <option value="">-- Select an active crop planting --</option>
+        ${state.plantings.map(p => `
+          <option value="${p.id}" data-crop="${p.crop_variety}" data-field="${p.field_name || p.plot_bed_id}">
+            ${p.crop_variety} in ${p.field_name || p.plot_bed_id} (${p.planting_date_utc ? p.planting_date_utc.substring(0, 10) : 'Active'})
+          </option>
+        `).join('')}
+      `;
+
+    if (harvestSelect) harvestSelect.innerHTML = plantingOptions;
+    if (costSelect) costSelect.innerHTML = plantingOptions;
   } catch (e) {
     console.error("Failed to load plantings:", e);
   }
 }
 
 async function submitNewPlanting() {
+  const fieldSelect = document.getElementById('planting-field-select');
+  const fieldId = fieldSelect ? fieldSelect.value : "";
+  const opt = fieldSelect ? fieldSelect.selectedOptions[0] : null;
+  const fieldName = opt ? (opt.dataset.name || opt.text) : "";
   const crop = document.getElementById('planting-crop-variety').value.trim();
-  const plot = document.getElementById('planting-plot-bed-id').value.trim();
+  const area = parseFloat(document.getElementById('planting-area-utilized').value || "1.0");
+  const unit = document.getElementById('planting-area-unit').value;
+  const date = document.getElementById('planting-date-input').value;
+  const maturityDate = document.getElementById('planting-maturity-date-input').value;
   const density = parseFloat(document.getElementById('planting-seeding-density').value || "0");
   const hydration = parseFloat(document.getElementById('planting-soil-hydration').value || "0");
   const notes = document.getElementById('planting-notes').value.trim();
 
-  if (!crop || !plot) {
-    alert("Crop variety and Plot Bed ID are required.");
+  if (!fieldId) {
+    alert("Please select a registered Farm Field / Plot for this planting.");
+    return;
+  }
+
+  if (!crop) {
+    alert("Please enter the Crop Variety (e.g. White Maize SC719, Roma Tomatoes).");
     return;
   }
 
@@ -1371,8 +1546,14 @@ async function submitNewPlanting() {
     const res = await secureFetch("/api/agri/plantings", {
       method: "POST",
       body: JSON.stringify({
+        field_id: fieldId,
+        field_name: fieldName,
+        plot_bed_id: fieldName,
         crop_variety: crop,
-        plot_bed_id: plot,
+        area_utilized: area,
+        area_unit: unit,
+        planting_date_utc: date,
+        target_maturity_date_utc: maturityDate,
         seeding_density: density,
         initial_soil_hydration_pct: hydration,
         notes: notes
@@ -1381,14 +1562,45 @@ async function submitNewPlanting() {
 
     if (res.ok) {
       togglePlantingForm();
+      document.getElementById('planting-crop-variety').value = "";
+      document.getElementById('planting-notes').value = "";
       loadPlantings();
+      alert(`Crop planting for "${crop}" in field "${fieldName}" registered and synced to Data Node!`);
+    } else {
+      const err = await res.json();
+      alert("Failed to create planting: " + (err.detail || "Unknown error"));
     }
   } catch (e) {
     alert("Failed to create planting: " + e.message);
   }
 }
 
-function recalculateCosts() {
+function selectPlantingForCostCalc(plantingId, cropName, fieldName) {
+  switchView('vpa1');
+  const costBox = document.getElementById('vpa1-cost-calc-box');
+  if (costBox) costBox.scrollIntoView({ behavior: 'smooth' });
+  const select = document.getElementById('calc-planting-select');
+  if (select) select.value = plantingId;
+  onSelectPlantingForCosts();
+}
+
+function onSelectPlantingForCosts() {
+  const select = document.getElementById('calc-planting-select');
+  if (!select) return;
+  const opt = select.selectedOptions[0];
+  if (opt && opt.dataset.crop) {
+    recalculateCosts();
+  }
+}
+
+async function submitProductionCosts() {
+  const select = document.getElementById('calc-planting-select');
+  const plantingId = select ? select.value : "";
+  if (!plantingId) {
+    alert("Please select a Field Crop Planting before saving expenses.");
+    return;
+  }
+
   const cSeeds = parseFloat(document.getElementById('calc-cost-seeds').value || "0");
   const cFert = parseFloat(document.getElementById('calc-cost-fert').value || "0");
   const cWater = parseFloat(document.getElementById('calc-cost-water').value || "0");
@@ -1398,32 +1610,53 @@ function recalculateCosts() {
   const cLog = parseFloat(document.getElementById('calc-cost-log').value || "0");
   const cOver = parseFloat(document.getElementById('calc-cost-over').value || "0");
 
-  const totalCost = cSeeds + cFert + cWater + cLabor + cPest + cPack + cLog + cOver;
-  document.getElementById('calc-total-cost-usd').innerText = `$${totalCost.toFixed(2)}`;
+  try {
+    const res = await secureFetch("/api/agri/costs", {
+      method: "POST",
+      body: JSON.stringify({
+        planting_id: plantingId,
+        costs: {
+          seeds: cSeeds,
+          fertilizer: cFert,
+          water: cWater,
+          labor: cLabor,
+          pest: cPest,
+          packaging: cPack,
+          logistics: cLog,
+          overhead: cOver
+        }
+      })
+    });
 
-  const mHarvest = parseFloat(document.getElementById('calc-mass-harvest').value || "0");
-  const mSelf = parseFloat(document.getElementById('calc-mass-self').value || "0");
-  const mComm = Math.max(0, mHarvest - mSelf);
-  document.getElementById('calc-comm-mass-val').innerText = `${mComm.toFixed(0)} kg`;
-
-  const markup = parseFloat(document.getElementById('calc-markup-slider').value || "1.0");
-  document.getElementById('calc-markup-label').innerText = `${(markup * 100).toFixed(0)}% (${(1 + markup).toFixed(1)}x)`;
-
-  const costFloor = mComm > 0 ? (totalCost / mComm) : 0.50;
-  const basePrice = costFloor * (1.0 + markup);
-
-  document.getElementById('calc-cost-floor-val').innerText = `$${costFloor.toFixed(2)} / kg`;
-  document.getElementById('calc-base-price-val').innerText = `$${basePrice.toFixed(2)} / kg`;
+    if (res.ok) {
+      alert("Production expenses saved and synchronized with Data Node!");
+    } else {
+      const err = await res.json();
+      alert("Failed to save costs: " + (err.detail || "Unknown error"));
+    }
+  } catch (e) {
+    alert("Error logging production costs: " + e.message);
+  }
 }
 
 function selectPlantingForHarvest(plantingId, cropName) {
   switchView('vpa1');
-  const tabBtn = document.querySelectorAll('.tab-pill-btn')[2];
-  if (tabBtn) tabBtn.click();
+  const harvestBox = document.getElementById('vpa1-harvest-box');
+  if (harvestBox) harvestBox.scrollIntoView({ behavior: 'smooth' });
   const select = document.getElementById('harvest-planting-select');
   if (select) select.value = plantingId;
   const nameInput = document.getElementById('harvest-crop-name');
   if (nameInput) nameInput.value = cropName;
+}
+
+function onSelectPlantingForHarvest() {
+  const select = document.getElementById('harvest-planting-select');
+  if (!select) return;
+  const opt = select.selectedOptions[0];
+  if (opt && opt.dataset.crop) {
+    const nameInput = document.getElementById('harvest-crop-name');
+    if (nameInput) nameInput.value = opt.dataset.crop;
+  }
 }
 
 async function submitHarvest() {
@@ -1435,7 +1668,7 @@ async function submitHarvest() {
   const halfLife = parseFloat(document.getElementById('harvest-half-life').value || "2.5");
 
   if (!pId || !crop || mHarvest <= 0) {
-    alert("Please select a planting and enter positive harvest mass.");
+    alert("Please select a crop planting and enter valid harvest yield weight.");
     return;
   }
 
@@ -1453,16 +1686,276 @@ async function submitHarvest() {
     });
 
     if (res.ok) {
-      alert(`Harvest logged successfully! Commercial batch synchronized to POS inventory.`);
+      alert(`Harvest logged successfully! Commercial batch synchronized to POS store catalog and Data Node storage.`);
       loadPlantings();
       loadHarvests();
       loadDispositions();
       loadPosProducts();
       loadMarketplaceCatalog();
+    } else {
+      const err = await res.json();
+      alert("Harvest logging failed: " + (err.detail || "Unknown error"));
     }
   } catch (e) {
     alert("Harvest logging failed: " + e.message);
   }
+}
+
+function openAddStoreProductModal() {
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal-add-store-product');
+  if (overlay && modal) {
+    document.querySelectorAll('.auth-card').forEach(m => m.style.display = 'none');
+    overlay.style.display = 'flex';
+    modal.style.display = 'block';
+    updateSystemSkuPreview();
+  }
+}
+
+function updateSystemSkuPreview() {
+  const nameInput = document.getElementById('store-product-name-input');
+  const catInput = document.getElementById('store-product-category-input');
+  const badge = document.getElementById('product-sku-badge');
+  if (!nameInput || !badge) return;
+
+  const rawName = nameInput.value.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const rawCat = catInput ? catInput.value.trim().replace(/[^a-zA-Z0-9]/g, '').toUpperCase() : '';
+  
+  if (!rawName) {
+    badge.innerText = 'SKU: AUTO-ASSIGNED';
+    return;
+  }
+  
+  const prefix = rawName.substring(0, 4);
+  const catTag = rawCat ? `-${rawCat.substring(0, 3)}` : '';
+  badge.innerText = `SKU: ${prefix}${catTag}-AUTO`;
+}
+
+function toggleProductField(fieldKey, forceState) {
+  const el = document.getElementById(`mod-field-${fieldKey}`);
+  const pill = document.getElementById(`pill-field-${fieldKey}`);
+  if (!el) return;
+
+  const willShow = forceState !== undefined ? forceState : el.style.display === 'none';
+  el.style.display = willShow ? 'block' : 'none';
+
+  if (pill) {
+    if (willShow) {
+      pill.style.background = 'rgba(0, 229, 255, 0.2)';
+      pill.style.color = 'var(--accent-cyan)';
+      pill.style.borderColor = 'var(--accent-cyan)';
+    } else {
+      pill.style.background = 'rgba(255, 255, 255, 0.06)';
+      pill.style.color = '#fff';
+      pill.style.borderColor = 'transparent';
+    }
+  }
+}
+
+function handleProductImageUpload(inputEl) {
+  if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+  const file = inputEl.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    state.pendingProductImage = dataUrl;
+    const previewWrap = document.getElementById('store-product-image-preview-wrap');
+    if (previewWrap) {
+      previewWrap.innerHTML = `<img src="${dataUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product preview">`;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleProductImageUrlInput(url) {
+  const cleanUrl = (url || '').trim();
+  state.pendingProductImage = cleanUrl;
+  const previewWrap = document.getElementById('store-product-image-preview-wrap');
+  if (previewWrap) {
+    if (cleanUrl) {
+      previewWrap.innerHTML = `<img src="${cleanUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='⚠️'" alt="Product preview">`;
+    } else {
+      previewWrap.innerHTML = `<span style="font-size: 1.2rem; color: var(--text-muted);">📷</span>`;
+    }
+  }
+}
+
+function generateRandomBarcode() {
+  const prefix = "600"; // Southern African EAN prefix standard
+  const randomDigits = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+  const barcode = prefix + randomDigits;
+  const input = document.getElementById('store-product-barcode-input');
+  if (input) {
+    input.value = barcode;
+    toggleProductField('barcode', true);
+  }
+}
+
+function applyCategoryPreset(category, subcategory) {
+  const catInput = document.getElementById('store-product-category-input');
+  const subInput = document.getElementById('store-product-subcategory-input');
+  if (catInput) catInput.value = category;
+  if (subInput) subInput.value = subcategory;
+  toggleProductField('category', true);
+  updateCatBreadcrumb();
+  updateSystemSkuPreview();
+}
+
+function updateCatBreadcrumb() {
+  const cat = (document.getElementById('store-product-category-input')?.value || '').trim();
+  const sub = (document.getElementById('store-product-subcategory-input')?.value || '').trim();
+  const breadcrumb = document.getElementById('store-product-cat-breadcrumb');
+  if (!breadcrumb) return;
+
+  if (cat && sub) {
+    breadcrumb.innerHTML = `Hierarchy: <span style="color:#fff;">${cat}</span> &gt; <span style="color:var(--accent-cyan); font-weight:700;">${sub}</span>`;
+  } else if (cat) {
+    breadcrumb.innerHTML = `Hierarchy: <span style="color:var(--accent-cyan); font-weight:700;">${cat}</span>`;
+  } else {
+    breadcrumb.innerHTML = '';
+  }
+}
+
+function addProductSpecRow(key = '', val = '') {
+  const container = document.getElementById('store-product-specs-rows');
+  if (!container) return;
+  const rowId = `spec-row-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.style.display = 'flex';
+  row.style.gap = '8px';
+  row.style.alignItems = 'center';
+  row.innerHTML = `
+    <input type="text" class="search-input spec-key-input" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 9999px;" placeholder="Spec (e.g. Dimensions, Expiry, Voltage)" value="${key}">
+    <input type="text" class="search-input spec-val-input" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 9999px;" placeholder="Value (e.g. 500ml, 220V, 100m)" value="${val}">
+    <button type="button" style="background: none; border: none; color: #ff5252; cursor: pointer; font-size: 0.8rem; padding: 4px 6px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);
+  toggleProductField('specs', true);
+}
+
+async function submitAddStoreProduct() {
+  const name = document.getElementById('store-product-name-input').value.trim();
+  const cost = parseFloat(document.getElementById('store-product-cost-input').value || "0");
+  const price = parseFloat(document.getElementById('store-product-price-input').value || "0");
+  const qty = parseFloat(document.getElementById('store-product-qty-input').value || "0");
+  const unit = document.getElementById('store-product-unit-input').value;
+  
+  // Optional modular fields
+  const barcode = (document.getElementById('store-product-barcode-input')?.value || '').trim();
+  const category = (document.getElementById('store-product-category-input')?.value || '').trim();
+  const subcategory = (document.getElementById('store-product-subcategory-input')?.value || '').trim();
+  const brand = (document.getElementById('store-product-brand-input')?.value || '').trim();
+  const desc = (document.getElementById('store-product-desc-input')?.value || '').trim();
+  const threshold = parseFloat(document.getElementById('store-product-threshold-input')?.value || "5");
+  const wholesalePrice = parseFloat(document.getElementById('store-product-wholesale-price')?.value || "0");
+  const wholesaleQty = parseFloat(document.getElementById('store-product-wholesale-qty')?.value || "0");
+  const imageUrl = state.pendingProductImage || (document.getElementById('store-product-image-url')?.value || '').trim();
+
+  // Collect specs key-values
+  const specifications = {};
+  document.querySelectorAll('#store-product-specs-rows > div').forEach(row => {
+    const k = row.querySelector('.spec-key-input')?.value.trim();
+    const v = row.querySelector('.spec-val-input')?.value.trim();
+    if (k && v) specifications[k] = v;
+  });
+
+  if (!name) {
+    alert("Product Item Name / Title is required.");
+    return;
+  }
+
+  if (isNaN(cost) || cost < 0) {
+    alert("Please provide a valid Cost Price (Purchase Cost) for COGS calculation.");
+    return;
+  }
+
+  if (isNaN(price) || price <= 0) {
+    alert("Selling price (Retail Price) must be greater than 0.");
+    return;
+  }
+
+  try {
+    const res = await secureFetch("/api/inventory", {
+      method: "POST",
+      body: JSON.stringify({
+        name: name,
+        sku: "", // Automatically assigned by system
+        cost_price_usd: cost,
+        price_usd: price,
+        quantity: qty,
+        unit: unit,
+        low_stock_threshold: threshold,
+        barcode: barcode,
+        category: category,
+        subcategory: subcategory,
+        brand: brand,
+        description: desc,
+        specifications: specifications,
+        image_url: imageUrl,
+        wholesale_price_usd: wholesalePrice,
+        wholesale_min_qty: wholesaleQty
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      hideModals();
+      state.pendingProductImage = "";
+      
+      // Reset form
+      document.getElementById('form-add-store-product').reset();
+      const previewWrap = document.getElementById('store-product-image-preview-wrap');
+      if (previewWrap) previewWrap.innerHTML = `<span style="font-size: 1.2rem; color: var(--text-muted);">📷</span>`;
+      const specRows = document.getElementById('store-product-specs-rows');
+      if (specRows) specRows.innerHTML = '';
+      const breadcrumb = document.getElementById('store-product-cat-breadcrumb');
+      if (breadcrumb) breadcrumb.innerHTML = '';
+
+      alert(`Product "${name}" (SKU: ${data.sku}) successfully added to store catalog and synced to Data Node storage!`);
+      loadPosProducts();
+      loadBusinessCatalog();
+      loadMarketplaceCatalog();
+    } else {
+      const err = await res.json();
+      alert("Failed to add product: " + (err.detail || "Unknown error"));
+    }
+  } catch (e) {
+    alert("Error adding product: " + e.message);
+  }
+}
+
+function recalculateCosts() {
+  const cSeeds = parseFloat(document.getElementById('calc-cost-seeds').value || "0");
+  const cFert = parseFloat(document.getElementById('calc-cost-fert').value || "0");
+  const cWater = parseFloat(document.getElementById('calc-cost-water').value || "0");
+  const cLabor = parseFloat(document.getElementById('calc-cost-labor').value || "0");
+  const cPest = parseFloat(document.getElementById('calc-cost-pest').value || "0");
+  const cPack = parseFloat(document.getElementById('calc-cost-pack').value || "0");
+  const cLog = parseFloat(document.getElementById('calc-cost-log').value || "0");
+  const cOver = parseFloat(document.getElementById('calc-cost-over').value || "0");
+
+  const totalCost = cSeeds + cFert + cWater + cLabor + cPest + cPack + cLog + cOver;
+  const totalCostElem = document.getElementById('calc-total-cost-usd');
+  if (totalCostElem) totalCostElem.innerText = `$${totalCost.toFixed(2)}`;
+
+  const mHarvest = parseFloat(document.getElementById('calc-mass-harvest').value || "0");
+  const mSelf = parseFloat(document.getElementById('calc-mass-self').value || "0");
+  const mComm = Math.max(0, mHarvest - mSelf);
+  const commMassElem = document.getElementById('calc-comm-mass-val');
+  if (commMassElem) commMassElem.innerText = `${mComm.toFixed(0)} kg`;
+
+  const markup = parseFloat(document.getElementById('calc-markup-slider').value || "1.0");
+  const markupLabelElem = document.getElementById('calc-markup-label');
+  if (markupLabelElem) markupLabelElem.innerText = `${(markup * 100).toFixed(0)}% (${(1 + markup).toFixed(1)}x)`;
+
+  const costFloor = mComm > 0 ? (totalCost / mComm) : 0.50;
+  const basePrice = costFloor * (1.0 + markup);
+
+  const costFloorElem = document.getElementById('calc-cost-floor-val');
+  const basePriceElem = document.getElementById('calc-base-price-val');
+  if (costFloorElem) costFloorElem.innerText = `$${costFloor.toFixed(2)} / kg`;
+  if (basePriceElem) basePriceElem.innerText = `$${basePrice.toFixed(2)} / kg`;
 }
 
 async function loadHarvests() {
@@ -1972,19 +2465,164 @@ async function loadPosProducts() {
       dashCatalog.innerText = `● ${state.posProducts.length} Catalog Items`;
     }
 
+    const emptyBox = document.getElementById('pos-empty-store-container');
+    const activeTerm = document.getElementById('pos-active-terminal-container');
+
+    if (state.posProducts.length === 0) {
+      if (emptyBox) emptyBox.style.display = 'block';
+      if (activeTerm) activeTerm.style.display = 'none';
+    } else {
+      if (emptyBox) emptyBox.style.display = 'none';
+      if (activeTerm) activeTerm.style.display = 'block';
+    }
+
     const select = document.getElementById('pos-product-select');
+    const saSelect = document.getElementById('sa-item-select');
+
     if (select) {
       if (state.posProducts.length === 0) {
-        select.innerHTML = `<option value="">No inventory items available</option>`;
+        select.innerHTML = `<option value="">-- No items in store. Click "+ New Product" --</option>`;
       } else {
         select.innerHTML = state.posProducts.map(p => `
           <option value="${p.id}">${p.name} ($${p.current_price_usd.toFixed(2)} / ${p.unit}) - Qty: ${p.quantity}</option>
         `).join('');
       }
     }
+
+    if (saSelect) {
+      if (state.posProducts.length === 0) {
+        saSelect.innerHTML = `<option value="">-- No items available --</option>`;
+      } else {
+        saSelect.innerHTML = state.posProducts.map(p => `
+          <option value="${p.id}">${p.name} (Current Qty: ${p.quantity} ${p.unit})</option>
+        `).join('');
+      }
+    }
   } catch (e) {
     console.error("Failed to load POS products:", e);
   }
+}
+
+async function loadBusinessCatalog() {
+  try {
+    const res = await secureFetch("/api/inventory");
+    if (!res.ok) return;
+    const data = await res.json();
+    state.businessProducts = Array.isArray(data) ? data : (data.items || []);
+
+    // Populate category filter dropdown
+    const catSelect = document.getElementById('catalog-category-filter');
+    if (catSelect) {
+      const uniqueCats = Array.from(new Set(state.businessProducts.map(p => p.category).filter(Boolean)));
+      catSelect.innerHTML = `<option value="">All Categories</option>` + uniqueCats.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    renderBusinessProductsTable(state.businessProducts);
+  } catch (e) {
+    console.error("Failed to load business inventory catalog:", e);
+  }
+}
+
+function filterBusinessCatalog() {
+  const query = (document.getElementById('catalog-search-input')?.value || '').toLowerCase().trim();
+  const selectedCat = (document.getElementById('catalog-category-filter')?.value || '').trim();
+
+  let filtered = state.businessProducts || [];
+  if (selectedCat) {
+    filtered = filtered.filter(p => p.category === selectedCat);
+  }
+  if (query) {
+    filtered = filtered.filter(p => {
+      const matchName = (p.name || '').toLowerCase().includes(query);
+      const matchSku = (p.sku || '').toLowerCase().includes(query);
+      const matchBarcode = (p.barcode || '').toLowerCase().includes(query);
+      const matchBrand = (p.brand || '').toLowerCase().includes(query);
+      const matchCat = (p.category || '').toLowerCase().includes(query);
+      const matchSub = (p.subcategory || '').toLowerCase().includes(query);
+      return matchName || matchSku || matchBarcode || matchBrand || matchCat || matchSub;
+    });
+  }
+
+  renderBusinessProductsTable(filtered);
+}
+
+function renderBusinessProductsTable(products) {
+  const container = document.getElementById('business-products-table-container');
+  if (!container) return;
+
+  if (!products || products.length === 0) {
+    container.innerHTML = `
+      <div style="padding: 32px; text-align: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px;">
+        <div style="font-size: 2.2rem; margin-bottom: 8px;">📦</div>
+        <h4 style="color: #fff; margin-bottom: 6px;">No Store Products Found</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">Use the modular product creator to register products, prices, barcodes, and specs.</p>
+        <button class="btn-pill-primary" onclick="openAddStoreProductModal()">+ Add Store Product</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="table-responsive-wrapper">
+      <table class="visitor-table">
+        <thead>
+          <tr>
+            <th style="width: 50px;">Image</th>
+            <th>Item & Brand</th>
+            <th>SKU / Barcode</th>
+            <th>Category</th>
+            <th>Cost (COGS)</th>
+            <th>Selling Price</th>
+            <th>Stock Qty</th>
+            <th style="text-align: center;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${products.map(p => {
+            const cost = p.cost_price_usd || 0;
+            const price = p.price_usd || 0;
+            const margin = price > 0 ? (((price - cost) / price) * 100).toFixed(0) : 0;
+            const isLowStock = p.quantity <= (p.low_stock_threshold || 5);
+            return `
+              <tr>
+                <td>
+                  <div style="width: 42px; height: 42px; border-radius: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    ${p.image_url ? `<img src="${p.image_url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='📦'">` : `<span style="font-size: 1.2rem;">📦</span>`}
+                  </div>
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: #fff;">${p.name}</div>
+                  ${p.brand ? `<div style="font-size: 0.72rem; color: var(--accent-cyan);">🏢 ${p.brand}</div>` : ''}
+                </td>
+                <td>
+                  <div style="font-family: monospace; font-size: 0.8rem; color: #38bdf8;">${p.sku || 'N/A'}</div>
+                  ${p.barcode ? `<div style="font-family: monospace; font-size: 0.7rem; color: var(--text-muted);">🏷️ ${p.barcode}</div>` : ''}
+                </td>
+                <td>
+                  ${p.category ? `<span style="padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,0.05); font-size: 0.72rem; color: #e2e8f0;">${p.category}${p.subcategory ? ` &gt; ${p.subcategory}` : ''}</span>` : '<span style="color: var(--text-muted); font-size: 0.75rem;">General</span>'}
+                </td>
+                <td>
+                  <span style="font-family: var(--font-display); color: #cbd5e1;">$${cost.toFixed(2)}</span>
+                </td>
+                <td>
+                  <div style="font-family: var(--font-display); font-weight: 700; color: var(--accent-cyan);">$${price.toFixed(2)}</div>
+                  <div style="font-size: 0.7rem; color: #10b981;">+${margin}% margin</div>
+                </td>
+                <td>
+                  <span style="padding: 3px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: ${isLowStock ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}; color: ${isLowStock ? '#ef4444' : '#10b981'};">
+                    ${p.quantity} ${p.unit || 'pcs'} ${isLowStock ? '⚠️ Low' : ''}
+                  </span>
+                </td>
+                <td style="text-align: center;">
+                  <button class="btn-pill-small" style="font-size: 0.72rem; background: rgba(0, 229, 255, 0.1); color: var(--accent-cyan);" onclick="quickAddToCart('${p.id}')">+ POS Cart</button>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 async function loadMarketplaceCatalog() {
@@ -1998,7 +2636,14 @@ async function loadMarketplaceCatalog() {
     if (!grid) return;
 
     if (catalog.length === 0) {
-      grid.innerHTML = `<div class="glass-panel" style="padding: 24px; text-align: center; color: var(--text-muted);">No fresh produce listed in the marketplace right now.</div>`;
+      grid.innerHTML = `
+        <div class="glass-panel" style="grid-column: 1 / -1; padding: 32px; text-align: center; background: rgba(255,255,255,0.02);">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">🏪</div>
+          <h4 style="color: #fff; margin-bottom: 6px;">No Store Products Listed Yet</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Operators can input inventory directly or record farm crop harvests to stock the catalog.</p>
+          <button class="btn-pill-primary" onclick="openAddStoreProductModal()">+ Add Store Product</button>
+        </div>
+      `;
       return;
     }
 
