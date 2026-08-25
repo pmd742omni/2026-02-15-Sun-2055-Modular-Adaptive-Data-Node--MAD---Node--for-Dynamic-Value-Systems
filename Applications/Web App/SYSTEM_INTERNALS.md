@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) System Internals & Low-Level Subsystem Reference Manual
 
-**Document Edition**: 1.19.7 | **Codename Target**: Isivikelo (Sovereign Heavy Data-at-Rest Encryption & Sequential Visibility Gating)  
+**Document Edition**: 1.19.9 | **Codename Target**: Ukuvuleka (Dynamic Progressive Disclosure & Condition-Gated Subsystem Architecture)  
 **Host Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Workspace Root**: `../../` (Relative to project workspace base)  
 **Audience**: Systems Architects, Embedded Systems Engineers, Security Analysts, and Autonomous AI Coding Agents
@@ -262,3 +262,25 @@ The system implements hierarchical multi-business tenancy:
   $$P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}}) \cdot e^{-\lambda t}, \quad \lambda = \frac{\ln(2)}{T_{\text{half\_life}}}$$
 * **Tri-Currency Tender Split Reconciliation**:
   $$V_{\text{paid}} = T_{\text{USD}} + \frac{T_{\text{ZAR}}}{\text{rate}_{\text{ZAR}}} + \frac{T_{\text{ZWG}}}{\text{rate}_{\text{ZWG}}}$$
+
+---
+
+## 13. Dynamic Progressive Disclosure & Condition-Gated Subsystem Architecture
+
+To optimize operator focus and eliminate cluttered empty states for non-technical users, the frontend runtime dynamically evaluates state preconditions before revealing navigation tabs and interactive subviews:
+
+### 13.1 Business Subsystem Progression State Machine
+$$\mathcal{S}_{\text{business}} = \begin{cases} 
+\{\text{Store Setup}\} & \text{if } N_{\text{biz}} = 0 \\ 
+\{\text{Products \& Catalog}\} & \text{if } N_{\text{biz}} \ge 1 \land N_{\text{products}} = 0 \\ 
+\{\text{Point of Sale (POS)}, \text{Products \& Catalog}, \text{Customer Marketplace}, \text{Sales Analytics \& Spoilage}\} & \text{if } N_{\text{biz}} \ge 1 \land N_{\text{products}} \ge 1 
+\end{cases}$$
+
+### 13.2 Precision Agriculture Progression State Machine
+$$\mathcal{S}_{\text{agri}} = \begin{cases} 
+\{\text{Farm Fields \& Plots}, \text{Bulawayo Climate}\} & \text{if } N_{\text{fields}} = 0 \\ 
+\{\text{Farm Fields \& Plots}, \text{Crop Plantings \& Plans}, \text{Bulawayo Climate}\} & \text{if } N_{\text{fields}} \ge 1 \land N_{\text{plantings}} = 0 \\ 
+\{\text{Farm Fields}, \text{Plantings}, \text{Cost \& Price Calculator}, \text{Harvest \& POS Sync}, \text{Climate}\} & \text{if } N_{\text{plantings}} \ge 1 \land N_{\text{harvests}} = 0 \\ 
+\{\text{Farm Fields}, \text{Plantings}, \text{Cost Calc}, \text{Harvest Sync}, \text{Yield Dispositions}, \text{Climate}\} & \text{if } N_{\text{harvests}} \ge 1 
+\end{cases}$$
+

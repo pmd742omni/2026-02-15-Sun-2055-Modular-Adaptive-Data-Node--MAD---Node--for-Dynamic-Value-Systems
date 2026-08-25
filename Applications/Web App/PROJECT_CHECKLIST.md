@@ -145,7 +145,17 @@
   - `[x]` Sequential visibility gating flow in Operator UI: Stage 1 (Store Setup Required) $\to$ Stage 2 (Empty Catalog Prompt) $\to$ Stage 3 (Active POS Terminal & Sales Analytics)
   - `[x]` Jargon cleanup: Replaced developer/technical jargon with user-friendly terminology (`🏪 Point of Sale (POS)`, `📊 Sales Analytics & Spoilage`, `+ Set Up Your Store`, `+ Add First Store Product`)
   - `[x]` Automated verification test suite `./backend/test_heavy_data_encryption.py` (100% pass rate)
-  - `[x]` Full regression verification suite: 46 passed, 3 skipped live server tests, 0 failed (49 total tests)
+- `[x]` **Systematic Elimination of Legacy VPA Conventions (Version 1.19.8 - Ukucacisa)**
+  - `[x]` Replaced legacy VPA nomenclature across entire system with clean domain targets: `agriculture`, `security`, `business`, `banking`, `social`, `cluster`, `admin`, `tutorials`
+  - `[x]` Updated all element IDs (`agri-*`, `sec-*`, `pos-*`, `biz-*`), subnav routing handlers, and test suites
+  - `[x]` Updated documentation (`SYSTEM_INTERNALS.md`, `USER_MANUAL.md`, `PROJECT_CHECKLIST.md`)
+- `[x]` **Dynamic Progressive Disclosure & Condition-Gated Subsystem Architecture (Version 1.19.9 - Ukuvuleka)**
+  - `[x]` Implemented dynamic subnav evaluation `getSubNavItems(mainTarget)` adapting in real-time to active business, inventory, field, planting, and harvest preconditions
+  - `[x]` Condition-gated Business progression: 0 Stores $\to$ `🏢 Store Setup`; $\ge 1$ Store, 0 Products $\to$ `📦 Products & Catalog`; $\ge 1$ Store, $\ge 1$ Products $\to$ `🏪 Point of Sale (POS)`, `📦 Products & Catalog`, `🛒 Customer Marketplace`, `📊 Sales Analytics & Spoilage`
+  - `[x]` Condition-gated Agriculture progression: 0 Fields $\to$ Fields + Climate; $\ge 1$ Field $\to$ Plantings; $\ge 1$ Planting $\to$ Cost Calc + Harvest Sync; $\ge 1$ Harvest $\to$ Yield Dispositions
+  - `[x]` Initialized `#pos-terminal-box` with `display: none;` in markup to eliminate visual flash/bleed
+  - `[x]` Auto-refresh dynamic subnav on lifecycle additions (`loadBusinesses`, `loadPosProducts`, `loadAgriFields`, `loadPlantings`, `loadHarvests`)
+  - `[x]` Full automated test suite verification (46 passed, 3 skipped, 0 failed - 100% pass rate)
 
 ---
 

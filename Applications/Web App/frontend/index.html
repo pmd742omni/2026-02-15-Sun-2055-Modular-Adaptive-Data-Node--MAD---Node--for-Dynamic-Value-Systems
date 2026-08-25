@@ -81,77 +81,168 @@
 
   <!-- Guaranteed Inline View & Sub-Nav Switcher Script -->
   <script>
-    const SUBNAV_CONFIG = {
-      dashboard: [
-        { label: 'System Overview', subId: 'dash-subview-overview' },
-        { label: 'System Health', subId: 'dash-subview-health' },
-        { label: 'Live Node Feeds', subId: 'dash-subview-feeds' }
-      ],
-      agriculture: [
-        { label: '🏞️ Farm Fields & Plots', subId: 'agri-fields-box' },
-        { label: '🌱 Crop Plantings & Plans', subId: 'agri-plantings-box' },
-        { label: '💰 Cost & Price Calculator', subId: 'agri-cost-calc-box' },
-        { label: '🚜 Harvest & POS Sync', subId: 'agri-harvest-box' },
-        { label: '📦 Yield Dispositions', subId: 'agri-dispositions-box' },
-        { label: '🌤️ Bulawayo Climate', subId: 'agri-climate-box' }
-      ],
-      security: [
-        { label: '📝 Visitor Check-In', subId: 'sec-checkin-box' },
-        { label: '🟢 Active Visitors', subId: 'sec-active-box' },
-        { label: '📋 Visitor History', subId: 'sec-history-box' }
-      ],
-      social: [
-        { label: '💬 Community Threads', subId: 'social-threads-box' },
-        { label: '📸 Carousels', subId: 'social-carousels-box' },
-        { label: '👻 24h Stories', subId: 'social-stories-box' },
-        { label: '🎬 Reels', subId: 'social-reels-box' }
-      ],
-      business: [
-        { label: '🏪 Point of Sale (POS)', subId: 'pos-terminal-box' },
-        { label: '📦 Products & Catalog', subId: 'biz-catalog-box' },
-        { label: '🛒 Customer Marketplace', subId: 'biz-marketplace-box' },
-        { label: '📊 Sales Analytics & Spoilage', subId: 'biz-inventory-box' }
-      ],
-      cluster: [
-        { label: '📡 Discovered Data Nodes', subId: 'cluster-nodes-box' },
-        { label: '🌐 UDP Multicast Beacon', subId: 'cluster-multicast-box' }
-      ],
-      banking: [
-        { label: '💳 Personal Account', subId: 'bank-account-box' },
-        { label: '🏢 Business Settlement Accounts', subId: 'bank-business-box' },
-        { label: '🧾 Digital Receipt Vault', subId: 'bank-receipts-box' },
-        { label: '📊 Account Statement & Ledger', subId: 'bank-ledger-box' }
-      ],
-      admin: [
-        { label: '👥 User Roster & RBAC', subId: 'admin-roster-box' },
-        { label: '💱 Currencies & Tokens', subId: 'admin-currencies-box' },
-        { label: '🏢 Business Staff & Permissions', subId: 'admin-operators-box' },
-        { label: '💻 Device Access Control', subId: 'admin-devices-box' },
-        { label: '🔒 Chained Audit Trail', subId: 'admin-audit-box' }
-      ],
-      tutorials: [
-        { label: '🏗️ Tri-Node Topology', subId: 'tut-pane-arch' },
-        { label: '🏢 Multi-Business RBAC', subId: 'tut-pane-rbac' },
-        { label: '🌾 Precision Agriculture', subId: 'tut-pane-agri' },
-        { label: '🪙 POS & Vouchers', subId: 'tut-pane-pos' },
-        { label: '🏦 Digital Banking', subId: 'tut-pane-bank' },
-        { label: '📦 Node Export & LAN', subId: 'tut-pane-export' }
-      ]
+    function getSubNavItems(mainTarget) {
+      const state = window.state || {};
+      const numBusinesses = (state.businesses && state.businesses.length) || 0;
+      const numProducts = (state.allPosProducts && state.allPosProducts.length) || (state.posProducts && state.posProducts.length) || 0;
+      const numFields = (state.fields && state.fields.length) || 0;
+      const numPlantings = (state.plantings && state.plantings.length) || 0;
+      const numHarvests = (state.harvests && state.harvests.length) || 0;
+
+      if (mainTarget === 'business') {
+        if (numBusinesses === 0) {
+          return [
+            { label: '🏢 Store Setup', subId: 'business-no-store-container' }
+          ];
+        } else if (numProducts === 0) {
+          return [
+            { label: '📦 Products & Catalog', subId: 'biz-catalog-box' }
+          ];
+        } else {
+          return [
+            { label: '🏪 Point of Sale (POS)', subId: 'pos-terminal-box' },
+            { label: '📦 Products & Catalog', subId: 'biz-catalog-box' },
+            { label: '🛒 Customer Marketplace', subId: 'biz-marketplace-box' },
+            { label: '📊 Sales Analytics & Spoilage', subId: 'biz-inventory-box' }
+          ];
+        }
+      }
+
+      if (mainTarget === 'agriculture') {
+        if (numFields === 0) {
+          return [
+            { label: '🏞️ Farm Fields & Plots', subId: 'agri-fields-box' },
+            { label: '🌤️ Bulawayo Climate', subId: 'agri-climate-box' }
+          ];
+        } else if (numPlantings === 0) {
+          return [
+            { label: '🏞️ Farm Fields & Plots', subId: 'agri-fields-box' },
+            { label: '🌱 Crop Plantings & Plans', subId: 'agri-plantings-box' },
+            { label: '🌤️ Bulawayo Climate', subId: 'agri-climate-box' }
+          ];
+        } else if (numHarvests === 0) {
+          return [
+            { label: '🏞️ Farm Fields & Plots', subId: 'agri-fields-box' },
+            { label: '🌱 Crop Plantings & Plans', subId: 'agri-plantings-box' },
+            { label: '💰 Cost & Price Calculator', subId: 'agri-cost-calc-box' },
+            { label: '🚜 Harvest & POS Sync', subId: 'agri-harvest-box' },
+            { label: '🌤️ Bulawayo Climate', subId: 'agri-climate-box' }
+          ];
+        } else {
+          return [
+            { label: '🏞️ Farm Fields & Plots', subId: 'agri-fields-box' },
+            { label: '🌱 Crop Plantings & Plans', subId: 'agri-plantings-box' },
+            { label: '💰 Cost & Price Calculator', subId: 'agri-cost-calc-box' },
+            { label: '🚜 Harvest & POS Sync', subId: 'agri-harvest-box' },
+            { label: '📦 Yield Dispositions', subId: 'agri-dispositions-box' },
+            { label: '🌤️ Bulawayo Climate', subId: 'agri-climate-box' }
+          ];
+        }
+      }
+
+      if (mainTarget === 'banking') {
+        const items = [
+          { label: '💳 Personal Account', subId: 'bank-account-box' }
+        ];
+        if (numBusinesses > 0 || (state.businessAccounts && state.businessAccounts.length > 0)) {
+          items.push({ label: '🏢 Business Settlement Accounts', subId: 'bank-business-box' });
+        }
+        items.push({ label: '🧾 Digital Receipt Vault', subId: 'bank-receipts-box' });
+        items.push({ label: '📊 Account Statement & Ledger', subId: 'bank-ledger-box' });
+        return items;
+      }
+
+      if (mainTarget === 'dashboard') {
+        return [
+          { label: 'System Overview', subId: 'dash-subview-overview' },
+          { label: 'System Health', subId: 'dash-subview-health' },
+          { label: 'Live Node Feeds', subId: 'dash-subview-feeds' }
+        ];
+      }
+
+      if (mainTarget === 'security') {
+        return [
+          { label: '📝 Visitor Check-In', subId: 'sec-checkin-box' },
+          { label: '🟢 Active Visitors', subId: 'sec-active-box' },
+          { label: '📋 Visitor History', subId: 'sec-history-box' }
+        ];
+      }
+
+      if (mainTarget === 'social') {
+        return [
+          { label: '💬 Community Threads', subId: 'social-threads-box' },
+          { label: '📸 Carousels', subId: 'social-carousels-box' },
+          { label: '👻 24h Stories', subId: 'social-stories-box' },
+          { label: '🎬 Reels', subId: 'social-reels-box' }
+        ];
+      }
+
+      if (mainTarget === 'cluster') {
+        return [
+          { label: '📡 Discovered Data Nodes', subId: 'cluster-nodes-box' },
+          { label: '🌐 UDP Multicast Beacon', subId: 'cluster-multicast-box' }
+        ];
+      }
+
+      if (mainTarget === 'admin') {
+        return [
+          { label: '👥 User Roster & RBAC', subId: 'admin-roster-box' },
+          { label: '💱 Currencies & Tokens', subId: 'admin-currencies-box' },
+          { label: '🏢 Business Staff & Permissions', subId: 'admin-operators-box' },
+          { label: '💻 Device Access Control', subId: 'admin-devices-box' },
+          { label: '🔒 Chained Audit Trail', subId: 'admin-audit-box' }
+        ];
+      }
+
+      if (mainTarget === 'tutorials') {
+        return [
+          { label: '🏗️ Tri-Node Topology', subId: 'tut-pane-arch' },
+          { label: '🏢 Multi-Business RBAC', subId: 'tut-pane-rbac' },
+          { label: '🌾 Precision Agriculture', subId: 'tut-pane-agri' },
+          { label: '🪙 POS & Vouchers', subId: 'tut-pane-pos' },
+          { label: '🏦 Digital Banking', subId: 'tut-pane-bank' },
+          { label: '📦 Node Export & LAN', subId: 'tut-pane-export' }
+        ];
+      }
+
+      return [];
+    }
+
+    const ALL_VIEW_SUBBOXES = {
+      dashboard: ['dash-subview-overview', 'dash-subview-health', 'dash-subview-feeds'],
+      agriculture: ['agri-fields-box', 'agri-plantings-box', 'agri-cost-calc-box', 'agri-harvest-box', 'agri-dispositions-box', 'agri-climate-box'],
+      security: ['sec-checkin-box', 'sec-active-box', 'sec-history-box'],
+      social: ['social-threads-box', 'social-carousels-box', 'social-stories-box', 'social-reels-box'],
+      business: ['business-no-store-container', 'pos-terminal-box', 'biz-catalog-box', 'biz-marketplace-box', 'biz-inventory-box'],
+      cluster: ['cluster-nodes-box', 'cluster-multicast-box'],
+      banking: ['bank-account-box', 'bank-business-box', 'bank-receipts-box', 'bank-ledger-box'],
+      admin: ['admin-roster-box', 'admin-currencies-box', 'admin-operators-box', 'admin-devices-box', 'admin-audit-box'],
+      tutorials: ['tut-pane-arch', 'tut-pane-rbac', 'tut-pane-agri', 'tut-pane-pos', 'tut-pane-bank', 'tut-pane-export']
     };
 
-    function updateSubNav(mainTarget) {
+    function updateSubNav(mainTarget, preferredSubId) {
       const bar = document.getElementById('subnav-pill-bar');
       if (!bar) return;
-      const subItems = SUBNAV_CONFIG[mainTarget] || SUBNAV_CONFIG.dashboard;
-      bar.innerHTML = subItems.map((item, idx) => `
-        <button type="button" class="tab-pill-btn ${idx === 0 ? 'active' : ''}" onclick="event.stopPropagation(); handleSubNavClick('${mainTarget}', '${item.subId}', this)">
+      const subItems = getSubNavItems(mainTarget);
+      if (subItems.length === 0) {
+        bar.innerHTML = '';
+        return;
+      }
+
+      let activeSubId = preferredSubId;
+      if (!activeSubId || !subItems.find(item => item.subId === activeSubId)) {
+        activeSubId = subItems[0].subId;
+      }
+
+      bar.innerHTML = subItems.map(item => `
+        <button type="button" class="tab-pill-btn ${item.subId === activeSubId ? 'active' : ''}" onclick="event.stopPropagation(); handleSubNavClick('${mainTarget}', '${item.subId}', this)">
           ${item.label}
         </button>
       `).join('');
 
-      const firstBtn = bar.querySelector('.tab-pill-btn');
-      if (firstBtn && subItems.length > 0) {
-        handleSubNavClick(mainTarget, subItems[0].subId, firstBtn);
+      const activeBtn = bar.querySelector('.tab-pill-btn.active') || bar.querySelector('.tab-pill-btn');
+      if (activeBtn) {
+        handleSubNavClick(mainTarget, activeSubId, activeBtn);
       }
     }
 
@@ -199,16 +290,12 @@
         const trackId = subId.replace('tut-pane-', '');
         if (window.switchTutorialTrack) window.switchTutorialTrack(trackId, btnEl);
       } else {
-        const subItems = SUBNAV_CONFIG[mainTarget] || [];
-        subItems.forEach(item => {
-          const el = document.getElementById(item.subId);
+        const allBoxes = ALL_VIEW_SUBBOXES[mainTarget] || [];
+        allBoxes.forEach(boxId => {
+          const el = document.getElementById(boxId);
           if (el) {
-            if (item.subId === subId) {
-              if (mainTarget === 'business' && window.state && window.state.businesses && window.state.businesses.length === 0) {
-                el.style.display = 'none';
-              } else {
-                el.style.display = 'block';
-              }
+            if (boxId === subId) {
+              el.style.display = 'block';
             } else {
               el.style.display = 'none';
             }
@@ -2090,7 +2177,7 @@
         </div>
 
         <!-- Subview 1: Point of Sale Terminal (Bypasses to Inventory Intake when Empty) -->
-        <div class="glass-panel" id="pos-terminal-box" style="padding: 28px; position: relative;">
+        <div class="glass-panel" id="pos-terminal-box" style="padding: 28px; position: relative; display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <h3 style="margin: 0;">🏪 Point of Sale (POS) & Checkout</h3>
             <div style="display: flex; gap: 8px;">

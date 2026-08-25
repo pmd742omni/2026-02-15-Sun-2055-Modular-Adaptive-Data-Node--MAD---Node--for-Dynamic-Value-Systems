@@ -754,7 +754,6 @@ async function loadBusinesses() {
       if (noStoreGate) noStoreGate.style.display = 'block';
       if (emptyPosBox) emptyPosBox.style.display = 'none';
       if (activePosBox) activePosBox.style.display = 'none';
-      // Explicitly hide all 4 subview boxes in business view so only the Gatekeeper setup banner is shown
       ['pos-terminal-box', 'biz-catalog-box', 'biz-marketplace-box', 'biz-inventory-box'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -778,18 +777,11 @@ async function loadBusinesses() {
       if (adminBizName && activeBiz) {
         adminBizName.innerText = activeBiz.name;
       }
+    }
 
-      // If user is currently on business view, ensure only the active subview tab is displayed
-      if (state.activeView === 'business') {
-        const bar = document.getElementById('subnav-pill-bar');
-        const activeBtn = bar ? bar.querySelector('.tab-pill-btn.active') : null;
-        if (activeBtn) {
-          activeBtn.click();
-        } else {
-          const terminalBox = document.getElementById('pos-terminal-box');
-          if (terminalBox) terminalBox.style.display = 'block';
-        }
-      }
+    // Refresh dynamic subnav bar
+    if (typeof updateSubNav === 'function' && state.activeView) {
+      updateSubNav(state.activeView);
     }
 
     // Render POS Store Switcher Pills
@@ -1708,6 +1700,13 @@ async function loadAgriFields() {
     if (!res.ok) return;
     const data = await res.json();
     state.agriFields = data.fields || [];
+    state.fields = state.agriFields;
+
+    if (typeof updateSubNav === 'function' && state.activeView === 'agriculture') {
+      const activeBtn = document.getElementById('subnav-pill-bar')?.querySelector('.tab-pill-btn.active');
+      const preferredSubId = activeBtn ? activeBtn.getAttribute('onclick')?.match(/'([^']+)'\s*,\s*this/)?.[1] : null;
+      updateSubNav('agriculture', preferredSubId);
+    }
 
     const tbody = document.getElementById('agri-fields-table-body');
     const fieldSelect = document.getElementById('planting-field-select');
@@ -1846,6 +1845,12 @@ async function loadPlantings() {
     const data = await res.json();
     state.plantings = data.plantings || [];
     updateDashboardLiveFeeds();
+
+    if (typeof updateSubNav === 'function' && state.activeView === 'agriculture') {
+      const activeBtn = document.getElementById('subnav-pill-bar')?.querySelector('.tab-pill-btn.active');
+      const preferredSubId = activeBtn ? activeBtn.getAttribute('onclick')?.match(/'([^']+)'\s*,\s*this/)?.[1] : null;
+      updateSubNav('agriculture', preferredSubId);
+    }
 
     const dashPlantings = document.getElementById('dash-plantings-count');
     if (dashPlantings) {
@@ -2361,6 +2366,12 @@ async function loadHarvests() {
     if (!res.ok) return;
     const data = await res.json();
     state.harvests = data.harvests || [];
+
+    if (typeof updateSubNav === 'function' && state.activeView === 'agriculture') {
+      const activeBtn = document.getElementById('subnav-pill-bar')?.querySelector('.tab-pill-btn.active');
+      const preferredSubId = activeBtn ? activeBtn.getAttribute('onclick')?.match(/'([^']+)'\s*,\s*this/)?.[1] : null;
+      updateSubNav('agriculture', preferredSubId);
+    }
   } catch (e) {
     console.error(e);
   }
@@ -2868,6 +2879,12 @@ async function loadPosProducts() {
     const dashCatalog = document.getElementById('dash-catalog-count');
     if (dashCatalog) {
       dashCatalog.innerText = `● ${state.allPosProducts.length} Catalog Items`;
+    }
+
+    if (typeof updateSubNav === 'function' && state.activeView === 'business') {
+      const activeBtn = document.getElementById('subnav-pill-bar')?.querySelector('.tab-pill-btn.active');
+      const preferredSubId = activeBtn ? activeBtn.getAttribute('onclick')?.match(/'([^']+)'\s*,\s*this/)?.[1] : null;
+      updateSubNav('business', preferredSubId);
     }
 
     const emptyBox = document.getElementById('pos-empty-store-container');

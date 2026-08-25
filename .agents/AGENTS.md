@@ -42,6 +42,15 @@ Whenever the user states **"update system internals"**, **"generate internals do
 1. Refer to and follow the instructions in the `system-internals-doc` skill ([SKILL.md](./skills/system-internals-doc/SKILL.md)).
 2. Update `../Applications/Web App/SYSTEM_INTERNALS.md` with low-level technical reference details, Mermaid diagrams, and LaTeX equations.
 
+## 8. Dynamic Progressive Disclosure & Intuitive UX Rule
+Whenever developing frontend navigation or subview controllers:
+1. Subnav options and containers must dynamically evaluate live data preconditions via `getSubNavItems(mainTarget)`:
+   - **Business & POS**: Gated strictly behind $N_{\text{biz}} \ge 1$ (Store Setup) and $N_{\text{products}} \ge 1$ (POS, Marketplace, and Analytics appear only when products exist).
+   - **Precision Agriculture**: Sequential disclosure: Fields ($N \ge 1$) $\to$ Plantings ($N \ge 1$) $\to$ Cost Calc & Harvest Sync $\to$ Yield Dispositions ($N_{\text{harvests}} \ge 1$).
+   - **Digital Banking**: Business Settlement Accounts appear only when business entities are provisioned.
+2. UI containers must initialize with `display: none;` where appropriate to prevent initial visual bleed before state evaluation.
+3. Clean domain route names (`agriculture`, `security`, `business`, `banking`, `social`, `cluster`, `admin`, `tutorials`) must be used exclusively.
+
 ---
 
 ## Tri-Node Architecture & Composable Dynamic Value Systems Standard

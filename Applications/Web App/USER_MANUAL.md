@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) — Operations Manual & User Guide
 
-**Document Version**: 1.19.7 (*Isivikelo*)  
+**Document Version**: 1.19.9 (*Ukuvuleka — Dynamic Progressive Disclosure & Condition-Gated UX*)  
 **Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Portable Launcher**: `../start.py` (Relative to `Applications/Web App/`)  
 **Target Environment**: Edge Nodes (Raspberry Pi 4 / CM4, Linux / Windows / macOS Laptops & Mobile Tablets)
