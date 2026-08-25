@@ -20,6 +20,14 @@ Whenever the user states **"develop chapter"**, **"write chapter"**, **"create c
 3. Audit codebase, backend test results, system internals, math models, and hardware benchmarks.
 4. Output individual sub-section files (`YYYY-MM-DD HHMM 5.X Section Title.md`) and a unified compiled chapter file (`YYYY-MM-DD HHMM Chapter X_ Title.md`) into `01_Documentation_and_Thesis/Chapters/`.
 
+## Dynamic Value Milestone Release Rule ("Milestone Release" / "Sync Chapters and Document")
+Whenever the user states **"milestone release"**, **"sync chapters and document"**, or requests a new feature release milestone:
+1. Refer to and follow the instructions in the `dynamic-value-milestone` skill ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/dynamic-value-milestone/SKILL.md)).
+2. Execute the full 27-test verification suite (`pytest -v`).
+3. Automatically generate updated sub-section and compiled chapter files into a newly created versioned directory `01_Documentation_and_Thesis/Chapters/YYYY-MM-DD Day HHMM Version YYYY-MM-DD Day HHMM/`.
+4. Optimize `.agents` directory rules for Tri-Node Dynamic Value Systems.
+5. Trigger the `document-now` progress tracking skill to synchronize `SYSTEM_INTERNALS.md`, `USER_MANUAL.md`, `PROJECT_CHECKLIST.md`, register the version codename, and execute the Git commit.
+
 ## Tri-Node Architecture & Composable Dynamic Value Systems Standard
 1. **Operator Node**: Zero-installation web client executing in modern browsers (:8000). Handles dynamic pricing views, touch POS, peer-to-peer transfers, and live receipt vault lookups.
 2. **Data Node**: Standalone storage, discovery, and global currency collector service (:8002) broadcasting periodic UDP multicast heartbeats (224.0.0.251:8001). Exposes remote lifecycle endpoints (`/api/node/activate`, `/api/node/deactivate`) and reference catalog endpoints (`/api/reference/currencies`).
