@@ -1317,21 +1317,23 @@
     <!-- Modal 15: Operator Profile & Account Settings Modal -->
     <div class="auth-card glass-panel" id="modal-operator-profile" style="padding: 32px; width: 560px; max-width: 95%; text-align: left; display: none; max-height: 90vh; overflow-y: auto;">
       <div class="auth-header" style="text-align: center; margin-bottom: 20px; position: relative;">
-        <!-- Avatar Photo / Initials Container with Upload Controls -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
-          <div style="width: 84px; height: 84px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; font-size: 2.2rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px var(--accent-glow); border: 2px solid rgba(0, 229, 255, 0.4);" id="profile-modal-avatar">
-            A
+        <!-- Avatar Photo / Initials Container with Floating Camera Badge -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <div style="position: relative; cursor: pointer; display: inline-block;" onclick="document.getElementById('profile-avatar-file-input').click()" title="Click to upload/change profile photo">
+            <div style="width: 88px; height: 88px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; font-size: 2.4rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px var(--accent-glow); border: 2.5px solid rgba(0, 229, 255, 0.5); transition: transform 0.2s, box-shadow 0.2s;" id="profile-modal-avatar">
+              A
+            </div>
+            <!-- Floating Camera Badge -->
+            <div style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #7c4dff); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: 2px solid #0f172a; font-size: 0.85rem; color: #fff;">
+              📷
+            </div>
           </div>
           
-          <input type="file" id="profile-avatar-file-input" accept="image/*" style="display: none;" onchange="handleProfileAvatarUpload(event)">
+          <input type="file" id="profile-avatar-file-input" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display: none;" onchange="handleProfileAvatarUpload(event)">
           
-          <div style="display: flex; gap: 8px; margin-top: 10px;">
-            <button type="button" class="btn-pill-small" onclick="document.getElementById('profile-avatar-file-input').click()" style="margin: 0; background: rgba(0, 229, 255, 0.15); border-color: rgba(0, 229, 255, 0.4); color: var(--accent-cyan); font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 9999px;">
-              📷 Upload Photo
-            </button>
-            <button type="button" class="btn-pill-small" onclick="removeProfileAvatar()" style="margin: 0; background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 9999px;">
-              🗑️ Remove
-            </button>
+          <div style="display: flex; align-items: center; gap: 14px; margin-top: 8px;">
+            <span style="font-size: 0.76rem; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="document.getElementById('profile-avatar-file-input').click()">Change Photo</span>
+            <span id="profile-avatar-remove-btn" style="font-size: 0.76rem; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: 600; display: none;" onclick="removeProfileAvatar()">Remove</span>
           </div>
         </div>
 

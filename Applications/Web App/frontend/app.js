@@ -639,48 +639,75 @@ async function openProfileModal() {
 
 function renderProfileModalAvatarPreview(avatarUrl, fallbackName) {
   const avatarEl = document.getElementById('profile-modal-avatar');
+  const removeBtn = document.getElementById('profile-avatar-remove-btn');
   if (!avatarEl) return;
   const name = fallbackName || document.getElementById('profile-input-fullname')?.value || document.getElementById('profile-input-username')?.value || 'A';
-  if (avatarUrl) {
-    avatarEl.innerHTML = `<img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+  if (avatarUrl && avatarUrl.trim()) {
+    avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">`;
+    if (removeBtn) removeBtn.style.display = 'inline';
   } else {
     avatarEl.innerHTML = name.trim().charAt(0).toUpperCase() || 'A';
+    if (removeBtn) removeBtn.style.display = 'none';
   }
 }
 
 function handleProfileAvatarUpload(event) {
-  const file = event.target.files && event.target.files[0];
+  const inputEl = event.target;
+  const file = inputEl.files && inputEl.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) {
-    showErrorToast("Please select a valid image file (PNG, JPG, WebP).");
+    showErrorToast("Please select a valid image file (PNG, JPG, WebP, GIF).");
+    inputEl.value = '';
     return;
   }
   const reader = new FileReader();
+  reader.onerror = function() {
+    showErrorToast("Failed to read image file from disk.");
+    inputEl.value = '';
+  };
   reader.onload = function(e) {
     const dataUrl = e.target.result;
     const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const maxDim = 256;
-      let w = img.width;
-      let h = img.height;
-      if (w > maxDim || h > maxDim) {
-        if (w > h) {
-          h = Math.round((h * maxDim) / w);
-          w = maxDim;
-        } else {
-          w = Math.round((w * maxDim) / h);
-          h = maxDim;
-        }
-      }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      state.pendingProfileAvatar = compressedDataUrl;
-      renderProfileModalAvatarPreview(compressedDataUrl);
+    img.onerror = function() {
+      // Fallback: direct dataUrl if browser canvas decoding is restricted
+      state.pendingProfileAvatar = dataUrl;
+      renderProfileModalAvatarPreview(dataUrl);
       showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
+      inputEl.value = '';
+    };
+    img.onload = function() {
+      try {
+        const canvas = document.createElement('canvas');
+        const maxDim = 256;
+        let w = img.naturalWidth || img.width || 256;
+        let h = img.naturalHeight || img.height || 256;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        
+        // Preserve PNG transparency if png, otherwise use high-quality JPEG
+        const format = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const compressedDataUrl = canvas.toDataURL(format, 0.88);
+        state.pendingProfileAvatar = compressedDataUrl;
+        renderProfileModalAvatarPreview(compressedDataUrl);
+        showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
+      } catch (err) {
+        state.pendingProfileAvatar = dataUrl;
+        renderProfileModalAvatarPreview(dataUrl);
+        showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
+      }
+      inputEl.value = '';
     };
     img.src = dataUrl;
   };
