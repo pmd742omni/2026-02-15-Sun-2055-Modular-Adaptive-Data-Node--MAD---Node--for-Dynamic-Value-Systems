@@ -1315,91 +1315,91 @@
     </div>
 
     <!-- Modal 15: Operator Profile & Account Settings Modal -->
-    <div class="auth-card glass-panel" id="modal-operator-profile" style="padding: 32px; width: 560px; max-width: 95%; text-align: left; display: none; max-height: 90vh; overflow-y: auto;">
-      <div class="auth-header" style="text-align: center; margin-bottom: 20px; position: relative;">
+    <div class="auth-card glass-panel" id="modal-operator-profile" style="padding: 22px 26px; width: 520px; max-width: 95%; text-align: left; display: none; max-height: 94vh; overflow-y: auto;">
+      <div class="auth-header" style="text-align: center; margin-bottom: 12px; position: relative;">
         <!-- Avatar Photo / Initials Container with Floating Camera Badge -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 8px;">
           <div style="position: relative; cursor: pointer; display: inline-block;" onclick="document.getElementById('profile-avatar-file-input').click()" title="Click to upload/change profile photo">
-            <div style="width: 88px; height: 88px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; font-size: 2.4rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px var(--accent-glow); border: 2.5px solid rgba(0, 229, 255, 0.5); transition: transform 0.2s, box-shadow 0.2s;" id="profile-modal-avatar">
+            <div style="width: 76px; height: 76px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; font-size: 2rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--accent-glow); border: 2px solid rgba(0, 229, 255, 0.5); transition: transform 0.2s, box-shadow 0.2s;" id="profile-modal-avatar">
               A
             </div>
             <!-- Floating Camera Badge -->
-            <div style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #7c4dff); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: 2px solid #0f172a; font-size: 0.85rem; color: #fff;">
+            <div style="position: absolute; bottom: -2px; right: -2px; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #7c4dff); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.6); border: 2px solid #0f172a; font-size: 0.8rem; color: #fff;">
               📷
             </div>
           </div>
           
           <input type="file" id="profile-avatar-file-input" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display: none;" onchange="handleProfileAvatarUpload(event)">
           
-          <div style="display: flex; align-items: center; gap: 14px; margin-top: 8px;">
-            <span style="font-size: 0.76rem; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="document.getElementById('profile-avatar-file-input').click()">Change Photo</span>
-            <span id="profile-avatar-remove-btn" style="font-size: 0.76rem; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: 600; display: none;" onclick="removeProfileAvatar()">Remove</span>
+          <div style="display: flex; align-items: center; gap: 12px; margin-top: 5px;">
+            <span style="font-size: 0.74rem; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="document.getElementById('profile-avatar-file-input').click()">Change Photo</span>
+            <span id="profile-avatar-remove-btn" style="font-size: 0.74rem; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: 600; display: none;" onclick="removeProfileAvatar()">Remove</span>
           </div>
         </div>
 
-        <h3 style="font-size: 1.4rem; margin-bottom: 4px; color: #fff;" id="profile-modal-title">Operator Profile & Settings</h3>
-        <p class="auth-subtitle" style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">Sovereign Vault Credentials & Digital Ledger Accounts</p>
-        <span class="role-pill-badge" id="profile-modal-role-badge" style="position: absolute; top: 0; right: 0; text-transform: uppercase;">ADMIN</span>
+        <h3 style="font-size: 1.25rem; margin-bottom: 2px; color: #fff;" id="profile-modal-title">Operator Profile & Settings</h3>
+        <p class="auth-subtitle" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Sovereign Vault Credentials & Digital Ledger Accounts</p>
+        <span class="role-pill-badge" id="profile-modal-role-badge" style="position: absolute; top: 0; right: 0; font-size: 0.7rem; padding: 2px 8px; text-transform: uppercase;">ADMIN</span>
       </div>
 
       <!-- Multi-Currency Account Balances Card -->
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 18px; padding: 16px; margin-bottom: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 14px; padding: 10px 14px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <div>
-            <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block;">Digital Vault Account</span>
-            <code style="font-size: 0.95rem; font-weight: 700; color: var(--accent-cyan);" id="profile-modal-acc-num">ACC-2026-******</code>
+            <span style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block;">Digital Vault Account</span>
+            <code style="font-size: 0.88rem; font-weight: 700; color: var(--accent-cyan);" id="profile-modal-acc-num">ACC-2026-******</code>
           </div>
-          <button type="button" class="btn-pill-small" onclick="hideModals(); switchView('banking');" style="margin: 0;">Open Bank 🏦</button>
+          <button type="button" class="btn-pill-small" onclick="hideModals(); switchView('banking');" style="margin: 0; font-size: 0.72rem; padding: 3px 10px;">Open Bank 🏦</button>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center;">
-          <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">USD</span>
-            <strong style="font-size: 1.05rem; color: #10b981;" id="profile-modal-bal-usd">$0.00</strong>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center;">
+          <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+            <span style="font-size: 0.66rem; color: var(--text-muted); display: block;">USD</span>
+            <strong style="font-size: 0.95rem; color: #10b981;" id="profile-modal-bal-usd">$0.00</strong>
           </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">ZAR</span>
-            <strong style="font-size: 1.05rem; color: #3b82f6;" id="profile-modal-bal-zar">R 0.00</strong>
+          <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+            <span style="font-size: 0.66rem; color: var(--text-muted); display: block;">ZAR</span>
+            <strong style="font-size: 0.95rem; color: #3b82f6;" id="profile-modal-bal-zar">R 0.00</strong>
           </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
-            <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">ZWG</span>
-            <strong style="font-size: 1.05rem; color: #f59e0b;" id="profile-modal-bal-zwg">0.00</strong>
+          <div style="background: rgba(255,255,255,0.03); padding: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+            <span style="font-size: 0.66rem; color: var(--text-muted); display: block;">ZWG</span>
+            <strong style="font-size: 0.95rem; color: #f59e0b;" id="profile-modal-bal-zwg">0.00</strong>
           </div>
         </div>
       </div>
 
       <!-- Profile Form -->
       <form novalidate id="form-operator-profile" onsubmit="return false;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
           <div>
-            <label for="profile-input-fullname" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Full Name / Display Name</label>
-            <input type="text" id="profile-input-fullname" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Tendai Moyo">
+            <label for="profile-input-fullname" style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">Full Name / Display Name</label>
+            <input type="text" id="profile-input-fullname" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Tendai Moyo">
           </div>
           <div>
-            <label for="profile-input-username" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Operator Username</label>
-            <input type="text" id="profile-input-username" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="username">
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-          <div>
-            <label for="profile-input-phone" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Contact Phone / WhatsApp</label>
-            <input type="text" id="profile-input-phone" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="+263 77 ...">
-          </div>
-          <div>
-            <label for="profile-input-email" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Notification Email</label>
-            <input type="email" id="profile-input-email" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="operator@domain.com">
+            <label for="profile-input-username" style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">Operator Username</label>
+            <input type="text" id="profile-input-username" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="username">
           </div>
         </div>
 
-        <div style="margin-bottom: 18px;">
-          <label for="profile-input-pin" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">4-Digit Security PIN (POS & Step-Up Auth)</label>
-          <input type="password" id="profile-input-pin" maxlength="4" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; letter-spacing: 4px; font-weight: 700;" placeholder="••••">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+          <div>
+            <label for="profile-input-phone" style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">Contact Phone / WhatsApp</label>
+            <input type="text" id="profile-input-phone" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="+263 77 ...">
+          </div>
+          <div>
+            <label for="profile-input-email" style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">Notification Email</label>
+            <input type="email" id="profile-input-email" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="operator@domain.com">
+          </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-          <button type="button" class="btn-pill-primary" onclick="submitSaveProfile()" style="flex-grow: 1; margin: 0; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;">Save Profile Settings 💾</button>
-          <button type="button" class="btn-pill-secondary" onclick="openChangePasswordModal()" style="margin: 0; border-color: rgba(255,255,255,0.2);">Change Password 🔑</button>
-          <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="margin: 0;">Close ✕</button>
+        <div style="margin-bottom: 14px;">
+          <label for="profile-input-pin" style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">4-Digit Security PIN (POS & Step-Up Auth)</label>
+          <input type="password" id="profile-input-pin" maxlength="4" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; letter-spacing: 4px; font-weight: 700;" placeholder="••••">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <button type="button" class="btn-pill-primary" onclick="submitSaveProfile()" style="flex-grow: 1; margin: 0; padding: 8px 16px; font-size: 0.85rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;">Save Profile Settings 💾</button>
+          <button type="button" class="btn-pill-secondary" onclick="openChangePasswordModal()" style="margin: 0; padding: 8px 14px; font-size: 0.82rem; border-color: rgba(255,255,255,0.2);">Change Password 🔑</button>
+          <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="margin: 0; padding: 8px 14px; font-size: 0.82rem;">Close ✕</button>
         </div>
       </form>
     </div>
