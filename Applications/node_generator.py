@@ -65,9 +65,12 @@ def generate_portable_node(
     with open(os.path.join(bundle_dir, "node_config.json"), "w", encoding="utf-8") as f:
         json.dump(config_data, f, indent=2)
 
-    # 2. Copy or synthesize storage.py & beacon.py
+    # 2. Copy or synthesize storage.py, beacon.py & tls_manager.py
     shutil.copy2(os.path.join(DATA_NODE_SRC, "storage.py"), os.path.join(bundle_dir, "storage.py"))
     shutil.copy2(os.path.join(DATA_NODE_SRC, "beacon.py"), os.path.join(bundle_dir, "beacon.py"))
+    tls_src = os.path.join(APPLICATIONS_DIR, "tls_manager.py")
+    if os.path.exists(tls_src):
+        shutil.copy2(tls_src, os.path.join(bundle_dir, "tls_manager.py"))
 
     # 3. Write server.py (FastAPI Backend with Lifecycle Endpoints & Web UI Serving)
     server_py_content = f'''"""
@@ -252,7 +255,19 @@ def serve_index():
     }}
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=NODE_PORT)
+    import argparse
+    parser = argparse.ArgumentParser(description="MADN Portable Node Server")
+    parser.add_argument("port", nargs="?", type=int, default=NODE_PORT, help="Port to bind")
+    parser.add_argument("--ssl-keyfile", type=str, default=None, help="Path to TLS private key")
+    parser.add_argument("--ssl-certfile", type=str, default=None, help="Path to TLS certificate")
+    args, _ = parser.parse_known_args()
+
+    ssl_kwargs = {{}}
+    if args.ssl_keyfile and args.ssl_certfile and os.path.exists(args.ssl_keyfile) and os.path.exists(args.ssl_certfile):
+        ssl_kwargs["ssl_keyfile"] = args.ssl_keyfile
+        ssl_kwargs["ssl_certfile"] = args.ssl_certfile
+
+    uvicorn.run(app, host="0.0.0.0", port=args.port, **ssl_kwargs)
 '''
     with open(os.path.join(bundle_dir, "server.py"), "w", encoding="utf-8") as f:
         f.write(server_py_content)
@@ -267,9 +282,12 @@ Run this file on any computer with Python 3.9+ installed to start this node.
 
 import os
 import sys
+import time
 import subprocess
+import threading
+import webbrowser
 
-REQUIRED_PACKAGES = ["fastapi", "uvicorn", "pydantic", "jinja2"]
+REQUIRED_PACKAGES = ["fastapi", "uvicorn", "pydantic", "jinja2", "cryptography"]
 
 def check_and_install():
     missing = []
@@ -280,17 +298,43 @@ def check_and_install():
             missing.append(pkg)
     if missing:
         print(f"[*] Installing dependencies for {name}: {{missing}}")
-        subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing)
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing)
+        except Exception as e:
+            print(f"[!] Pip warning: {{e}}")
+
+def open_browser():
+    time.sleep(1.2)
+    url = f"https://127.0.0.1:{port}"
+    print(f"[*] Opening browser at {{url}} ...")
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     check_and_install()
+
+    # Generate or verify local X.509 TLS Certificates
+    cert_file, key_file = None, None
+    try:
+        if os.path.exists("tls_manager.py"):
+            from tls_manager import ensure_ssl_certificates
+            cert_file, key_file = ensure_ssl_certificates(certs_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), "certs"))
+    except Exception as e:
+        print(f"[!] TLS Notice: {{e}}")
+
     print(f"=======================================================")
     print(f"   STARTING PORTABLE NODE: {name} ({node_type.upper()})")
     print(f"   Port: {port} | ID: {node_id}")
-    print(f"   Web UI: http://127.0.0.1:{port}")
+    print(f"   Web UI: https://127.0.0.1:{port}")
     print(f"=======================================================")
+    threading.Thread(target=open_browser, daemon=True).start()
     server_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py")
-    subprocess.call([sys.executable, server_path])
+    cmd = [sys.executable, server_path, str({port})]
+    if cert_file and key_file:
+        cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
+    subprocess.call(cmd)
 '''
     with open(os.path.join(bundle_dir, "start.py"), "w", encoding="utf-8") as f:
         f.write(bundle_start_content)

@@ -17,16 +17,30 @@ if CURRENT_DIR not in sys.path:
 
 from main import app
 from database import (
-    init_db, get_db,
+    init_db, get_db, hash_password,
     create_business, get_all_businesses, get_business_by_id,
     mint_offline_voucher, verify_and_redeem_voucher, get_voucher_by_id,
     compute_voucher_hmac, generate_receipt_data, execute_checkout_transaction
 )
 
+def create_test_user(username: str, role: str = "customer"):
+    import time
+    with get_db() as db:
+        cursor = db.execute("SELECT id FROM users WHERE username = ?", (username,))
+        if not cursor.fetchone():
+            now = int(time.time())
+            salt_hex, hash_hex = hash_password("Password123!")
+            db.execute("""
+                INSERT OR IGNORE INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password, pin)
+                VALUES (?, ?, ?, ?, 'active', ?, ?, 0, '1234')
+            """, (username, hash_hex, salt_hex, role, now, now))
+
 @pytest.fixture(scope="module", autouse=True)
 def setup_database():
     """Initialize database and seed initial test state."""
     init_db()
+    create_test_user("merchant", "merchant")
+    create_test_user("customer", "customer")
 
 
 def test_multi_business_creation_and_scoping():
@@ -60,7 +74,8 @@ def test_multi_business_creation_and_scoping():
 
 def test_offline_qr_voucher_minting_and_cryptographic_verification():
     """Verify offline bearer voucher minting with HMAC-SHA256 signature."""
-    biz_id = "biz-green-valley"
+    biz = create_business("Voucher Test Farm", "Horticulture", owner_username="admin")
+    biz_id = biz["id"]
     val = 75.50
     curr = "ZWG"
 
@@ -98,7 +113,8 @@ def test_offline_qr_voucher_minting_and_cryptographic_verification():
 
 def test_voucher_double_spend_and_tamper_prevention():
     """Verify double-spend rejection and tamper detection."""
-    biz_id = "biz-khumalo-millers"
+    biz = create_business("Tamper Test Millers", "Grain Milling", owner_username="merchant")
+    biz_id = biz["id"]
     v = mint_offline_voucher(business_id=biz_id, value_amount=100.0, currency="ZWG")
 
     # First redemption succeeds
@@ -125,6 +141,9 @@ def test_voucher_double_spend_and_tamper_prevention():
 
 def test_full_pos_checkout_with_voucher_change_and_receipt():
     """Verify end-to-end POS checkout with business scoping, voucher change, and receipt generation."""
+    biz = create_business("Khumalo Milling & Grains Co.", "Grain Milling & Animal Feeds", owner_username="merchant")
+    biz_id = biz["id"]
+
     # 1. Create unique inventory item
     inv_id = str(uuid.uuid4())
     item_name = f"Grade-A Maize Meal {uuid.uuid4().hex[:4]}"
@@ -132,8 +151,8 @@ def test_full_pos_checkout_with_voucher_change_and_receipt():
     with get_db() as db:
         db.execute("""
             INSERT INTO inventory (id, name, sku, quantity, unit, price_usd, cost_price_usd, low_stock_threshold, business_id)
-            VALUES (?, ?, ?, 50.0, 'bags', 4.50, 2.50, 5.0, 'biz-khumalo-millers')
-        """, (inv_id, item_name, unique_sku))
+            VALUES (?, ?, ?, 50.0, 'bags', 4.50, 2.50, 5.0, ?)
+        """, (inv_id, item_name, unique_sku, biz_id))
 
     # 2. Perform checkout with $5 USD paid for a $4.50 item, requesting change as a 13.25 ZWG Voucher ($0.50 equiv)
     client_req_id = f"test-req-{uuid.uuid4().hex[:8]}"
@@ -146,14 +165,14 @@ def test_full_pos_checkout_with_voucher_change_and_receipt():
         client_req_id=client_req_id,
         tenders=tenders,
         items=items,
-        business_id="biz-khumalo-millers",
+        business_id=biz_id,
         issue_voucher_change=True,
         voucher_change_amount=13.25,
         voucher_change_currency="ZWG"
     )
 
     assert tx_res["status"] == "success"
-    assert tx_res["business_id"] == "biz-khumalo-millers"
+    assert tx_res["business_id"] == biz_id
     assert tx_res["voucher_issued"] is not None
     assert tx_res["voucher_issued"]["value_amount"] == 13.25
     assert tx_res["voucher_issued"]["currency"] == "ZWG"
@@ -161,7 +180,7 @@ def test_full_pos_checkout_with_voucher_change_and_receipt():
     # 3. Generate receipt
     receipt = generate_receipt_data(tx_res["transaction_id"])
     assert receipt is not None
-    assert receipt["business"]["id"] == "biz-khumalo-millers"
+    assert receipt["business"]["id"] == biz_id
     assert receipt["business"]["name"] == "Khumalo Milling & Grains Co."
     assert len(receipt["items"]) == 1
     assert receipt["items"][0]["item_name"] == item_name

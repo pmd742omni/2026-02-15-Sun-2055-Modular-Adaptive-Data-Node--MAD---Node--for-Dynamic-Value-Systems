@@ -17,9 +17,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Local imports
 from beacon import BeaconBroadcaster
 from storage import DataNodeStorage
+from currency_collector import get_complete_global_catalog, fetch_online_fiat_updates
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("madn.data_node")
@@ -145,6 +145,42 @@ def list_records(collection: str = Query(...)):
     return {"status": "success", "collection": collection, "records": records}
 
 
+@app.get("/api/reference/currencies")
+def get_reference_currencies():
+    """Returns authoritative ISO 4217 world currencies and top cryptocurrencies."""
+    catalog = get_complete_global_catalog()
+    return {"status": "success", "count": len(catalog), "currencies": catalog}
+
+
+@app.post("/api/reference/currencies/collect")
+def collect_live_currencies():
+    """Attempts live online sync with open currency APIs and stores new records."""
+    live_updates = fetch_online_fiat_updates()
+    stored_count = 0
+    if live_updates:
+        for item in live_updates:
+            storage.put_record("global_currency_catalog", item["code"], json.dumps(item))
+            stored_count += 1
+    return {
+        "status": "success",
+        "live_fetched": len(live_updates),
+        "persisted_to_storage": stored_count,
+        "mode": "online_updated" if live_updates else "air_gapped_fallback"
+    }
+
+
+
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else NODE_PORT
-    uvicorn.run("data_node:app", host="0.0.0.0", port=port, reload=False)
+    import argparse
+    parser = argparse.ArgumentParser(description="MADN Standalone Data Node")
+    parser.add_argument("port", nargs="?", type=int, default=NODE_PORT, help="Port to bind data node service")
+    parser.add_argument("--ssl-keyfile", type=str, default=os.getenv("MADN_SSL_KEYFILE"), help="Path to TLS private key")
+    parser.add_argument("--ssl-certfile", type=str, default=os.getenv("MADN_SSL_CERTFILE"), help="Path to TLS certificate")
+    args, unknown = parser.parse_known_args()
+
+    ssl_kwargs = {}
+    if args.ssl_keyfile and args.ssl_certfile and os.path.exists(args.ssl_keyfile) and os.path.exists(args.ssl_certfile):
+        ssl_kwargs["ssl_keyfile"] = args.ssl_keyfile
+        ssl_kwargs["ssl_certfile"] = args.ssl_certfile
+
+    uvicorn.run("data_node:app", host="0.0.0.0", port=args.port, reload=False, **ssl_kwargs)

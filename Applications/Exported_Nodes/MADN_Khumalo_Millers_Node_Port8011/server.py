@@ -1,5 +1,5 @@
 """
-MADN Portable Node Server (Khumalo_Millers_Node - data-node-khumalo_millers_node-5eaa91)
+MADN Portable Node Server (Khumalo_Millers_Node - data-node-khumalo_millers_node-dcce98)
 Role: DATA_NODE | Port: 8011
 """
 
@@ -30,14 +30,14 @@ def load_node_config() -> dict:
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    return {"node_id": "data-node-khumalo_millers_node-5eaa91", "node_name": "Khumalo_Millers_Node", "node_type": "data_node", "port": 8011, "is_active": True}
+    return {"node_id": "data-node-khumalo_millers_node-dcce98", "node_name": "Khumalo_Millers_Node", "node_type": "data_node", "port": 8011, "is_active": True}
 
 def save_node_config(cfg: dict):
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
 
 cfg = load_node_config()
-NODE_ID = cfg.get("node_id", "data-node-khumalo_millers_node-5eaa91")
+NODE_ID = cfg.get("node_id", "data-node-khumalo_millers_node-dcce98")
 NODE_NAME = cfg.get("node_name", "Khumalo_Millers_Node")
 NODE_TYPE = cfg.get("node_type", "data_node")
 NODE_PORT = int(cfg.get("port", 8011))
@@ -180,4 +180,16 @@ def serve_index():
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=NODE_PORT)
+    import argparse
+    parser = argparse.ArgumentParser(description="MADN Portable Node Server")
+    parser.add_argument("port", nargs="?", type=int, default=NODE_PORT, help="Port to bind")
+    parser.add_argument("--ssl-keyfile", type=str, default=None, help="Path to TLS private key")
+    parser.add_argument("--ssl-certfile", type=str, default=None, help="Path to TLS certificate")
+    args, _ = parser.parse_known_args()
+
+    ssl_kwargs = {}
+    if args.ssl_keyfile and args.ssl_certfile and os.path.exists(args.ssl_keyfile) and os.path.exists(args.ssl_certfile):
+        ssl_kwargs["ssl_keyfile"] = args.ssl_keyfile
+        ssl_kwargs["ssl_certfile"] = args.ssl_certfile
+
+    uvicorn.run(app, host="0.0.0.0", port=args.port, **ssl_kwargs)

@@ -9,13 +9,14 @@ import json
 import hmac
 import datetime
 import math
+from typing import Optional, List, Dict, Any, Tuple
 try:
     from .auth_utils import hash_password
 except ImportError:
     from auth_utils import hash_password
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
-LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit_logs.log")
+DB_PATH = os.environ.get("MADN_DB_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db"))
+LOG_PATH = os.environ.get("MADN_LOG_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit_logs.log"))
 
 FORENSIC_MODE = False
 VAULT_SECRET_KEY = b"madn-offline-vault-key-secret-2026"
@@ -28,6 +29,81 @@ def get_db():
     conn.execute("PRAGMA busy_timeout=5000;")
     conn.execute("PRAGMA foreign_keys=ON;")
     return conn
+
+
+# =====================================================================
+# GLOBAL WORLD CURRENCIES & CRYPTOCURRENCY REGISTRY (ISO 4217 & CRYPTOS)
+# =====================================================================
+
+GLOBAL_AUTHORITATIVE_CATALOG = [
+    # Top Sovereign World Fiat Currencies (ISO 4217)
+    {"code": "USD", "name": "United States Dollar", "symbol": "$", "category": "fiat", "country_or_issuer": "United States", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 1.0},
+    {"code": "ZAR", "name": "South African Rand", "symbol": "R", "category": "fiat", "country_or_issuer": "South Africa (CMA)", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 18.50},
+    {"code": "ZWG", "name": "Zimbabwe Gold (ZiG)", "symbol": "ZiG", "category": "gold_backed", "country_or_issuer": "Zimbabwe (RBZ)", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 26.50},
+    {"code": "EUR", "name": "Euro", "symbol": "€", "category": "fiat", "country_or_issuer": "Eurozone", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 0.92},
+    {"code": "GBP", "name": "British Pound Sterling", "symbol": "£", "category": "fiat", "country_or_issuer": "United Kingdom", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 0.79},
+    {"code": "BWP", "name": "Botswana Pula", "symbol": "P", "category": "fiat", "country_or_issuer": "Botswana", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 13.60},
+    {"code": "JPY", "name": "Japanese Yen", "symbol": "¥", "category": "fiat", "country_or_issuer": "Japan", "is_iso4217": 1, "default_decimals": 0, "rate_to_usd": 155.0},
+    {"code": "CNY", "name": "Chinese Yuan Renminbi", "symbol": "¥", "category": "fiat", "country_or_issuer": "China", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 7.25},
+    {"code": "INR", "name": "Indian Rupee", "symbol": "₹", "category": "fiat", "country_or_issuer": "India", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 83.50},
+    {"code": "CAD", "name": "Canadian Dollar", "symbol": "CA$", "category": "fiat", "country_or_issuer": "Canada", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 1.36},
+    {"code": "AUD", "name": "Australian Dollar", "symbol": "A$", "category": "fiat", "country_or_issuer": "Australia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 1.52},
+    {"code": "CHF", "name": "Swiss Franc", "symbol": "CHF", "category": "fiat", "country_or_issuer": "Switzerland", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 0.90},
+    {"code": "NGN", "name": "Nigerian Naira", "symbol": "₦", "category": "fiat", "country_or_issuer": "Nigeria", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 1500.0},
+    {"code": "KES", "name": "Kenyan Shilling", "symbol": "KSh", "category": "fiat", "country_or_issuer": "Kenya", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 130.0},
+    {"code": "GHS", "name": "Ghanaian Cedi", "symbol": "GH₵", "category": "fiat", "country_or_issuer": "Ghana", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 14.50},
+    {"code": "ZMW", "name": "Zambian Kwacha", "symbol": "ZK", "category": "fiat", "country_or_issuer": "Zambia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 26.0},
+    {"code": "MZN", "name": "Mozambican Metical", "symbol": "MT", "category": "fiat", "country_or_issuer": "Mozambique", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 63.8},
+    {"code": "NAD", "name": "Namibian Dollar", "symbol": "N$", "category": "fiat", "country_or_issuer": "Namibia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 18.5},
+    {"code": "SZL", "name": "Eswatini Lilangeni", "symbol": "E", "category": "fiat", "country_or_issuer": "Eswatini", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 18.5},
+    {"code": "LSL", "name": "Lesotho Loti", "symbol": "L", "category": "fiat", "country_or_issuer": "Lesotho", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 18.5},
+    {"code": "MWK", "name": "Malawian Kwacha", "symbol": "MK", "category": "fiat", "country_or_issuer": "Malawi", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 1735.0},
+    {"code": "TZS", "name": "Tanzanian Shilling", "symbol": "TSh", "category": "fiat", "country_or_issuer": "Tanzania", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 2600.0},
+    {"code": "UGX", "name": "Ugandan Shilling", "symbol": "USh", "category": "fiat", "country_or_issuer": "Uganda", "is_iso4217": 1, "default_decimals": 0, "rate_to_usd": 3750.0},
+    {"code": "RWF", "name": "Rwandan Franc", "symbol": "FRw", "category": "fiat", "country_or_issuer": "Rwanda", "is_iso4217": 1, "default_decimals": 0, "rate_to_usd": 1300.0},
+    {"code": "AED", "name": "United Arab Emirates Dirham", "symbol": "د.إ", "category": "fiat", "country_or_issuer": "United Arab Emirates", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 3.67},
+    {"code": "SAR", "name": "Saudi Riyal", "symbol": "﷼", "category": "fiat", "country_or_issuer": "Saudi Arabia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 3.75},
+    {"code": "BRL", "name": "Brazilian Real", "symbol": "R$", "category": "fiat", "country_or_issuer": "Brazil", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 5.40},
+    {"code": "RUB", "name": "Russian Ruble", "symbol": "₽", "category": "fiat", "country_or_issuer": "Russia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 90.0},
+    {"code": "SGD", "name": "Singapore Dollar", "symbol": "S$", "category": "fiat", "country_or_issuer": "Singapore", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 1.35},
+    {"code": "HKD", "name": "Hong Kong Dollar", "symbol": "HK$", "category": "fiat", "country_or_issuer": "Hong Kong", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 7.80},
+    {"code": "NZD", "name": "New Zealand Dollar", "symbol": "NZ$", "category": "fiat", "country_or_issuer": "New Zealand", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 1.63},
+    {"code": "SEK", "name": "Swedish Krona", "symbol": "kr", "category": "fiat", "country_or_issuer": "Sweden", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 10.40},
+    {"code": "NOK", "name": "Norwegian Krone", "symbol": "kr", "category": "fiat", "country_or_issuer": "Norway", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 10.60},
+    {"code": "DKK", "name": "Danish Krone", "symbol": "kr", "category": "fiat", "country_or_issuer": "Denmark", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 6.85},
+    {"code": "PLN", "name": "Polish Zloty", "symbol": "zł", "category": "fiat", "country_or_issuer": "Poland", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 3.95},
+    {"code": "TRY", "name": "Turkish Lira", "symbol": "₺", "category": "fiat", "country_or_issuer": "Turkey", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 33.0},
+    {"code": "KRW", "name": "South Korean Won", "symbol": "₩", "category": "fiat", "country_or_issuer": "South Korea", "is_iso4217": 1, "default_decimals": 0, "rate_to_usd": 1360.0},
+    {"code": "IDR", "name": "Indonesian Rupiah", "symbol": "Rp", "category": "fiat", "country_or_issuer": "Indonesia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 16000.0},
+    {"code": "MYR", "name": "Malaysian Ringgit", "symbol": "RM", "category": "fiat", "country_or_issuer": "Malaysia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 4.65},
+    {"code": "THB", "name": "Thai Baht", "symbol": "฿", "category": "fiat", "country_or_issuer": "Thailand", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 36.0},
+    {"code": "PHP", "name": "Philippine Peso", "symbol": "₱", "category": "fiat", "country_or_issuer": "Philippines", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 58.0},
+    {"code": "VND", "name": "Vietnamese Dong", "symbol": "₫", "category": "fiat", "country_or_issuer": "Vietnam", "is_iso4217": 1, "default_decimals": 0, "rate_to_usd": 25000.0},
+    {"code": "ILS", "name": "Israeli New Shekel", "symbol": "₪", "category": "fiat", "country_or_issuer": "Israel", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 3.70},
+    {"code": "CLP", "name": "Chilean Peso", "symbol": "CLP$", "category": "fiat", "country_or_issuer": "Chile", "is_iso4217": 1, "default_decimals": 0, "rate_to_usd": 920.0},
+    {"code": "COP", "name": "Colombian Peso", "symbol": "COL$", "category": "fiat", "country_or_issuer": "Colombia", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 4100.0},
+    {"code": "PEN", "name": "Peruvian Sol", "symbol": "S/.", "category": "fiat", "country_or_issuer": "Peru", "is_iso4217": 1, "default_decimals": 2, "rate_to_usd": 3.75},
+    {"code": "XAU", "name": "Gold Troy Ounce", "symbol": "Au", "category": "commodity", "country_or_issuer": "International Precious Metals", "is_iso4217": 1, "default_decimals": 4, "rate_to_usd": 0.00041},
+    {"code": "XAG", "name": "Silver Troy Ounce", "symbol": "Ag", "category": "commodity", "country_or_issuer": "International Precious Metals", "is_iso4217": 1, "default_decimals": 4, "rate_to_usd": 0.033},
+    # Top Cryptocurrencies & Digital Reserve Assets
+    {"code": "BTC", "name": "Bitcoin", "symbol": "₿", "category": "crypto", "country_or_issuer": "Bitcoin Network", "is_iso4217": 0, "default_decimals": 8, "rate_to_usd": 0.000015},
+    {"code": "ETH", "name": "Ethereum", "symbol": "Ξ", "category": "crypto", "country_or_issuer": "Ethereum Foundation", "is_iso4217": 0, "default_decimals": 18, "rate_to_usd": 0.00038},
+    {"code": "SOL", "name": "Solana", "symbol": "◎", "category": "crypto", "country_or_issuer": "Solana Network", "is_iso4217": 0, "default_decimals": 9, "rate_to_usd": 0.0068},
+    {"code": "USDT", "name": "Tether USD", "symbol": "₮", "category": "stablecoin", "country_or_issuer": "Tether Operations", "is_iso4217": 0, "default_decimals": 6, "rate_to_usd": 1.00},
+    {"code": "USDC", "name": "USD Coin", "symbol": "USDC", "category": "stablecoin", "country_or_issuer": "Circle / Centre", "is_iso4217": 0, "default_decimals": 6, "rate_to_usd": 1.00},
+    {"code": "BNB", "name": "BNB Chain Token", "symbol": "BNB", "category": "crypto", "country_or_issuer": "BNB Chain", "is_iso4217": 0, "default_decimals": 18, "rate_to_usd": 0.0017},
+    {"code": "XRP", "name": "XRP Ledger", "symbol": "XRP", "category": "crypto", "country_or_issuer": "Ripple Labs", "is_iso4217": 0, "default_decimals": 6, "rate_to_usd": 1.70},
+    {"code": "ADA", "name": "Cardano", "symbol": "₳", "category": "crypto", "country_or_issuer": "Cardano Foundation", "is_iso4217": 0, "default_decimals": 6, "rate_to_usd": 2.20},
+    {"code": "DOGE", "name": "Dogecoin", "symbol": "Ð", "category": "crypto", "country_or_issuer": "Dogecoin Open Source", "is_iso4217": 0, "default_decimals": 8, "rate_to_usd": 8.0},
+    {"code": "TRX", "name": "TRON", "symbol": "TRX", "category": "crypto", "country_or_issuer": "TRON DAO", "is_iso4217": 0, "default_decimals": 6, "rate_to_usd": 7.5},
+    {"code": "AVAX", "name": "Avalanche", "symbol": "AVAX", "category": "crypto", "country_or_issuer": "Ava Labs", "is_iso4217": 0, "default_decimals": 18, "rate_to_usd": 0.035},
+    {"code": "DOT", "name": "Polkadot", "symbol": "DOT", "category": "crypto", "country_or_issuer": "Web3 Foundation", "is_iso4217": 0, "default_decimals": 10, "rate_to_usd": 0.16},
+    {"code": "MATIC", "name": "Polygon (POL)", "symbol": "POL", "category": "crypto", "country_or_issuer": "Polygon Labs", "is_iso4217": 0, "default_decimals": 18, "rate_to_usd": 2.0},
+    {"code": "LINK", "name": "Chainlink", "symbol": "LINK", "category": "crypto", "country_or_issuer": "Chainlink Labs", "is_iso4217": 0, "default_decimals": 18, "rate_to_usd": 0.08},
+    {"code": "DAI", "name": "Dai Stablecoin", "symbol": "DAI", "category": "stablecoin", "country_or_issuer": "MakerDAO / Sky", "is_iso4217": 0, "default_decimals": 18, "rate_to_usd": 1.00},
+    {"code": "LTC", "name": "Litecoin", "symbol": "Ł", "category": "crypto", "country_or_issuer": "Litecoin Foundation", "is_iso4217": 0, "default_decimals": 8, "rate_to_usd": 0.013},
+    {"code": "TON", "name": "The Open Network", "symbol": "TON", "category": "crypto", "country_or_issuer": "TON Foundation", "is_iso4217": 0, "default_decimals": 9, "rate_to_usd": 0.18}
+]
 
 def init_db():
     """Create database tables, seed bootstrap admin, and verify audit log integrity."""
@@ -43,6 +119,9 @@ def init_db():
         salt TEXT NOT NULL,
         role TEXT NOT NULL,
         status TEXT NOT NULL,
+        full_name TEXT DEFAULT '',
+        phone TEXT DEFAULT '',
+        email TEXT DEFAULT '',
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         last_login_at INTEGER,
@@ -521,14 +600,106 @@ def init_db():
     );
     """)
 
+    # Vault Node Inter-Cluster Communication Key Registry
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS node_communication_keys (
+        node_id TEXT PRIMARY KEY,
+        node_type TEXT NOT NULL,
+        ip_address TEXT NOT NULL,
+        port INTEGER NOT NULL,
+        hmac_secret_key TEXT NOT NULL,
+        public_key TEXT,
+        status TEXT DEFAULT 'active',
+        created_at_utc TEXT NOT NULL,
+        last_rotated_utc TEXT NOT NULL,
+        notes TEXT
+    );
+    """)
+
+    # Dynamic Extensible Currencies & Virtual Tokens Registry
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS currencies (
+        code TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        symbol TEXT NOT NULL,
+        exchange_rate_to_usd REAL NOT NULL,
+        currency_type TEXT DEFAULT 'fiat',
+        is_default INTEGER DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at_utc TEXT NOT NULL,
+        updated_at_utc TEXT NOT NULL
+    );
+    """)
+
+    # Global World Currency & Cryptocurrency Catalog (ISO 4217 & Major Cryptos)
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS global_currency_catalog (
+        code TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        symbol TEXT NOT NULL,
+        category TEXT NOT NULL,
+        country_or_issuer TEXT,
+        is_iso4217 INTEGER DEFAULT 0,
+        default_decimals INTEGER DEFAULT 2,
+        rate_to_usd REAL DEFAULT 1.0,
+        last_updated_utc TEXT NOT NULL
+    );
+    """)
+
+    # Dynamic Multi-Currency Wallet Balances
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS wallet_balances (
+        account_number TEXT NOT NULL,
+        currency TEXT NOT NULL,
+        balance REAL DEFAULT 0.0,
+        updated_at_utc TEXT NOT NULL,
+        PRIMARY KEY (account_number, currency),
+        FOREIGN KEY (account_number) REFERENCES wallets(account_number),
+        FOREIGN KEY (currency) REFERENCES currencies(code)
+    );
+    """)
+
     db.commit()
 
-    # Schema Migration: add pin column to users if it doesn't exist
-    try:
-        db.execute("ALTER TABLE users ADD COLUMN pin TEXT DEFAULT '1234';")
-        db.commit()
-    except sqlite3.OperationalError:
-        pass
+    # Seed Default Currencies if not present
+    now_utc_init = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    default_currs = [
+        ("USD", "United States Dollar", "$", 1.00, "fiat", 1),
+        ("ZAR", "South African Rand", "R", 18.50, "fiat", 0),
+        ("ZWG", "Zimbabwe Gold (ZiG)", "ZiG", 26.50, "gold_backed", 0)
+    ]
+    for c_code, c_name, c_sym, c_rate, c_type, c_def in default_currs:
+        db.execute("""
+            INSERT OR IGNORE INTO currencies (code, name, symbol, exchange_rate_to_usd, currency_type, is_default, is_active, created_at_utc, updated_at_utc)
+            VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+        """, (c_code, c_name, c_sym, c_rate, c_type, c_def, now_utc_init, now_utc_init))
+    
+    # Ensure correct name and symbol for ZWG if already in database
+    db.execute("""
+        UPDATE currencies 
+        SET name = 'Zimbabwe Gold (ZiG)', symbol = 'ZiG', currency_type = 'gold_backed' 
+        WHERE code = 'ZWG'
+    """)
+    db.commit()
+
+
+    # Seed Authoritative Global Currencies & Cryptos Catalog
+    for item in GLOBAL_AUTHORITATIVE_CATALOG:
+        db.execute("""
+            INSERT OR IGNORE INTO global_currency_catalog (code, name, symbol, category, country_or_issuer, is_iso4217, default_decimals, rate_to_usd, last_updated_utc)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (item["code"], item["name"], item["symbol"], item["category"], item.get("country_or_issuer", ""), item.get("is_iso4217", 0), item.get("default_decimals", 2), item.get("rate_to_usd", 1.0), now_utc_init))
+
+    # Schema Migrations: add profile columns to users if they don't exist
+    cursor = db.execute("PRAGMA table_info(users)")
+    user_cols = [row["name"] for row in cursor.fetchall()]
+    for col, col_type in [("full_name", "TEXT DEFAULT ''"), ("phone", "TEXT DEFAULT ''"), ("email", "TEXT DEFAULT ''"), ("pin", "TEXT DEFAULT '1234'")]:
+        if col not in user_cols:
+            try:
+                db.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type};")
+                db.commit()
+            except sqlite3.OperationalError:
+                pass
 
     # PRAGMA Migration: add cost_price_usd column to inventory
     cursor = db.execute("PRAGMA table_info(inventory)")
@@ -677,29 +848,9 @@ def init_db():
                     break
                 print("Error: Passwords do not match.")
         else:
-            # Headless fallback - generate random password
-            alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-            admin_pw = "".join(secrets.choice(alphabet) for _ in range(16))
-            password_method = "secure random generator"
-            
-            # Print to stdout ONLY if TTY is active to prevent journald logs capture leaks
-            if sys.stdout.isatty():
-                print("\n" + "="*60)
-                print("MADN BOOTSTRAP: Seeded administrator credentials")
-                print("Username: admin")
-                print(f"Password: {admin_pw}")
-                print("PLEASE CHANGE THIS PASSWORD IMMEDIATELY UPON FIRST LOGIN.")
-                print("="*60 + "\n")
-            else:
-                # If stdout is NOT a TTY, write to owner-read-only temp file as a secure fallback
-                temp_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin_bootstrap_temp.txt")
-                try:
-                    fd = os.open(temp_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-                    with open(fd, 'w') as f:
-                        f.write(f"admin:{admin_pw}\n")
-                    print(f"\n[ALERT] Headless startup: admin credentials written to owner-restricted {temp_path}\n")
-                except Exception as e:
-                    print(f"\n[ERROR] Failed to output admin password: {str(e)}\n")
+            # Standard genesis default password
+            admin_pw = "Password123!"
+            password_method = "default genesis standard"
         
         # Save admin record to database
         salt_hex, hash_hex = hash_password(admin_pw)
@@ -1013,22 +1164,35 @@ def execute_checkout_transaction(operator_username: str, total_due: float, clien
                 db.rollback()
                 db.close()
                 raise ValueError(f"Customer wallet not found for '{customer_username}'")
-            if w_row["balance_usd"] < total_due:
+            
+            acc_num = w_row["account_number"]
+            # Check dynamic wallet balance
+            bal_cursor = db.execute("SELECT balance FROM wallet_balances WHERE account_number = ? AND currency = 'USD'", (acc_num,))
+            bal_row = bal_cursor.fetchone()
+            current_bal = bal_row["balance"] if bal_row else w_row["balance_usd"]
+
+            if current_bal < total_due:
                 db.rollback()
                 db.close()
-                raise ValueError(f"Insufficient wallet balance. Available: ${w_row['balance_usd']:.2f} USD, Required: ${total_due:.2f} USD")
+                raise ValueError(f"Insufficient wallet balance. Available: ${current_bal:.2f} USD, Required: ${total_due:.2f} USD")
             
-            new_bal = w_row["balance_usd"] - total_due
-            db.execute("UPDATE wallets SET balance_usd = ? WHERE account_number = ?", (new_bal, w_row["account_number"]))
+            new_bal = current_bal - total_due
+            now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+            db.execute("UPDATE wallets SET balance_usd = ? WHERE account_number = ?", (new_bal, acc_num))
+            db.execute("""
+                INSERT INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+                VALUES (?, 'USD', ?, ?)
+                ON CONFLICT(account_number, currency) DO UPDATE SET balance = ?, updated_at_utc = ?
+            """, (acc_num, new_bal, now_utc, new_bal, now_utc))
             
             # Record wallet ledger debit
             wtx_id = f"wtx-pos-{uuid.uuid4().hex[:8]}"
-            now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
-            sig = hmac.new(VAULT_SECRET_KEY, f"{wtx_id}|{w_row['account_number']}|pos_payment|{total_due:.2f}|{new_bal:.2f}".encode("utf-8"), hashlib.sha256).hexdigest()
+            sig = hmac.new(VAULT_SECRET_KEY, f"{wtx_id}|{acc_num}|pos_payment|{total_due:.2f}|{new_bal:.2f}".encode("utf-8"), hashlib.sha256).hexdigest()
             db.execute("""
                 INSERT INTO wallet_ledger (id, account_number, transaction_type, currency, amount, balance_after, counterparty, reference_id, notes, timestamp_utc, signature_hmac)
                 VALUES (?, ?, 'pos_payment', 'USD', ?, ?, ?, ?, 'POS Checkout Payment', ?, ?)
-            """, (wtx_id, w_row["account_number"], -total_due, new_bal, business_id, client_req_id, now_utc, sig))
+            """, (wtx_id, acc_num, -total_due, new_bal, business_id, client_req_id, now_utc, sig))
                 
         # 4. Perform atomic deductions
         for item in items:
@@ -1981,7 +2145,7 @@ def compute_voucher_hmac(vid: str, business_id: str, value_amount: float, curren
 
 
 def create_business(name: str, category: str, contact_phone: str = "", location_address: str = "", tax_id: str = "", receipt_header: str = "", receipt_footer_note: str = "", currency_preference: str = "USD", owner_username: str = "admin") -> dict:
-    """Creates a new business entity for multi-tenant enterprise operations."""
+    """Creates a new business entity for multi-tenant enterprise operations and assigns owner permissions."""
     biz_id = f"biz-{uuid.uuid4().hex[:8]}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     if not receipt_header:
@@ -1995,7 +2159,32 @@ def create_business(name: str, category: str, contact_phone: str = "", location_
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
         """, (biz_id, name, category, contact_phone, location_address, tax_id, receipt_header, receipt_footer_note, currency_preference, owner_username, now_utc))
 
-    return get_business_by_id(biz_id)
+        # Automatically assign owner as business administrator if user exists
+        cursor = db.execute("SELECT id FROM users WHERE username = ?", (owner_username,))
+        if cursor.fetchone():
+            all_perms = json.dumps(["admin", "pos", "inventory", "agriculture", "security", "social", "vouchers", "reports"])
+            db.execute("""
+                INSERT OR IGNORE INTO business_operators (id, business_id, username, role_in_business, permissions_json, granted_by, created_at_utc, is_active)
+                VALUES (?, ?, ?, 'admin', ?, ?, ?, 1)
+            """, (f"op-{uuid.uuid4().hex[:8]}", biz_id, owner_username, all_perms, owner_username, now_utc))
+
+    biz_record = get_business_by_id(biz_id)
+
+    # Sync to local Data Node storage if active
+    try:
+        data_node_url = os.environ.get("MADN_DATA_NODE_URL", "http://127.0.0.1:8002")
+        import urllib.request
+        req_data = json.dumps({
+            "collection": "businesses",
+            "key": biz_id,
+            "data": json.dumps(biz_record)
+        }).encode('utf-8')
+        req = urllib.request.Request(f"{data_node_url}/api/storage/put", data=req_data, headers={"Content-Type": "application/json"})
+        urllib.request.urlopen(req, timeout=1.0)
+    except Exception:
+        pass
+
+    return biz_record
 
 
 def get_all_businesses() -> list:
@@ -2280,60 +2469,193 @@ def has_business_permission(username: str, business_id: str, required_permission
 
 
 # =====================================================================
+# DYNAMIC MULTI-CURRENCY & VIRTUAL TOKEN ENGINE
+# =====================================================================
+
+def get_all_currencies(include_inactive: bool = False) -> list:
+    """Returns list of configured currencies and exchange rates."""
+    with get_db() as db:
+        query = "SELECT * FROM currencies"
+        if not include_inactive:
+            query += " WHERE is_active = 1"
+        query += " ORDER BY is_default DESC, code ASC"
+        cursor = db.execute(query)
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_currency_by_code(code: str) -> Optional[dict]:
+    """Retrieves single currency configuration by code."""
+    with get_db() as db:
+        cursor = db.execute("SELECT * FROM currencies WHERE code = ?", (code.upper().strip(),))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+def add_currency(code: str, name: str, symbol: str, exchange_rate_to_usd: float, currency_type: str = "fiat", is_default: int = 0, performed_by: str = "system") -> dict:
+    """Registers a new fiat currency, gold-backed token, or virtual community currency."""
+    code = code.upper().strip()
+    if not code or len(code) > 12:
+        raise ValueError("Currency code must be 1-12 alphanumeric characters.")
+    if exchange_rate_to_usd <= 0:
+        raise ValueError("Exchange rate to USD must be positive.")
+    
+    now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    with get_db() as db:
+        cursor = db.execute("SELECT code FROM currencies WHERE code = ?", (code,))
+        if cursor.fetchone():
+            raise ValueError(f"Currency with code '{code}' already exists.")
+        
+        db.execute("""
+            INSERT INTO currencies (code, name, symbol, exchange_rate_to_usd, currency_type, is_default, is_active, created_at_utc, updated_at_utc)
+            VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+        """, (code, name.strip(), symbol.strip(), exchange_rate_to_usd, currency_type, is_default, now_utc, now_utc))
+        db.commit()
+
+    write_audit_log(performed_by, "CURRENCY_CREATE", f"Added currency {code} ({name}) with rate {exchange_rate_to_usd} USD/rate")
+    
+    # Sync to Data Node storage
+    sync_record_to_data_nodes("currencies", code, {
+        "code": code, "name": name.strip(), "symbol": symbol.strip(),
+        "exchange_rate_to_usd": exchange_rate_to_usd, "currency_type": currency_type
+    })
+    return get_currency_by_code(code)
+
+
+def update_currency(code: str, name: str = None, symbol: str = None, exchange_rate_to_usd: float = None, is_active: int = None, performed_by: str = "system") -> dict:
+    """Updates currency properties or exchange rate."""
+    code = code.upper().strip()
+    curr = get_currency_by_code(code)
+    if not curr:
+        raise ValueError(f"Currency '{code}' not found.")
+    
+    now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    with get_db() as db:
+        if name is not None:
+            db.execute("UPDATE currencies SET name = ? WHERE code = ?", (name.strip(), code))
+        if symbol is not None:
+            db.execute("UPDATE currencies SET symbol = ? WHERE code = ?", (symbol.strip(), code))
+        if exchange_rate_to_usd is not None:
+            if exchange_rate_to_usd <= 0:
+                raise ValueError("Exchange rate to USD must be positive.")
+            db.execute("UPDATE currencies SET exchange_rate_to_usd = ? WHERE code = ?", (exchange_rate_to_usd, code))
+        if is_active is not None:
+            db.execute("UPDATE currencies SET is_active = ? WHERE code = ?", (1 if is_active else 0, code))
+        db.execute("UPDATE currencies SET updated_at_utc = ? WHERE code = ?", (now_utc, code))
+        db.commit()
+
+    write_audit_log(performed_by, "CURRENCY_UPDATE", f"Updated currency {code}")
+    updated = get_currency_by_code(code)
+    sync_record_to_data_nodes("currencies", code, updated)
+    return updated
+
+
+def delete_currency(code: str, performed_by: str = "system") -> dict:
+    """Deactivates/removes a currency."""
+    code = code.upper().strip()
+    if code in ["USD"]:
+        raise ValueError("Primary settlement currency (USD) cannot be deactivated.")
+    return update_currency(code, is_active=0, performed_by=performed_by)
+
+
+# =====================================================================
 # CUSTOMER DIGITAL BANKING, MULTI-CURRENCY LEDGER & RECEIPT VAULT
 # =====================================================================
 
 def create_wallet_for_user(username: str) -> dict:
-    """Provisions a new multi-currency wallet account for a registered user."""
+    """Provisions a new multi-currency wallet account for a registered user with authentic 0.00 balances."""
     acc_num = f"ACC-2026-{uuid.uuid4().hex[:6].upper()}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     with get_db() as db:
         cursor = db.execute("SELECT * FROM wallets WHERE username = ?", (username,))
         existing = cursor.fetchone()
         if existing:
-            return dict(existing)
+            return get_wallet_by_username(username, auto_create=False)
         db.execute("""
             INSERT INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status)
             VALUES (?, ?, 0.0, 0.0, 0.0, ?, 'active')
         """, (acc_num, username, now_utc))
-        return {
-            "account_number": acc_num,
-            "username": username,
-            "balance_usd": 0.0,
-            "balance_zar": 0.0,
-            "balance_zwg": 0.0,
-            "created_at_utc": now_utc,
-            "status": "active"
-        }
+        
+        # Provision 0.0 balance for all active currencies
+        active_currs = db.execute("SELECT code FROM currencies WHERE is_active = 1").fetchall()
+        for c in active_currs:
+            db.execute("""
+                INSERT OR IGNORE INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+                VALUES (?, ?, 0.0, ?)
+            """, (acc_num, c["code"], now_utc))
+        db.commit()
 
-def get_wallet_by_username(username: str, auto_create: bool = True) -> dict:
-    """Returns the multi-currency wallet details for a user."""
+    # Sync to Data Node
+    sync_record_to_data_nodes("wallets", acc_num, {
+        "account_number": acc_num, "username": username, "status": "active"
+    })
+    return get_wallet_by_username(username, auto_create=False)
+
+
+def get_wallet_by_username(username: str, auto_create: bool = True) -> Optional[dict]:
+    """Returns the multi-currency wallet details for a user with dynamic balances."""
     with get_db() as db:
         cursor = db.execute("SELECT * FROM wallets WHERE username = ?", (username,))
         row = cursor.fetchone()
-        if row:
-            return dict(row)
-    if auto_create:
-        return create_wallet_for_user(username)
-    return None
+        if not row:
+            if auto_create:
+                return create_wallet_for_user(username)
+            return None
+        
+        wallet = dict(row)
+        acc_num = wallet["account_number"]
+        
+        # Fetch dynamic balances from wallet_balances table
+        bal_cursor = db.execute("SELECT currency, balance FROM wallet_balances WHERE account_number = ?", (acc_num,))
+        balances = {b["currency"]: b["balance"] for b in bal_cursor.fetchall()}
+        
+        # Ensure all active currencies are present in balances
+        active_currs = db.execute("SELECT code FROM currencies WHERE is_active = 1").fetchall()
+        now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        for c in active_currs:
+            code = c["code"]
+            if code not in balances:
+                legacy_val = 0.0
+                if code == "USD": legacy_val = wallet.get("balance_usd", 0.0)
+                elif code == "ZAR": legacy_val = wallet.get("balance_zar", 0.0)
+                elif code == "ZWG": legacy_val = wallet.get("balance_zwg", 0.0)
+                db.execute("INSERT OR REPLACE INTO wallet_balances (account_number, currency, balance, updated_at_utc) VALUES (?, ?, ?, ?)", (acc_num, code, legacy_val, now_utc))
+                balances[code] = legacy_val
+        db.commit()
+        
+        wallet["balances"] = balances
+        wallet["balance_usd"] = balances.get("USD", wallet.get("balance_usd", 0.0))
+        wallet["balance_zar"] = balances.get("ZAR", wallet.get("balance_zar", 0.0))
+        wallet["balance_zwg"] = balances.get("ZWG", wallet.get("balance_zwg", 0.0))
+        return wallet
+
 
 def topup_wallet(username: str, currency: str, amount: float, notes: str = "Deposit", performed_by: str = "system") -> dict:
-    """Deposits funds into a user's wallet and creates an audit ledger entry."""
-    curr = currency.upper()
-    if curr not in ["USD", "ZAR", "ZWG"]:
-        raise ValueError(f"Unsupported currency: {currency}")
+    """Deposits funds into a user's wallet and creates an audit ledger entry for any supported currency."""
+    curr = currency.upper().strip()
+    active_currs = [c["code"] for c in get_all_currencies(include_inactive=False)]
+    if curr not in active_currs:
+        raise ValueError(f"Unsupported or inactive currency: {currency}")
     if amount <= 0:
         raise ValueError("Top-up amount must be positive.")
 
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     wallet = get_wallet_by_username(username)
     acc_num = wallet["account_number"]
-    col_name = f"balance_{curr.lower()}"
 
     with get_db() as db:
-        db.execute(f"UPDATE wallets SET {col_name} = {col_name} + ? WHERE account_number = ?", (amount, acc_num))
-        cursor = db.execute(f"SELECT {col_name} FROM wallets WHERE account_number = ?", (acc_num,))
-        new_bal = cursor.fetchone()[col_name]
+        # Update dynamic wallet_balances
+        db.execute("""
+            INSERT INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_number, currency) DO UPDATE SET balance = balance + ?, updated_at_utc = ?
+        """, (acc_num, curr, amount, now_utc, amount, now_utc))
+
+        cursor = db.execute("SELECT balance FROM wallet_balances WHERE account_number = ? AND currency = ?", (acc_num, curr))
+        new_bal = cursor.fetchone()["balance"]
+
+        # Sync legacy columns if applicable
+        if curr in ["USD", "ZAR", "ZWG"]:
+            db.execute(f"UPDATE wallets SET balance_{curr.lower()} = ? WHERE account_number = ?", (new_bal, acc_num))
 
         # Signature payload
         tx_id = f"wtx-{uuid.uuid4().hex[:8]}"
@@ -2344,8 +2666,15 @@ def topup_wallet(username: str, currency: str, amount: float, notes: str = "Depo
             INSERT INTO wallet_ledger (id, account_number, transaction_type, currency, amount, balance_after, counterparty, reference_id, notes, timestamp_utc, signature_hmac)
             VALUES (?, ?, 'deposit', ?, ?, ?, ?, ?, ?, ?, ?)
         """, (tx_id, acc_num, curr, amount, new_bal, performed_by, tx_id, notes, now_utc, sig))
+        db.commit()
 
     write_audit_log(performed_by, "WALLET_TOPUP", f"Deposited {amount} {curr} to {username} ({acc_num}). New balance: {new_bal} {curr}")
+    
+    # Sync wallet update to Data Node
+    sync_record_to_data_nodes("wallets", acc_num, {
+        "account_number": acc_num, "username": username, "currency": curr, "new_balance": new_bal
+    })
+    
     return {
         "status": "success",
         "account_number": acc_num,
@@ -2356,35 +2685,45 @@ def topup_wallet(username: str, currency: str, amount: float, notes: str = "Depo
         "transaction_id": tx_id
     }
 
+
 def execute_wallet_transfer(from_user: str, to_user: str, currency: str, amount: float, tx_type: str = "p2p_transfer", counterparty: str = None, reference_id: str = None, notes: str = "") -> dict:
-    """Atomically transfers funds from one user's wallet to another user's wallet."""
-    curr = currency.upper()
-    if curr not in ["USD", "ZAR", "ZWG"]:
-        raise ValueError(f"Unsupported currency: {currency}")
+    """Atomically transfers funds from one user's wallet to another user's wallet across any active currency."""
+    curr = currency.upper().strip()
+    active_currs = [c["code"] for c in get_all_currencies(include_inactive=False)]
+    if curr not in active_currs:
+        raise ValueError(f"Unsupported or inactive currency: {currency}")
     if amount <= 0:
         raise ValueError("Transfer amount must be positive.")
 
     from_wallet = get_wallet_by_username(from_user)
     to_wallet = get_wallet_by_username(to_user)
-    col_name = f"balance_{curr.lower()}"
-
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     wtx_id = f"wtx-{uuid.uuid4().hex[:8]}"
 
     with get_db() as db:
-        cursor = db.execute(f"SELECT {col_name} FROM wallets WHERE account_number = ?", (from_wallet["account_number"],))
-        sender_bal = cursor.fetchone()[col_name]
+        cursor = db.execute("SELECT balance FROM wallet_balances WHERE account_number = ? AND currency = ?", (from_wallet["account_number"], curr))
+        row = cursor.fetchone()
+        sender_bal = row["balance"] if row else 0.0
         if sender_bal < amount:
             raise ValueError(f"Insufficient funds in {curr}. Available: {sender_bal:.2f}, Required: {amount:.2f}")
 
         # Debit sender
-        db.execute(f"UPDATE wallets SET {col_name} = {col_name} - ? WHERE account_number = ?", (amount, from_wallet["account_number"]))
         new_sender_bal = sender_bal - amount
+        db.execute("UPDATE wallet_balances SET balance = ?, updated_at_utc = ? WHERE account_number = ? AND currency = ?", (new_sender_bal, now_utc, from_wallet["account_number"], curr))
+        if curr in ["USD", "ZAR", "ZWG"]:
+            db.execute(f"UPDATE wallets SET balance_{curr.lower()} = ? WHERE account_number = ?", (new_sender_bal, from_wallet["account_number"]))
 
         # Credit receiver
-        db.execute(f"UPDATE wallets SET {col_name} = {col_name} + ? WHERE account_number = ?", (amount, to_wallet["account_number"]))
-        cursor = db.execute(f"SELECT {col_name} FROM wallets WHERE account_number = ?", (to_wallet["account_number"],))
-        new_recv_bal = cursor.fetchone()[col_name]
+        db.execute("""
+            INSERT INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_number, currency) DO UPDATE SET balance = balance + ?, updated_at_utc = ?
+        """, (to_wallet["account_number"], curr, amount, now_utc, amount, now_utc))
+        
+        cursor = db.execute("SELECT balance FROM wallet_balances WHERE account_number = ? AND currency = ?", (to_wallet["account_number"], curr))
+        new_recv_bal = cursor.fetchone()["balance"]
+        if curr in ["USD", "ZAR", "ZWG"]:
+            db.execute(f"UPDATE wallets SET balance_{curr.lower()} = ? WHERE account_number = ?", (new_recv_bal, to_wallet["account_number"]))
 
         # Ledger entries
         sig_debit = hmac.new(VAULT_SECRET_KEY, f"{wtx_id}-deb|{from_wallet['account_number']}|{amount:.2f}|{new_sender_bal:.2f}".encode("utf-8"), hashlib.sha256).hexdigest()
@@ -2398,8 +2737,14 @@ def execute_wallet_transfer(from_user: str, to_user: str, currency: str, amount:
             INSERT INTO wallet_ledger (id, account_number, transaction_type, currency, amount, balance_after, counterparty, reference_id, notes, timestamp_utc, signature_hmac)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (f"{wtx_id}-crd", to_wallet["account_number"], tx_type, curr, amount, new_recv_bal, from_user, reference_id or wtx_id, notes or f"Received from @{from_user}", now_utc, sig_credit))
+        db.commit()
 
     write_audit_log(from_user, "WALLET_TRANSFER", f"Transferred {amount} {curr} from @{from_user} to @{to_user}")
+    
+    # Sync to Data Node
+    sync_record_to_data_nodes("wallets", from_wallet["account_number"], {"account_number": from_wallet["account_number"], "currency": curr, "new_balance": new_sender_bal})
+    sync_record_to_data_nodes("wallets", to_wallet["account_number"], {"account_number": to_wallet["account_number"], "currency": curr, "new_balance": new_recv_bal})
+
     return {
         "status": "success",
         "transfer_id": wtx_id,
@@ -2410,31 +2755,39 @@ def execute_wallet_transfer(from_user: str, to_user: str, currency: str, amount:
         "sender_new_balance": round(new_sender_bal, 2)
     }
 
+
 def deposit_voucher_to_wallet(username: str, vid: str) -> dict:
-    """Redeems an offline QR voucher and converts it directly into liquid wallet balance."""
+    """Redeems an offline QR voucher and converts it directly into liquid wallet balance for any currency."""
     wallet = get_wallet_by_username(username)
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-    # Verify & redeem the voucher
     redemption = verify_and_redeem_voucher(vid, redeemed_by_tx_id=f"WALLET-DEP-{wallet['account_number']}")
     if not redemption.get("success"):
         return redemption
 
-    curr = redemption["currency"]
+    curr = redemption["currency"].upper().strip()
     amt = redemption["value_amount"]
-    col_name = f"balance_{curr.lower()}"
     wtx_id = f"wtx-vdep-{uuid.uuid4().hex[:8]}"
 
     with get_db() as db:
-        db.execute(f"UPDATE wallets SET {col_name} = {col_name} + ? WHERE account_number = ?", (amt, wallet["account_number"]))
-        cursor = db.execute(f"SELECT {col_name} FROM wallets WHERE account_number = ?", (wallet["account_number"],))
-        new_bal = cursor.fetchone()[col_name]
+        db.execute("""
+            INSERT INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(account_number, currency) DO UPDATE SET balance = balance + ?, updated_at_utc = ?
+        """, (wallet["account_number"], curr, amt, now_utc, amt, now_utc))
+
+        cursor = db.execute("SELECT balance FROM wallet_balances WHERE account_number = ? AND currency = ?", (wallet["account_number"], curr))
+        new_bal = cursor.fetchone()["balance"]
+
+        if curr in ["USD", "ZAR", "ZWG"]:
+            db.execute(f"UPDATE wallets SET balance_{curr.lower()} = ? WHERE account_number = ?", (new_bal, wallet["account_number"]))
 
         sig = hmac.new(VAULT_SECRET_KEY, f"{wtx_id}|{wallet['account_number']}|voucher_deposit|{amt:.2f}|{new_bal:.2f}".encode("utf-8"), hashlib.sha256).hexdigest()
         db.execute("""
             INSERT INTO wallet_ledger (id, account_number, transaction_type, currency, amount, balance_after, counterparty, reference_id, notes, timestamp_utc, signature_hmac)
             VALUES (?, ?, 'voucher_deposit', ?, ?, ?, ?, ?, ?, ?, ?)
         """, (wtx_id, wallet["account_number"], curr, amt, new_bal, redemption["business_id"], vid, f"Voucher {vid} converted to wallet balance", now_utc, sig))
+        db.commit()
 
     write_audit_log(username, "VOUCHER_TO_WALLET", f"Converted voucher {vid} ({amt} {curr}) into wallet balance.")
     return {
@@ -2520,144 +2873,433 @@ def get_customer_receipts(customer_username: str, query: str = None) -> list:
 # =====================================================================
 
 def seed_stage1_demo_data():
-    """Seeds default accounts for all roles, businesses, and initial agricultural/social/security records."""
+    """Seeds only the initial primary administrator account and its wallet. All other accounts register dynamically."""
     now = int(time.time())
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     with get_db() as db:
-        # Seed Demo Businesses
-        businesses_to_seed = [
-            ("biz-green-valley", "Green Valley Organic Horticulture", "Horticulture & Fresh Produce", "+263 77 234 5678", "Plot 12, Umguza Valley, Bulawayo", "ZW-8841-HORT", "Green Valley Organic - Farm Fresh Direct", "Sustainably grown with zero synthetic pesticides. Siyabonga!", "USD", "agronomist"),
-            ("biz-khumalo-millers", "Khumalo Milling & Grains Co.", "Grain Milling & Animal Feeds", "+263 71 890 1234", "Tsholotsho Grain Silo Depot #2", "ZW-9102-MILL", "Khumalo Millers - Quality Maize & Sorghum", "Fortified roller meal and livestock feeds. Siyabonga kakhulu!", "ZWG", "merchant"),
-            ("biz-matopos-dairy", "Matopos Heritage Dairy & Livestock", "Dairy & Livestock Products", "+263 78 555 4321", "Matopos Farm Outpost, Matabeleland South", "ZW-7730-DAIRY", "Matopos Heritage - Pure Artisanal Dairy", "Fresh milk, sour milk (amasi), and cheese. Thank you!", "ZAR", "merchant")
-        ]
-        for b_id, b_name, b_cat, b_phone, b_addr, b_tax, b_head, b_foot, b_curr, b_owner in businesses_to_seed:
-            cursor = db.execute("SELECT id FROM businesses WHERE id = ?", (b_id,))
-            if not cursor.fetchone():
+        # Seed only the primary admin user if not exists
+        cursor = db.execute("SELECT id FROM users WHERE username = 'admin'")
+        if not cursor.fetchone():
+            salt_hex, hash_hex = hash_password("Password123!")
+            db.execute("""
+                INSERT OR IGNORE INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password, pin)
+                VALUES ('admin', ?, ?, 'admin', 'active', ?, ?, 0, '1234')
+            """, (hash_hex, salt_hex, now, now))
+
+        # Seed admin wallet with authentic 0.00 balances
+        cursor = db.execute("SELECT account_number FROM wallets WHERE username = 'admin'")
+        if not cursor.fetchone():
+            acc = f"ACC-2026-{uuid.uuid4().hex[:6].upper()}"
+            db.execute("""
+                INSERT OR IGNORE INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status)
+                VALUES (?, 'admin', 0.0, 0.0, 0.0, ?, 'active')
+            """, (acc, now_utc))
+            
+            # Initialize wallet_balances for all active currencies
+            active_currs = db.execute("SELECT code FROM currencies WHERE is_active = 1").fetchall()
+            for c in active_currs:
                 db.execute("""
-                    INSERT OR IGNORE INTO businesses (id, name, category, contact_phone, location_address, tax_id, receipt_header, receipt_footer_note, currency_preference, owner_username, created_at_utc, is_active)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-                """, (b_id, b_name, b_cat, b_phone, b_addr, b_tax, b_head, b_foot, b_curr, b_owner, now_utc))
-
-        # Seed demo users for all 6 roles
-        roles = [
-            ("admin", "admin"),
-            ("agronomist", "agronomist"),
-            ("guard", "guard"),
-            ("merchant", "merchant"),
-            ("customer", "customer"),
-            ("guest", "guest")
-        ]
-        for username, role in roles:
-            cursor = db.execute("SELECT id FROM users WHERE username = ?", (username,))
-            if not cursor.fetchone():
-                salt_hex, hash_hex = hash_password("Password123!")
-                db.execute("""
-                    INSERT OR IGNORE INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password, pin)
-                    VALUES (?, ?, ?, ?, 'active', ?, ?, 0, '1234')
-                """, (username, hash_hex, salt_hex, role, now, now))
-
-        # Seed sample planting
-        cursor = db.execute("SELECT COUNT(*) as count FROM agri_plantings")
-        if cursor.fetchone()["count"] == 0:
-            p_id = "plant-demo-1"
-            db.execute("""
-                INSERT OR IGNORE INTO agri_plantings (id, crop_variety, plot_bed_id, planting_date_utc, seeding_density, target_maturity_date_utc, initial_soil_hydration_pct, status, created_by, created_at_utc, notes, business_id)
-                VALUES (?, 'Roma Tomato (Determinate)', 'Bed 4 - North Plot', ?, 4.5, ?, 68.0, 'growing', 'agronomist', ?, 'Drip irrigated with compost top dressing', 'biz-green-valley')
-            """, (p_id, now_utc, (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=45)).isoformat(), now_utc))
-
-            # Seed costs for planting
-            db.execute("""
-                INSERT OR IGNORE INTO agri_production_costs (id, planting_id, cost_seeds_usd, cost_fertilizer_usd, cost_water_usd, cost_labor_usd, cost_pest_usd, cost_packaging_usd, cost_logistics_usd, cost_overhead_usd, total_cost_usd, logged_by, logged_at_utc)
-                VALUES ('cost-demo-1', ?, 20.0, 35.0, 25.0, 50.0, 10.0, 15.0, 15.0, 10.0, 180.0, 'agronomist', ?)
-            """, (p_id, now_utc))
-
-        # Seed sample visitor
-        cursor = db.execute("SELECT COUNT(*) as count FROM security_visitor_logs")
-        if cursor.fetchone()["count"] == 0:
-            db.execute("""
-                INSERT OR IGNORE INTO security_visitor_logs (id, national_id, full_name, time_in_utc, destination_env, purpose, escort_officer, status, notes, logged_by)
-                VALUES ('vis-demo-1', '63-198274-B-28', 'Tendai Moyo', ?, 'Crop Silos', 'Bulk Grain Inspection & Quality Assay', 'Officer Sibanda', 'Active', 'Carrying sampling probe', 'guard')
-            """, (now_utc,))
-
-        # Seed sample social posts for each of the 4 paradigms
-        cursor = db.execute("SELECT COUNT(*) as count FROM social_posts")
-        if cursor.fetchone()["count"] == 0:
-            # X / Thread
-            db.execute("""
-                INSERT OR IGNORE INTO social_posts (id, post_type, author, content_text, media_urls_json, tags_json, views_count, tips_usd, tips_zar, tips_zwg, created_at_utc, business_id)
-                VALUES ('post-x-1', 'thread', 'agronomist', 'Morning soil hydration at North Bed #4 reached 68% optimal moisture. Tomatoes entering heavy flowering stage!', '[]', '["farming", "tomatoes", "irrigation"]', 42, 1.50, 20.0, 50.0, ?, 'biz-green-valley')
-            """, (now_utc,))
-            # Instagram / Carousel
-            db.execute("""
-                INSERT OR IGNORE INTO social_posts (id, post_type, author, content_text, media_urls_json, tags_json, views_count, tips_usd, tips_zar, tips_zwg, created_at_utc, business_id)
-                VALUES ('post-ig-1', 'carousel', 'merchant', 'Fresh harvest arriving at the village depot! Roma tomatoes & green cabbages listed with live decay pricing.', '["assets/images/sample_produce_1.png", "assets/images/sample_produce_2.png"]', '["market", "organic", "pos"]', 88, 5.00, 0.0, 100.0, ?, 'biz-green-valley')
-            """, (now_utc,))
-            # Snapchat / Story
-            db.execute("""
-                INSERT OR IGNORE INTO social_posts (id, post_type, author, content_text, media_urls_json, tags_json, views_count, tips_usd, tips_zar, tips_zwg, expires_at_utc, created_at_utc, business_id)
-                VALUES ('post-snap-1', 'story', 'guard', 'Perimeter Gate inspection clear. Solar backup batteries at 98% charge for nighttime duty.', '[]', '["security", "daily"]', 19, 0.0, 10.0, 0.0, ?, ?, 'biz-green-valley')
-            """, ((datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=24)).isoformat(), now_utc))
-            # TikTok / Reel
-            db.execute("""
-                INSERT OR IGNORE INTO social_posts (id, post_type, author, content_text, media_urls_json, tags_json, views_count, tips_usd, tips_zar, tips_zwg, created_at_utc, business_id)
-                VALUES ('post-tik-1', 'reel', 'agronomist', 'Quick 30s tutorial on setting up low-pressure gravity drip emitters on sandy loam plots.', '["assets/videos/tutorial_drip.mp4"]', '["tutorial", "microirrigation"]', 145, 10.00, 150.0, 250.0, ?, 'biz-green-valley')
-            """, (now_utc,))
-
-        # Seed sample starter voucher
-        cursor = db.execute("SELECT COUNT(*) as count FROM vouchers")
-        if cursor.fetchone()["count"] == 0:
-            vid = "vouch-demo-1"
-            exp_utc = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=90)).isoformat()
-            sig = compute_voucher_hmac(vid, "biz-green-valley", 50.00, "ZWG", exp_utc)
-            db.execute("""
-                INSERT OR IGNORE INTO vouchers (vid, business_id, value_amount, currency, equivalent_usd, issued_at_utc, expires_at_utc, issued_by_node_id, signature_hmac, status)
-                VALUES (?, 'biz-green-valley', 50.00, 'ZWG', 1.89, ?, ?, 'node-vault-01', ?, 'active')
-            """, (vid, now_utc, exp_utc, sig))
-
-        # Seed sample business operator assignments
-        operators_to_seed = [
-            ("biz-green-valley", "agronomist", "agronomist", ["agriculture", "social", "reports"], "admin"),
-            ("biz-green-valley", "merchant", "manager", ["admin", "pos", "inventory", "agriculture", "security", "social", "vouchers", "reports"], "admin"),
-            ("biz-green-valley", "guard", "guard", ["security", "social"], "admin"),
-            ("biz-khumalo-millers", "merchant", "admin", ["admin", "pos", "inventory", "agriculture", "security", "social", "vouchers", "reports"], "admin"),
-            ("biz-matopos-dairy", "merchant", "admin", ["admin", "pos", "inventory", "agriculture", "security", "social", "vouchers", "reports"], "admin")
-        ]
-        for b_id, u_name, r_name, p_list, g_by in operators_to_seed:
-            cursor = db.execute("SELECT id FROM business_operators WHERE business_id = ? AND username = ?", (b_id, u_name))
-            if not cursor.fetchone():
-                db.execute("""
-                    INSERT OR IGNORE INTO business_operators (id, business_id, username, role_in_business, permissions_json, granted_by, created_at_utc, is_active)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-                """, (f"op-{uuid.uuid4().hex[:8]}", b_id, u_name, r_name, json.dumps(p_list), g_by, now_utc))
-
-        # Seed customer and staff wallets with starting multi-currency balances
-        wallets_to_seed = [
-            ("customer", 50.00, 250.00, 500.00),
-            ("merchant", 250.00, 1500.00, 2000.00),
-            ("agronomist", 75.00, 400.00, 750.00),
-            ("guard", 30.00, 150.00, 300.00),
-            ("admin", 500.00, 5000.00, 10000.00),
-            ("guest", 10.00, 50.00, 100.00)
-        ]
-        for u_name, b_usd, b_zar, b_zwg in wallets_to_seed:
-            cursor = db.execute("SELECT account_number FROM wallets WHERE username = ?", (u_name,))
-            if not cursor.fetchone():
-                acc = f"ACC-2026-{uuid.uuid4().hex[:6].upper()}"
-                db.execute("""
-                    INSERT OR IGNORE INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status)
-                    VALUES (?, ?, ?, ?, ?, ?, 'active')
-                """, (acc, u_name, b_usd, b_zar, b_zwg, now_utc))
-                
-                # Seed initial deposit ledger entry
-                sig = hmac.new(VAULT_SECRET_KEY, f"wtx-init-{acc}|{acc}|deposit|{b_usd:.2f}".encode("utf-8"), hashlib.sha256).hexdigest()
-                db.execute("""
-                    INSERT OR IGNORE INTO wallet_ledger (id, account_number, transaction_type, currency, amount, balance_after, counterparty, reference_id, notes, timestamp_utc, signature_hmac)
-                    VALUES (?, ?, 'deposit', 'USD', ?, ?, 'system', 'genesis', 'Initial Account Opening Balance', ?, ?)
-                """, (f"wtx-init-{acc}", acc, b_usd, b_usd, now_utc, sig))
+                    INSERT OR IGNORE INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+                    VALUES (?, ?, 0.0, ?)
+                """, (acc, c["code"], now_utc))
 
         db.commit()
 
+    # Purge any remaining mock records in existing database instance
+    purge_mock_data()
+
+
+def purge_mock_data():
+    """Purges hardcoded sample/mock demonstration records from the active database."""
+    with get_db() as db:
+        db.execute("DELETE FROM agri_production_costs WHERE id = 'cost-demo-1';")
+        db.execute("DELETE FROM agri_plantings WHERE id = 'plant-demo-1';")
+        db.execute("DELETE FROM security_visitor_logs WHERE id = 'vis-demo-1';")
+        db.execute("DELETE FROM social_posts WHERE id IN ('post-x-1', 'post-ig-1', 'post-snap-1', 'post-tik-1');")
+        db.execute("DELETE FROM vouchers WHERE vid = 'vouch-demo-1';")
+        db.execute("DELETE FROM businesses WHERE id IN ('biz-green-valley', 'biz-khumalo-millers', 'biz-matopos-dairy');")
+        db.execute("DELETE FROM business_operators WHERE business_id IN ('biz-green-valley', 'biz-khumalo-millers', 'biz-matopos-dairy');")
+        db.commit()
+
+
+# =====================================================================
+# OPERATOR PROFILE & INTER-CLUSTER NODE SECURITY KEYS
+# =====================================================================
+
+def get_user_profile(user_id_or_username) -> Optional[dict]:
+    """Retrieves full operator profile including contact details and multi-currency digital accounts."""
+    with get_db() as db:
+        if isinstance(user_id_or_username, int) or (isinstance(user_id_or_username, str) and user_id_or_username.isdigit()):
+            cursor = db.execute("SELECT * FROM users WHERE id = ?", (int(user_id_or_username),))
+        else:
+            cursor = db.execute("SELECT * FROM users WHERE username = ?", (str(user_id_or_username),))
+        user = cursor.fetchone()
+        if not user:
+            return None
+        
+        user_dict = dict(user)
+        username = user_dict["username"]
+        
+        # Query wallet balances
+        w_cursor = db.execute("SELECT * FROM wallets WHERE username = ?", (username,))
+        wallet = w_cursor.fetchone()
+        wallet_dict = dict(wallet) if wallet else {
+            "account_number": "UNASSIGNED",
+            "balance_usd": 0.0,
+            "balance_zar": 0.0,
+            "balance_zwg": 0.0,
+            "status": "inactive"
+        }
+        
+        return {
+            "id": user_dict["id"],
+            "username": user_dict["username"],
+            "full_name": user_dict.get("full_name") or "",
+            "phone": user_dict.get("phone") or "",
+            "email": user_dict.get("email") or "",
+            "role": user_dict["role"],
+            "status": user_dict["status"],
+            "created_at": user_dict["created_at"],
+            "updated_at": user_dict["updated_at"],
+            "must_change_password": user_dict["must_change_password"],
+            "pin_set": bool(user_dict.get("pin")),
+            "mfa_enrolled": bool(user_dict.get("mfa_secret")),
+            "account_number": wallet_dict.get("account_number", "UNASSIGNED"),
+            "wallet": {
+                "balance_usd": wallet_dict.get("balance_usd", 0.0),
+                "balance_zar": wallet_dict.get("balance_zar", 0.0),
+                "balance_zwg": wallet_dict.get("balance_zwg", 0.0),
+                "status": wallet_dict.get("status", "active")
+            }
+        }
+
+
+def update_user_profile(user_id: int, full_name: str = None, phone: str = None, email: str = None, new_username: str = None, pin: str = None) -> dict:
+    """Updates operator profile fields and safely cascades username modifications."""
+    now = int(time.time())
+    with get_db() as db:
+        cursor = db.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        current_user = cursor.fetchone()
+        if not current_user:
+            raise ValueError("User not found")
+        
+        old_username = current_user["username"]
+        target_username = old_username
+
+        if new_username and new_username.strip() and new_username.strip() != old_username:
+            clean_user = new_username.strip()
+            if len(clean_user) < 3 or not clean_user.replace("_", "").isalnum():
+                raise ValueError("Username must be at least 3 alphanumeric characters")
+            
+            chk = db.execute("SELECT id FROM users WHERE username = ? AND id != ?", (clean_user, user_id)).fetchone()
+            if chk:
+                raise ValueError(f"Username '{clean_user}' is already taken")
+            
+            target_username = clean_user
+            
+            # Cascade username update across related tables
+            db.execute("UPDATE users SET username = ? WHERE id = ?", (target_username, user_id))
+            db.execute("UPDATE wallets SET username = ? WHERE username = ?", (target_username, old_username))
+            db.execute("UPDATE business_operators SET username = ? WHERE username = ?", (target_username, old_username))
+            db.execute("UPDATE business_operators SET granted_by = ? WHERE granted_by = ?", (target_username, old_username))
+            db.execute("UPDATE customer_receipts SET customer_username = ? WHERE customer_username = ?", (target_username, old_username))
+            db.execute("UPDATE businesses SET owner_username = ? WHERE owner_username = ?", (target_username, old_username))
+
+        updates = []
+        params = []
+        if full_name is not None:
+            updates.append("full_name = ?")
+            params.append(full_name.strip())
+        if phone is not None:
+            updates.append("phone = ?")
+            params.append(phone.strip())
+        if email is not None:
+            updates.append("email = ?")
+            params.append(email.strip())
+        if pin is not None:
+            clean_pin = pin.strip()
+            if clean_pin and (len(clean_pin) != 4 or not clean_pin.isdigit()):
+                raise ValueError("Security PIN must be exactly 4 digits")
+            updates.append("pin = ?")
+            params.append(clean_pin)
+
+        updates.append("updated_at = ?")
+        params.append(now)
+        params.append(user_id)
+
+        if updates:
+            db.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", tuple(params))
+        
+        db.commit()
+
+    write_audit_log(target_username, "PROFILE_UPDATE", f"Operator profile updated for user ID #{user_id} (username: {target_username})")
+    return get_user_profile(user_id)
+
+
+def register_or_rotate_node_key(node_id: str, node_type: str = "data_node", ip_address: str = "127.0.0.1", port: int = 8002, secret_key: str = None, notes: str = "") -> dict:
+    """Registers or rotates a 256-bit cryptographic HMAC communication key for a cluster node in the Vault DB."""
+    now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    if not secret_key:
+        secret_key = secrets.token_hex(32)  # 256-bit HMAC key
+    
+    with get_db() as db:
+        cursor = db.execute("SELECT node_id FROM node_communication_keys WHERE node_id = ?", (node_id,))
+        if cursor.fetchone():
+            db.execute("""
+                UPDATE node_communication_keys
+                SET node_type = ?, ip_address = ?, port = ?, hmac_secret_key = ?, last_rotated_utc = ?, notes = ?, status = 'active'
+                WHERE node_id = ?
+            """, (node_type, ip_address, port, secret_key, now_utc, notes, node_id))
+        else:
+            db.execute("""
+                INSERT INTO node_communication_keys (node_id, node_type, ip_address, port, hmac_secret_key, status, created_at_utc, last_rotated_utc, notes)
+                VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?)
+            """, (node_id, node_type, ip_address, port, secret_key, now_utc, now_utc, notes))
+        db.commit()
+    
+    write_audit_log("SYSTEM", "NODE_KEY_ROTATED", f"Communication key for node '{node_id}' ({node_type} at {ip_address}:{port}) registered/rotated in Vault DB")
+    return {
+        "node_id": node_id,
+        "node_type": node_type,
+        "ip_address": ip_address,
+        "port": port,
+        "hmac_secret_key": secret_key,
+        "status": "active",
+        "last_rotated_utc": now_utc
+    }
+
+
+def list_node_communication_keys() -> list:
+    """Lists all cluster node communication keys registered in the Vault DB."""
+    with get_db() as db:
+        cursor = db.execute("SELECT node_id, node_type, ip_address, port, status, created_at_utc, last_rotated_utc, notes FROM node_communication_keys ORDER BY created_at_utc ASC")
+        rows = [dict(r) for r in cursor.fetchall()]
+    return rows
+
+
+def get_node_communication_key(node_id: str) -> Optional[dict]:
+    """Retrieves full communication key record for signature verification."""
+    with get_db() as db:
+        cursor = db.execute("SELECT * FROM node_communication_keys WHERE node_id = ?", (node_id,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+
+# =====================================================================
+# DATA NODE REPLICATION & COLLECTION SYNCHRONIZATION
+# =====================================================================
+
+def sync_record_to_data_nodes(collection: str, key: str, data: Any) -> bool:
+    """Replicates a key-value record to connected Standalone Data Node storage (:8002)."""
+    try:
+        data_node_url = os.environ.get("MADN_DATA_NODE_URL", "http://127.0.0.1:8002")
+        import urllib.request
+        payload = json.dumps({
+            "collection": collection,
+            "key": key,
+            "data": json.dumps(data) if not isinstance(data, str) else data
+        }).encode('utf-8')
+        req = urllib.request.Request(f"{data_node_url}/api/storage/put", data=payload, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=1.0) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
+def fetch_records_from_data_nodes(collection: str) -> list:
+    """Fetches collection records from the connected Data Node (:8002)."""
+    try:
+        data_node_url = os.environ.get("MADN_DATA_NODE_URL", "http://127.0.0.1:8002")
+        import urllib.request
+        import urllib.parse
+        req = urllib.request.Request(f"{data_node_url}/api/storage/list?collection={urllib.parse.quote(collection)}")
+        with urllib.request.urlopen(req, timeout=1.5) as resp:
+            if resp.status == 200:
+                res_data = json.loads(resp.read().decode('utf-8'))
+                return res_data.get("records", [])
+    except Exception:
+        pass
+    return []
+
+
+def sync_all_collections_to_data_nodes() -> dict:
+    """Collects and replicates core operational state with connected Data Nodes."""
+    results = {"synced_collections": [], "errors": 0}
+    try:
+        # 1. Sync currencies
+        currs = get_all_currencies(include_inactive=True)
+        for c in currs:
+            sync_record_to_data_nodes("currencies", c["code"], c)
+        results["synced_collections"].append("currencies")
+
+        # 2. Sync businesses
+        bizs = get_all_businesses()
+        for b in bizs:
+            sync_record_to_data_nodes("businesses", b["id"], b)
+        results["synced_collections"].append("businesses")
+
+        # 3. Sync inventory
+        inv = get_inventory()
+        for i in inv:
+            sync_record_to_data_nodes("inventory", str(i["id"]), dict(i))
+        results["synced_collections"].append("inventory")
+
+        # 4. Sync node communication keys
+        keys = list_node_communication_keys()
+        for k in keys:
+            sync_record_to_data_nodes("communication_keys", k["node_id"], k)
+        results["synced_collections"].append("communication_keys")
+        
+        results["status"] = "success"
+    except Exception as e:
+        results["status"] = "partial"
+        results["error"] = str(e)
+    return results
 
 
 
+
+
+
+
+
+def search_global_currency_catalog(query: str = "", category: str = None, limit: int = 50) -> list:
+    """Searches the global catalog of ISO 4217 fiat and cryptocurrencies."""
+    with get_db() as db:
+        sql = "SELECT * FROM global_currency_catalog"
+        params = []
+        conditions = []
+        if query:
+            q_term = f"%{query.strip()}%"
+            conditions.append("(code LIKE ? OR name LIKE ? OR country_or_issuer LIKE ?)")
+            params.extend([q_term, q_term, q_term])
+        if category:
+            conditions.append("category = ?")
+            params.append(category)
+        if conditions:
+            sql += " WHERE " + " AND ".join(conditions)
+        sql += " ORDER BY is_iso4217 DESC, code ASC LIMIT ?"
+        params.append(limit)
+        
+        cursor = db.execute(sql, tuple(params))
+        return [dict(row) for row in cursor.fetchall()]
+
+def get_global_currency_by_code(code: str) -> Optional[dict]:
+    """Retrieves a single global currency specification by code."""
+    with get_db() as db:
+        cursor = db.execute("SELECT * FROM global_currency_catalog WHERE code = ?", (code.upper().strip(),))
+        row = cursor.fetchone()
+        return dict(row) if row else None
+
+def validate_currency_code_collision(code: str, name: str = "") -> dict:
+    """
+    Evaluates proposed currency code for namespace collision against:
+    1. Currently active local currencies in Vault node.
+    2. Official ISO 4217 sovereign fiat currencies.
+    3. Major global cryptocurrencies and digital reserve assets.
+    """
+    code = code.upper().strip()
+    if not code:
+        return {"code": "", "collision": False, "collision_type": "EMPTY", "message": "Please enter a currency code."}
+
+    # 1. Check local active node currencies
+    with get_db() as db:
+        local_curr = db.execute("SELECT * FROM currencies WHERE code = ?", (code,)).fetchone()
+        if local_curr:
+            curr_dict = dict(local_curr)
+            is_act = curr_dict.get("is_active", 1) == 1
+            return {
+                "code": code,
+                "collision": True,
+                "collision_type": "EXISTING_ACTIVE_CURRENCY" if is_act else "EXISTING_INACTIVE_CURRENCY",
+                "matched_currency": curr_dict,
+                "message": f"Currency code '{code}' already exists in your local node ({'Active' if is_act else 'Inactive'}).",
+                "can_adopt": False,
+                "can_reactivate": not is_act
+            }
+
+    # 2. Check global catalog
+    matched = get_global_currency_by_code(code)
+    if matched:
+        cat = matched.get("category", "fiat")
+        if cat in ["fiat", "gold_backed"]:
+            return {
+                "code": code,
+                "collision": True,
+                "collision_type": "OFFICIAL_ISO_FIAT",
+                "matched_currency": matched,
+                "message": f"Code '{code}' matches official ISO 4217 sovereign fiat '{matched['name']}' ({matched.get('country_or_issuer', '')}).",
+                "can_adopt": True,
+                "suggested_name": matched["name"],
+                "suggested_symbol": matched["symbol"],
+                "suggested_type": matched["category"],
+                "suggested_rate": matched.get("rate_to_usd", 1.0)
+            }
+        elif cat in ["crypto", "stablecoin"]:
+            return {
+                "code": code,
+                "collision": True,
+                "collision_type": "MAJOR_CRYPTO",
+                "matched_currency": matched,
+                "message": f"Code '{code}' matches cryptocurrency asset '{matched['name']}' ({matched.get('country_or_issuer', '')}).",
+                "can_adopt": True,
+                "suggested_name": matched["name"],
+                "suggested_symbol": matched["symbol"],
+                "suggested_type": "virtual_token",
+                "suggested_rate": matched.get("rate_to_usd", 1.0)
+            }
+        elif cat == "commodity":
+            return {
+                "code": code,
+                "collision": True,
+                "collision_type": "COMMODITY_ASSET",
+                "matched_currency": matched,
+                "message": f"Code '{code}' matches precious metal commodity standard '{matched['name']}'.",
+                "can_adopt": True,
+                "suggested_name": matched["name"],
+                "suggested_symbol": matched["symbol"],
+                "suggested_type": "gold_backed",
+                "suggested_rate": matched.get("rate_to_usd", 1.0)
+            }
+
+    # 3. No collision - safe unique custom token
+    return {
+        "code": code,
+        "collision": False,
+        "collision_type": "UNIQUE_AVAILABLE",
+        "matched_currency": None,
+        "message": f"Code '{code}' is unique and available for your personalized virtual token.",
+        "can_adopt": False
+    }
+
+def sync_global_currencies_from_data_node(data_node_url: str = None) -> dict:
+    """Synchronizes global ISO 4217 and crypto reference catalog from connected Data Node."""
+    if not data_node_url:
+        data_node_url = os.getenv("MADN_DATA_NODE_URL", "http://127.0.0.1:8002")
+    
+    url = f"{data_node_url.rstrip('/')}/api/reference/currencies"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "MADN-Vault/1.0"})
+        with urllib.request.urlopen(req, timeout=2.0) as resp:
+            if resp.status == 200:
+                data = json.loads(resp.read().decode("utf-8"))
+                currencies = data.get("currencies", [])
+                now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                with get_db() as db:
+                    for c in currencies:
+                        db.execute("""
+                            INSERT INTO global_currency_catalog (code, name, symbol, category, country_or_issuer, is_iso4217, default_decimals, rate_to_usd, last_updated_utc)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ON CONFLICT(code) DO UPDATE SET
+                                name = excluded.name,
+                                symbol = excluded.symbol,
+                                category = excluded.category,
+                                country_or_issuer = excluded.country_or_issuer,
+                                last_updated_utc = excluded.last_updated_utc
+                        """, (c["code"], c["name"], c["symbol"], c["category"], c.get("country_or_issuer", ""), c.get("is_iso4217", 0), c.get("default_decimals", 2), c.get("rate_to_usd", 1.0), now_utc))
+                    db.commit()
+                return {"status": "success", "synced_count": len(currencies), "source": url}
+    except Exception as e:
+        pass
+    return {"status": "fallback", "synced_count": len(GLOBAL_AUTHORITATIVE_CATALOG), "note": "Using built-in authoritative seed"}

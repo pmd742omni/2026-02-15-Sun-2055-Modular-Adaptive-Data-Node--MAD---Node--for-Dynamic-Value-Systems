@@ -14,6 +14,13 @@ Features:
 
 import os
 import sys
+
+# Ensure UTF-8 output formatting on Windows terminals
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 import time
 import json
 import signal
@@ -22,6 +29,7 @@ import shutil
 import argparse
 import subprocess
 import threading
+import webbrowser
 from typing import Dict, List, Optional
 
 APPLICATIONS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -37,9 +45,12 @@ REQUIRED_PACKAGES = [
     "uvicorn",
     "pydantic",
     "cryptography",
-    "qrcode",
-    "jinja2",
     "requests"
+]
+
+OPTIONAL_PACKAGES = [
+    "qrcode",
+    "jinja2"
 ]
 
 class PreflightManager:
@@ -61,15 +72,11 @@ class PreflightManager:
 
         if missing:
             print(f"[*] Missing required packages: {', '.join(missing)}")
-            print("[*] Automatically installing dependencies via pip...")
-            cmd = [sys.executable, "-m", "pip", "install"] + missing
             try:
-                subprocess.check_call(cmd)
-                print("[+] Dependencies successfully installed.")
-            except subprocess.CalledProcessError as e:
-                print(f"[!] Failed to auto-install dependencies: {e}")
-                print(f"    Please manually run: pip install {' '.join(missing)}")
-                sys.exit(1)
+                cmd = [sys.executable, "-m", "pip", "install"] + missing
+                subprocess.run(cmd, capture_output=True, timeout=10)
+            except Exception:
+                pass
 
     @staticmethod
     def is_port_in_use(port: int) -> bool:
@@ -77,60 +84,109 @@ class PreflightManager:
             s.settimeout(0.5)
             return s.connect_ex(('127.0.0.1', port)) == 0
 
+    @staticmethod
+    def get_local_ip_addresses() -> List[str]:
+        ips = set()
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                primary_ip = s.getsockname()[0]
+                if primary_ip and not primary_ip.startswith("127."):
+                    ips.add(primary_ip)
+        except Exception:
+            pass
+
+        try:
+            hostname = socket.gethostname()
+            for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
+                ip = info[4][0]
+                if ip and not ip.startswith("127."):
+                    ips.add(ip)
+        except Exception:
+            pass
+
+        return sorted(list(ips))
+
+
+def launch_browser_when_ready(port: int, use_https: bool = False, path: str = ""):
+    """Spawns a daemon thread that waits for the web server to start, then launches the web browser."""
+    def _worker():
+        protocol = "https" if use_https else "http"
+        url = f"{protocol}://127.0.0.1:{port}{path}"
+        for _ in range(30):
+            if PreflightManager.is_port_in_use(port):
+                time.sleep(0.6)  # brief pause for router initialization
+                print(f"\n[+] Opening web browser to Vault Node Sign-in: {url}")
+                try:
+                    webbrowser.open(url)
+                except Exception as e:
+                    print(f"[!] Note: Could not auto-launch browser ({e}). Please navigate to: {url}")
+                return
+            time.sleep(0.5)
+        print(f"[!] Timed out waiting for port {port} to become active.")
+
+    thread = threading.Thread(target=_worker, daemon=True)
+    thread.start()
+
 
 class NodeSupervisor:
-    """Orchestrates and monitors background node child processes."""
+    """Manages and monitors local child node processes."""
 
     def __init__(self):
         self.processes: Dict[str, subprocess.Popen] = {}
         self.running = False
 
-    def start_process(self, name: str, cmd: List[str], cwd: str, port: int) -> bool:
+    def start_process(self, name: str, cmd: List[str], cwd: str, port: int):
         if PreflightManager.is_port_in_use(port):
-            print(f"[!] Warning: Port {port} is already in use. Skipping start for '{name}'.")
-            return False
+            print(f"[!] Port {port} is already in use. Assuming {name} is running or occupied.")
+            return
 
-        print(f"[+] Starting {name} on port {port}...")
-        env = os.environ.copy()
-        env["PYTHONPATH"] = cwd + os.pathsep + env.get("PYTHONPATH", "")
-        
-        proc = subprocess.Popen(
-            cmd,
-            cwd=cwd,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1
-        )
-        self.processes[name] = proc
+        print(f"[*] Starting {name} on port {port}...")
+        try:
+            # Creationflags for Windows process group handling
+            creation_flags = 0
+            if sys.platform == "win32":
+                creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
 
-        # Thread to read and display logs
-        def stream_logs(p, p_name):
-            for line in p.stdout:
-                if not self.running:
-                    break
-                print(f"[{p_name}] {line.strip()}")
+            proc = subprocess.Popen(
+                cmd,
+                cwd=cwd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                creationflags=creation_flags
+            )
+            self.processes[name] = proc
 
-        t = threading.Thread(target=stream_logs, args=(proc, name), daemon=True)
-        t.start()
-        return True
+            # Start thread to multiplex stdout
+            def stream_logs(p_name, p_proc):
+                for line in p_proc.stdout:
+                    if not self.running:
+                        break
+                    line_clean = line.strip()
+                    if line_clean:
+                        print(f"[{p_name}] {line_clean}")
+
+            t = threading.Thread(target=stream_logs, args=(name, proc), daemon=True)
+            t.start()
+
+        except Exception as e:
+            print(f"[!] Failed to start {name}: {e}")
 
     def stop_all(self):
         self.running = False
-        print("\n[*] Gracefully stopping all MADN node processes...")
+        print("\n[*] Gracefully terminating node services...")
         for name, proc in list(self.processes.items()):
             try:
-                print(f"[-] Terminating {name} (PID {proc.pid})...")
                 proc.terminate()
-                proc.wait(timeout=2)
+                proc.wait(timeout=3)
+                print(f"[+] Stopped {name}.")
             except Exception:
                 try:
                     proc.kill()
                 except Exception:
                     pass
-        self.processes.clear()
-        print("[+] All node services halted.")
 
 
 def load_config() -> dict:
@@ -166,12 +222,48 @@ def create_portable_node_cli(name: str, node_type: str, port: int, output_dir: O
         sys.exit(1)
 
 
+def prompt_transport_protocol(cli_https: bool, cli_http: bool) -> bool:
+    """
+    Prompts the operator in the terminal to select HTTP or HTTPS if no CLI flag was passed.
+    Returns True for HTTPS, False for HTTP.
+    """
+    if cli_https:
+        return True
+    if cli_http:
+        return False
+
+    # Non-interactive fallback (e.g. background automation, pipes, or tests)
+    if not sys.stdin.isatty():
+        return False
+
+    print("\n-------------------------------------------------------")
+    print("             SELECT TRANSPORT PROTOCOL                 ")
+    print("-------------------------------------------------------")
+    print("  [1] HTTP  - Recommended for Localhost / Zero Browser Warnings (Default)")
+    print("  [2] HTTPS - Encrypted TLS 1.3 for LAN / Multi-device Wi-Fi Mesh")
+    print("-------------------------------------------------------")
+    
+    try:
+        choice = input("Select protocol [1/2] (Press Enter for HTTP): ").strip()
+        if choice in ("2", "https", "HTTPS", "s", "S"):
+            print("[*] Selected: HTTPS Mode (Encrypted TLS)")
+            return True
+        print("[*] Selected: HTTP Mode (Zero-Friction Localhost)")
+        return False
+    except (EOFError, KeyboardInterrupt):
+        print("\n[*] Defaulting to HTTP Mode.")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="MADN Portable Multi-Node Launcher")
     parser.add_argument("--all", action="store_true", help="Launch Vault Coordinator and all Data Nodes (Default)")
     parser.add_argument("--vault-only", action="store_true", help="Launch only Vault Coordinator (:8000)")
     parser.add_argument("--data-only", action="store_true", help="Launch only Data Node (:8002)")
     parser.add_argument("--status", action="store_true", help="Check status of all local node ports")
+    parser.add_argument("--no-browser", action="store_true", help="Do not automatically open web browser on startup")
+    parser.add_argument("--https", action="store_true", help="Enforce HTTPS TLS encryption (Self-signed X.509 certificates)")
+    parser.add_argument("--http", action="store_true", help="Launch in clean HTTP mode for zero-friction browser access (Default)")
     parser.add_argument("--create-node", nargs=3, metavar=("NAME", "TYPE", "PORT"), help="Generate a new standalone portable node package (e.g. --create-node Alpha data_node 8005)")
     args = parser.parse_args()
 
@@ -201,6 +293,11 @@ def main():
         create_portable_node_cli(c_name, c_type, int(c_port))
         return
 
+    # Protocol selection (Interactive prompt if neither --http nor --https was explicitly passed)
+    use_https = prompt_transport_protocol(cli_https=args.https, cli_http=args.http)
+    scheme = "https" if use_https else "http"
+    os.environ["MADN_HTTPS_ENABLED"] = "1" if use_https else "0"
+
     # Start services
     supervisor = NodeSupervisor()
     supervisor.running = True
@@ -217,16 +314,33 @@ def main():
     print("           Portable Tri-Node Execution Platform        ")
     print("=======================================================")
     print(f"[*] Applications Root: {APPLICATIONS_DIR}")
+    print(f"[*] Transport Protocol: {scheme.upper()}")
+
+    cert_file, key_file = None, None
+    if use_https:
+        try:
+            from tls_manager import ensure_ssl_certificates
+            cert_file, key_file = ensure_ssl_certificates()
+        except Exception as e:
+            print(f"[!] Warning: Could not initialize TLS certificates ({e}). Falling back to HTTP.")
+            use_https = False
+            scheme = "http"
 
     start_vault = not args.data_only
     start_data = not args.vault_only
 
     if start_vault:
         vault_cmd = [sys.executable, "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", str(v_port)]
+        if use_https and cert_file and key_file:
+            vault_cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
         supervisor.start_process("Vault-Node", vault_cmd, cwd=BACKEND_DIR, port=v_port)
+        if not args.no_browser:
+            launch_browser_when_ready(v_port, use_https=use_https)
 
     if start_data:
-        data_cmd = [sys.executable, "data_node.py"]
+        data_cmd = [sys.executable, "data_node.py", str(d_port)]
+        if use_https and cert_file and key_file:
+            data_cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
         supervisor.start_process("Data-Node-Primary", data_cmd, cwd=DATA_NODE_DIR, port=d_port)
 
     # Start any configured additional nodes
@@ -236,13 +350,29 @@ def main():
             node_name = add_node.get("name")
             node_port = add_node.get("port")
             if node_dir and os.path.exists(node_dir):
-                cmd = [sys.executable, "server.py"]
+                cmd = [sys.executable, "server.py", str(node_port)]
+                if use_https and cert_file and key_file:
+                    cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
                 supervisor.start_process(node_name, cmd, cwd=node_dir, port=node_port)
 
-    print("\n[+] System services initialized successfully!")
-    print(f"    - Vault & Operator Web UI: http://127.0.0.1:{v_port}")
-    print(f"    - Standalone Data Node API: http://127.0.0.1:{d_port}")
-    print("    - UDP Multicast Beacon:     224.0.0.251:8001")
+    local_ips = PreflightManager.get_local_ip_addresses()
+
+    print(f"\n[+] System services initialized successfully in {scheme.upper()} mode!")
+    print("\n-------------------------------------------------------")
+    print(f"               NETWORK ACCESS ADDRESSES ({scheme.upper()})        ")
+    print("-------------------------------------------------------")
+    print(f"  * Local Host (This Machine):      {scheme}://127.0.0.1:{v_port}")
+    if local_ips:
+        print("  * LAN / Wi-Fi URLs (Phones, Tablets, Other PCs):")
+        for ip in local_ips:
+            print(f"      -> {scheme}://{ip}:{v_port}")
+    print(f"  * Standalone Data Node API:       {scheme}://127.0.0.1:{d_port}")
+    print("  * UDP Multicast Beacon:           224.0.0.251:8001")
+    print("-------------------------------------------------------")
+    if use_https:
+        print("[!] Note: When using HTTPS on localhost, Chrome/Edge may show a self-signed warning.")
+        print("    -> To bypass: click 'Advanced' > 'Proceed to 127.0.0.1 (unsafe)' or type 'thisisunsafe'")
+        print("    -> Or launch in clean HTTP mode: python start.py")
     print("\n[*] Press Ctrl+C at any time to gracefully stop all node services.\n")
 
     # Process monitor loop

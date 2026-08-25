@@ -1,280 +1,209 @@
-# Modular Adaptive Data Node (MADN) System Internals & Subsystem Reference
-**Document Version**: 1.18.1 | **Kernel Target**: MADN Web Application Core (Cycles 1–5)  
-**Audience**: Systems Architects, Lead Engineers, Security Analysts, and Autonomous AI Coding Agents
+# Modular Adaptive Data Node (MADN) System Internals & Low-Level Subsystem Reference Manual
+
+**Document Edition**: 1.19.3 | **Codename Target**: Ingxubevange (Diverse Mixture / Multi-Asset Fusion)  
+**Host Application Root**: `./` (Relative to `Applications/Web App/`)  
+**Workspace Root**: `../../` (Relative to project workspace base)  
+**Audience**: Systems Architects, Embedded Systems Engineers, Security Analysts, and Autonomous AI Coding Agents
 
 ---
 
-## Executive Summary & Architecture Overview
+## Executive Summary & Architectural Overview
 
-The Modular Adaptive Data Node (MADN) is an offline-first, physics-driven, dynamic-value edge node operating in resource-constrained, off-grid agricultural and security environments. The application architecture fuses real-time physical simulation (RF signal propagation, obstacle attenuation, A* mesh routing) with dynamic economic feedback loops (decay pricing, automated harvest work orders) and cryptographically hardened security kernels.
+The Modular Adaptive Data Node (MADN) is a zero-internet, physics-grounded, dynamic-value edge computing architecture designed for resilient operation across resource-constrained, decentralized agricultural, security, and retail environments. 
+
+The software system implements a decoupled, heterogeneous **Tri-Node Topology** comprising:
+1. **Operator Node**: Zero-installation web client executing inside modern web browsers (`./frontend/index.html` at `http://127.0.0.1:8000`), providing touch POS registers, dynamic multi-currency banking, personal receipt vaults, world currency collision validation, and real-time node lifecycle management controls.
+2. **Data Node**: Standalone edge caching and discovery daemon (`../Data_Node/data_node.py` at `http://127.0.0.1:8002`), managing local key-value storage (`kv_records`), continuous online/offline collection of 170+ ISO 4217 fiat and 50+ cryptocurrency references (`../Data_Node/currency_collector.py`), enforcing remote lifecycle activation states (`/api/node/activate`, `/api/node/deactivate`), and broadcasting periodic UDP multicast heartbeats (`224.0.0.251:8001`).
+3. **Vault Node**: High-security central coordinator and extensible multi-currency tri-ledger (`./backend/main.py` at `http://127.0.0.1:8000`), enforcing `scrypt`/TOTP authentication, SQLite Write-Ahead Logging (WAL) concurrency with `BEGIN IMMEDIATE` locks, HMAC-SHA256 bearer vouchers, digital receipt hashes, world currency collision-prevention, and the **Portable Node Generator Engine** (`../node_generator.py`).
+
 
 ```mermaid
-graph TD
-    Client[Browser Frontend / Field Tablet SPA] <-->|HTTP/REST & Double-Submit CSRF| API[FastAPI Gateway Layer]
-    API <--> AuthKernel[Security & Auth Kernel\n(scrypt / TOTP / HMAC / Step-Up)]
-    API <--> AgronomyEngine[Agronomy & Rule Engine\n(VPA 1.x)]
-    API <--> RFEngine[RF Physics & Spatial Engine\n(VPA 2.x - Liang-Barsky / Log Path Loss / A*)]
-    API <--> POSEngine[Dynamic POS & Decay Engine\n(VPA 3.x - Exponential Decay / Multi-Currency)]
-    
-    RFEngine <--> RTree[SQLite R*Tree Virtual Index\n(map_obstacles_rtree)]
-    POSEngine <--> WriteLock[SQLite WAL Engine\n(BEGIN IMMEDIATE / Nonce Cache)]
-    AuthKernel <--> AuditLog[Append-Only HMAC Audit Log File]
+flowchart TD
+    subgraph HostSystem ["Host Operating System (Python 3.9+)"]
+        BOOT["Portable Launcher (../start.py)"]
+        GEN["Self-Replicating Node Generator (../node_generator.py)"]
+    end
+
+    subgraph OperatorNode ["Operator Node (Client Web SPA :8000)"]
+        UI["./frontend/index.html & app.js"]
+        POS_UI["Touch POS & Mixed Tender"]
+        BANK_UI["Customer Digital Banking & Ledger"]
+        VAULT_UI["Personal Receipt Vault"]
+        LIFECYCLE_UI["Cluster Lifecycle Control Center"]
+    end
+
+    subgraph DataNode ["Data Node (Edge Daemon :8002)"]
+        STORAGE["../Data_Node/storage.py (SQLite WAL)"]
+        BEACON["../Data_Node/beacon.py (UDP 224.0.0.251:8001)"]
+        LIFECYCLE_API["../Data_Node/data_node.py (/api/node/*)"]
+    end
+
+    subgraph VaultNode ["Vault Node (Master Hub :8000)"]
+        FASTAPI["./backend/main.py (FastAPI Gateway)"]
+        AUTH["./backend/auth_utils.py (scrypt / TOTP / HMAC)"]
+        CORE_DB[("./backend/database.py - SQLite WAL Engine")]
+        LEDGER["Multi-Currency Tri-Ledger (USD/ZAR/ZWG)"]
+        RECEIPTS["Digital Receipt Hash Signer (SHA-256)"]
+    end
+
+    subgraph ExportedNodes ["Exported Portable Bundles (../Exported_Nodes/)"]
+        STANDALONE["MADN_<Name>_Port<Port>/"]
+        STANDALONE_SRV["server.py + storage.py + start.py"]
+        STANDALONE_UI["frontend/index.html (Embedded Glassmorphic UI)"]
+    end
+
+    BOOT -->|Auto-Starts & Supervises| FASTAPI
+    BOOT -->|Auto-Starts & Supervises| LIFECYCLE_API
+    BOOT -->|Auto-Opens Web Browser| UI
+    UI <-->|HTTP REST & Cookies| FASTAPI
+    FASTAPI <--> AUTH
+    FASTAPI <--> CORE_DB
+    CORE_DB <--> LEDGER
+    CORE_DB <--> RECEIPTS
+    LIFECYCLE_UI -->|Remote Gating| LIFECYCLE_API
+    FASTAPI -->|REST Generator| GEN
+    GEN -->|Synthesizes Bundle| ExportedNodes
+    STORAGE <-->|Mesh Synchronization| CORE_DB
+    BEACON -.->|Multicast Heartbeat| UI
 ```
 
 ---
 
-## 1. Core Architecture & Security Kernel
+## 1. Directory Structure & Relative Path Conventions
 
-### 1.1 Concurrency Model & Database Engine
-* **Storage Subsystem**: SQLite 3 using Write-Ahead Logging (`PRAGMA journal_mode=WAL;`) and synchronous normal mode (`PRAGMA synchronous=NORMAL;`).
-* **Connection Timeout & Busy Handling**: Configured with `timeout=10.0` and `PRAGMA busy_timeout=5000;` to prevent database locks when field tablets submit concurrent transactions over local Wi-Fi hotspots.
-* **Write Locking Protocol**: Transactional mutating endpoints (e.g., POS checkouts, inventory stock reductions, security log updates) execute explicit `BEGIN IMMEDIATE` transaction locks. This guarantees single-writer isolation while permitting non-blocking concurrent read operations.
+All subsystem files and destination targets utilize reliable relative paths ensuring seamless transfer across host systems:
 
-### 1.2 Cryptographic Authentication & Step-Up Authorization
-* **Password Hashing**: Derived via `scrypt` ($N=16384, r=8, p=1, \text{maxmem}=33554432$) with 16-byte cryptographically secure random salts (`os.urandom(16)`).
-* **Multi-Factor Authentication (2FA)**: RFC 6238 Time-Based One-Time Password (TOTP) algorithm operating with HMAC-SHA1 over 30-second time windows.
-* **Session Management**: Session tokens are 32-byte (256-bit) cryptographically secure random hex strings stored in `HttpOnly`, `SameSite=Lax` cookies with strict server-side expiration verification.
-* **CSRF Mitigation**: Double-Submit Cookie pattern. Non-GET operations validate `csrf_token` cookie values against incoming `X-CSRF-Token` headers using constant-time string comparisons (`hmac.compare_digest`).
-* **Step-Up Privileged Elevation**: Sensitive administrative operations (e.g., changing user roles, wiping security logs) require step-up re-authentication, setting an elevated session flag valid for a strict 15-minute window.
-* **Append-Only Audit Log**: Security-critical events append hash-chained HMAC-SHA256 entries to `backend/security_audit.log`, guaranteeing tamper-evident auditability.
-
----
-
-## 2. Subsystem 1: Agronomy & Dynamic Value Engine (VPA 1.x)
-
-### 2.1 Historical Climate Dataset & Planting Scheduler
-* **Data Seed**: Embedded historical Bulawayo microclimate matrix containing monthly averages for temperature ($^\circ\text{C}$), rainfall ($\text{mm}$), relative humidity ($\%$), and daily sunlight hours.
-* **Planting Window Engine**: Calculates crop suitability indices based on temperature thresholds and cumulative precipitation requirements for maize, sorghum, cowpeas, and groundnuts.
-
-### 2.2 Closed-Loop Agronomy Rule Engine & Work Order State Machine
-* **Condition Evaluator**: Evaluates compound logical rules combining sensor condition types (`soil_moisture`, `ambient_temp`, `storage_humidity`), comparison operators (`<`, `>`, `<=`, `>=`), numeric threshold values, and time window constraints.
-* **Harvest Work Order Lifecycle**:
-  $$\text{IDLE} \xrightarrow{\text{Rule Match}} \text{TRIGGERED} \xrightarrow{\text{Operator Assign}} \text{ASSIGNED} \xrightarrow{\text{Harvest Complete}} \text{HARVESTED} \xrightarrow{\text{Listed at POS}} \text{POS\_LISTED}$$
-* **Cross-VPA Synergy**: Upon state transition to `HARVESTED`, the system automatically lists perishable inventory at the POS (VPA 3.x) with an active dynamic exponential price decay multiplier to accelerate sales before spoilage occurs.
-
----
-
-## 3. Subsystem 2: Physical Mesh & Signal Ray-Tracing Engine (VPA 2.x)
-
-### 3.1 2D Spatial Geometry & R*Tree Indexing
-* **Spatial Bounding Index**: Virtual SQLite R*Tree table created with strict bounding-box column ordering:
-  ```sql
-  CREATE VIRTUAL TABLE map_obstacles_rtree USING rtree(id, x_min, x_max, y_min, y_max);
-  ```
-  *Constraint Note*: Reversing $x$/$y$ column order violates SQLite bounds assertions (`x_min <= x_max`) and causes database startup initialization failure.
-
-### 3.2 Liang-Barsky Ray-Tracing Obstacle Intersection
-To compute exact line-of-sight obstacle intersections between node $(x_1, y_1)$ and target $(x_2, y_2)$, the engine uses the Liang-Barsky 2D line-clipping algorithm:
-
-$$p_1 = -\Delta x, \quad q_1 = x_1 - x_{min}$$
-$$p_2 = \Delta x, \quad q_2 = x_{max} - x_1$$
-$$p_3 = -\Delta y, \quad q_3 = y_1 - y_{min}$$
-$$p_4 = \Delta y, \quad q_4 = y_{max} - y_1$$
-
-For each boundary $k \in \{1, 2, 3, 4\}$, the parametric segment parameter $u = q_k / p_k$ is computed. The line segment intersects the obstacle box if and only if:
-
-$$\max(0, \max_{p_k < 0}(u_k)) \le \min(1, \min_{p_k > 0}(u_k))$$
-
-### 3.3 RF Propagation & Log-Distance Path Loss Model
-* **Map Scale Transformation**: Coordinates are normalized percentages $[0, 100]$. The engine maps map coordinates to physical meters via scaling factor $S = 5.0\text{ m}/\%$, mapping a $100 \times 100$ field to a $500\text{m} \times 500\text{m}$ area.
-* **Path Loss Equation**: Open-field signal propagation ($\gamma = 2.5$) with reference distance $d_0 = 1\text{m}$ and reference path loss $PL(d_0) = 40.0\text{ dBm}$:
-
-$$PL(d) = PL(d_0) + 10 \cdot \gamma \cdot \log_{10}\left(\frac{d}{d_0}\right) + \sum_{i} A_{obstacle, i}$$
-
-* **Obstacle Attenuation Coefficients**:
-  - Metal Silo / Warehouse: $-25.0\text{ dBm}$
-  - Brick Barn / Outbuilding: $-8.0\text{ dBm}$
-  - Dense Foliage / Orchard: $-4.0\text{ dBm}$
-* **Received Signal Strength Indicator (RSSI)**:
-  $$\text{RSSI}(d) = P_t + G_t + G_r - PL(d)$$
-  where $P_t = +20\text{ dBm}$, $G_t = G_r = 2.15\text{ dBi}$.
-
-### 3.4 A* Max-Min Link Quality Mesh Pathfinding
-When direct link RSSI to the hub drops below $-88\text{ dBm}$ (sensitivity floor), the node routes via relay nodes using an A* algorithm that optimizes the bottleneck link quality (Max-Min RSSI):
-* **Battery Penalty**: Nodes with battery levels $<20\%$ suffer a $-20.0\text{ dBm}$ link quality penalty, encouraging the mesh to route around low-power relays.
-* **Fresnel Zone Clearance**: Computes first Fresnel zone radius $r_F = 8.657 \sqrt{\frac{d_1 d_2}{f \cdot d}}$ at 2.4 GHz ($f = 2.4\text{ GHz}$) to evaluate line-of-sight clearance.
-
-### 3.5 Field-Level Last-Write-Wins (LWW) Conflict Resolution
-Offline node position updates are resolved using timestamp comparison:
-1. Primary key: UTC comparison timestamp `updated_at`.
-2. Tie-breaker: Lexicographical operator Client ID `client_id`.
-
----
-
-## 4. Subsystem 3: Dynamic Multi-Currency POS & Spoilage Decay Engine (VPA 3.x)
-
-### 4.1 Multi-Currency Tri-Ledger Engine
-* **Currencies Supported**: USD (United States Dollar - base), ZAR (South African Rand), ZWG (Zimbabwe Gold).
-* **Exchange Rate Calculation**: All catalog items store `price_usd`. Rates are configured via dynamic multipliers (`rate_zar`, `rate_zwg`).
-* **Mixed-Tender Change Algorithm**: Computes total paid value converted to USD:
-  $$V_{paid} = T_{USD} + \frac{T_{ZAR}}{\text{rate}_{ZAR}} + \frac{T_{ZWG}}{\text{rate}_{ZWG}}$$
-  Change due is returned in requested currency units using current exchange rates.
-
-### 4.2 Idempotent Checkout Nonce Cache
-* Clients generate a unique UUID v4 header `X-Client-Request-Id` for checkout requests.
-* The backend caches checkout receipts in the `processed_requests` table. Re-submitted offline requests replay cached receipt payloads without re-executing inventory reductions.
-
-### 4.3 Continuous Exponential Decay Pricing & Revenue Optimization Math
-
-#### 4.3.0 Agronomic Production Cost Breakdown & Automated Price Derivation ($P_{\text{cost}}$ & $P_{\text{base}}$)
-To eliminate pricing guesswork and ensure financial sustainability for smallholder farmers, the system incorporates an itemized production cost-accounting engine. 
-
-Farmers or agricultural operators log specific production expenditures incurred throughout the planting and cultivation cycle:
-* $C_{\text{seeds}}$: Certified seed packets, nursery seedlings, or vegetative cuttings ($USD$).
-* $C_{\text{fertilizer}}$: Organic compost, basal/top-dressing fertilizers, and soil amendments ($USD$).
-* $C_{\text{water}}$: Pumping fuel (diesel/petrol), solar-pump amortized maintenance, or utility water tariffs ($USD$).
-* $C_{\text{labor}}$: Field preparation, sowing, weeding, pest management, and harvest labor costs ($USD$).
-* $C_{\text{pest}}$: Organic bio-pesticides, fungicides, and physical traps ($USD$).
-* $C_{\text{packaging}}$: Crates, breathable sacks, bulk bags, and identification labels ($USD$).
-* $C_{\text{logistics}}$: Field-to-depot transport, fuel, carriage, and handling fees ($USD$).
-* $C_{\text{overhead}}$: Land rent, tool depreciation, and irrigation dripline maintenance ($USD$).
-
-The **Total Production Expenditure ($C_{\text{total}}$)** is computed as:
-
-$$C_{\text{total}} = C_{\text{seeds}} + C_{\text{fertilizer}} + C_{\text{water}} + C_{\text{labor}} + C_{\text{pest}} + C_{\text{packaging}} + C_{\text{logistics}} + C_{\text{overhead}}$$
-
-Upon logging the harvested yield mass $M_{\text{harvest}}$ ($\text{kg}$) and the subsistence reserve $M_{\text{self}}$ ($\text{kg}$), the marketable commercial inventory $M_{\text{comm}} = M_{\text{harvest}} - M_{\text{self}}$ is established.
-
-The unit wholesale **Cost Floor ($P_{\text{cost}}$)** and initial **Fresh Listing Base Price ($P_{\text{base}}$)** are automatically derived:
-
-$$P_{\text{cost}} = \frac{C_{\text{total}}}{M_{\text{comm}}}$$
-
-$$P_{\text{base}} = P_{\text{cost}} \cdot (1 + \mu_{\text{target}})$$
-
-where $\mu_{\text{target}}$ is the target gross profit markup (e.g., $\mu_{\text{target}} = 0.50 \to 50\%$ margin, or $\mu_{\text{target}} = 1.00 \to 100\%$ margin).
-
-#### 4.3.1 Theoretical Foundation & Problem Formulation
-In resource-constrained and rural markets, perishable agricultural produce (e.g., tomatoes, cabbages, dairy, berries) faces the **perishable goods clearance dilemma**:
-1. **Traditional Fixed Pricing**: Sellers maintain static retail pricing until produce quality deteriorates visibly, leading to sudden catastrophic spoilage, where unsold inventory yields $\$0.00$ revenue (total capital loss).
-2. **Dynamic Decay Pricing**: The MAD-Node POS engine continuously and smoothly depreciates the selling price over elapsed shelf-life time $t$. This systematically stimulates consumer demand elasticity ($E_d = \frac{\% \Delta Q}{\% \Delta P}$) and captures varying tiers of consumer surplus prior to biological spoilage.
-
-#### 4.3.2 Mathematical Formulation
-The real-time selling price $P(t)$ at elapsed time $t$ since harvest/stocking is given by:
-
-$$P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}}) \cdot e^{-\lambda t}$$
-
-where:
-* **$P_{\text{base}}$**: Initial fresh retail listing price in USD ($t = 0$).
-* **$P_{\text{cost}}$**: Wholesale/production cost floor below which sales yield a net deficit ($P(t) \ge P_{\text{cost}}$).
-* **$(P_{\text{base}} - P_{\text{cost}})$**: Initial profit margin.
-* **$t$**: Elapsed inventory shelf-life time (in fractional days: $t = \frac{\text{Current Timestamp} - \text{Harvest Timestamp}}{86400}$).
-* **$\lambda$**: Continuous exponential decay rate constant ($\text{day}^{-1}$).
-* **$e^{-\lambda t}$**: Continuous exponential discounting factor ($1.0 \to 0.0$).
-
-#### 4.3.3 Half-Life Decay Constant Calibration ($\lambda$)
-To provide an intuitive configuration parameter for agronomists and merchants without requiring manual calculus tuning, $\lambda$ is derived from the **margin half-life** ($T_{\text{half\_life}}$):
-
-$$\lambda = \frac{\ln(2)}{T_{\text{half\_life}}} \approx \frac{0.69315}{T_{\text{half\_life}}}$$
-
-* **$T_{\text{half\_life}}$** is the duration (in days) over which the initial profit margin $(P_{\text{base}} - P_{\text{cost}})$ decays by exactly $50\%$.
-* For a perishable crop with a 4-day shelf life, setting $T_{\text{half\_life}} = 2.0\text{ days}$ yields $\lambda = 0.3466\text{ day}^{-1}$.
-
-#### 4.3.4 Safety Guardrails: Margin Floor Protection
-To safeguard the producer against unexpected demand droughts, an explicit lower-bound margin floor clamp is enforced:
-
-$$P_{\text{final}}(t) = \max\Big(P(t), \; P_{\text{cost}} \cdot (1 + \text{margin\_floor\_pct})\Big)$$
-
-With `margin_floor_pct = 0.05` ($5\%$), the selling price asymptotically approaches $\$1.05 \times P_{\text{cost}}$, guaranteeing that raw operating and logistics expenses are fully recovered.
-
-#### 4.3.5 Concrete Numerical Schedule & Trajectory
-For $P_{\text{base}} = \$2.00/\text{kg}$, $P_{\text{cost}} = \$0.80/\text{kg}$, $T_{\text{half\_life}} = 2\text{ days}$ ($\lambda = 0.3466/\text{day}$):
-
-| Elapsed Time ($t$) | Discount Factor ($e^{-\lambda t}$) | Remaining Margin | Real-Time Price $P(t)$ | Target Market & Velocity Impact |
-| :--- | :--- | :--- | :--- | :--- |
-| **Day 0 (0 hrs)** | $1.0000$ | $\$1.20$ | **\$2.00 / kg** | Premium freshness tier; captures low-elasticity premium buyers |
-| **Day 1 (24 hrs)** | $0.7071$ | $\$0.85$ | **\$1.65 / kg** | Moderate discount; regular household market purchases |
-| **Day 2 (48 hrs)** | $0.5000$ | $\$0.60$ | **\$1.40 / kg** | Margin half-life point; high-volume bulk restaurant clearance |
-| **Day 3 (72 hrs)** | $0.3536$ | $\$0.42$ | **\$1.22 / kg** | Rapid-clearance discount; cost-sensitive local buyers |
-| **Day 4 (96 hrs)** | $0.2500$ | $\$0.30$ | **\$1.10 / kg** | Final clearance tier; same-day processing & zero waste |
-
-#### 4.3.6 Total Revenue Optimization Proof ($\text{Revenue} = \int P(t) \cdot Q(P(t)) \, dt$)
 ```
-Price ($)
- ^
-2.00 |===== [Premium Freshness: High Margin, Lower Volume]
-1.65 |    \
-1.40 |     \ === [Decay Curve: Captures Expanding Elastic Demand]
-1.10 |      \
-0.80 |_______===== [Cost Floor: 100% Capital Recovery]
-     +--------------------------------------------------> Time (Days)
+Applications/
+├── start.py                       # Zero-config multi-node launcher & browser auto-opener
+├── node_generator.py             # Standalone self-replicating node bundle synthesizer
+├── applications_config.json      # Declarative cluster ports & node topology configuration
+├── Data_Node/                     # Standalone Data Node Edge Subsystem
+│   ├── data_node.py              # FastAPI edge daemon with lifecycle activation API (:8002)
+│   ├── storage.py                # Local SQLite WAL key-value storage engine
+│   └── beacon.py                 # UDP multicast discovery broadcaster & listener (:8001)
+├── Exported_Nodes/               # Destination directory for generated standalone bundles
+│   └── MADN_<Name>_Port<Port>/   # Self-contained portable node package
+│       ├── start.py              # Autonomous launcher with browser opener
+│       ├── server.py             # Standalone FastAPI micro-service
+│       ├── storage.py            # Local SQLite WAL storage engine
+│       ├── beacon.py             # Embedded discovery beacon
+│       ├── node_config.json      # Declarative node identity & port bindings
+│       ├── requirements.txt      # Module dependencies
+│       └── frontend/index.html   # Embedded VisionPro glassmorphic dashboard
+└── Web App/                      # Master Vault Coordinator & Operator Web Application
+    ├── SYSTEM_INTERNALS.md       # This low-level system architecture reference manual
+    ├── USER_MANUAL.md            # Operator guide & user instruction manual
+    ├── PROJECT_CHECKLIST.md      # Completed milestone tracker & task checklist
+    ├── backend/                  # Server-side kernel & business logic (:8000)
+    │   ├── main.py               # FastAPI entrypoint, REST routers & middleware
+    │   ├── database.py           # SQLite schema, WAL engine, seeders & tri-ledger
+    │   ├── auth_utils.py         # scrypt hashing, RFC 6238 TOTP & HMAC cryptography
+    │   ├── node_discovery.py     # UDP discovery manager & remote node controller
+    │   ├── test_*.py             # Automated regression test suites
+    │   └── data_store/           # Persistent master SQLite database directory
+    └── frontend/                 # Zero-installation Operator Single Page Application
+        ├── index.html            # Core SPA interface with 10 modal dialogs
+        ├── index.css             # Apple VisionPro-inspired glassmorphic design system
+        └── app.js                # State management, canvas charts & API client
 ```
-1. **Consumer Surplus Extraction**: Captures early premium willingness-to-pay while progressively activating price-elastic bulk consumers.
-2. **Spoilage Elimination**: Replaces the binary "sold or rotted" outcome with a high-velocity clearance pipeline.
-3. **Empirical Performance**: Field trials demonstrated a **$94.2\%$ total inventory clearance** rate, recovering **$+43.8\%$ higher total revenue** compared to static fixed-price baselines.
-
-#### 4.3.7 Multi-Currency Dynamic Tri-Ledger Conversion
-The evaluated USD price $P_{\text{final}}(t)$ is dynamically synchronized into South African Rand (ZAR) and Zimbabwe Gold (ZWG) at checkout:
-$$P_{\text{ZAR}}(t) = P_{\text{final}}(t) \cdot \text{rate}_{\text{ZAR}}, \qquad P_{\text{ZWG}}(t) = P_{\text{final}}(t) \cdot \text{rate}_{\text{ZWG}}$$
-with mixed-tender change computed via $V_{\text{paid}} = T_{\text{USD}} + \frac{T_{\text{ZAR}}}{\text{rate}_{\text{ZAR}}} + \frac{T_{\text{ZWG}}}{\text{rate}_{\text{ZWG}}}$.
-
 
 ---
 
-## 5. Subsystem 4: Upcoming Cycle 5 Peer-to-Peer Protocol Specs
+## 2. Core Architecture & Security Kernel
 
-### 5.1 ESP-NOW / P2P Local Sync Protocol
-* **Endpoints**: `GET/POST /api/sync/peers` & `POST /api/sync/pull-push`
-* **Transport**: Local 802.11 Wi-Fi frames / UDP broadcast over local subnet (`0.0.0.0` binding).
-* **Vector Ledger**: Vector timestamp sync log exchanging LWW delta records between field nodes without internet connectivity.
+### 2.1 Concurrency Model & Database Engine
+* **Storage Engine**: SQLite 3 with Write-Ahead Logging (`PRAGMA journal_mode=WAL;`) and synchronous normal mode (`PRAGMA synchronous=NORMAL;`).
+* **Locking Protocol**: Mutating transactional endpoints (e.g. POS checkouts, P2P wallet transfers, voucher minting, harvest status transitions) enforce `BEGIN IMMEDIATE` exclusive write transactions to eliminate write contention and race conditions.
+* **Busy Timeout**: Configured with `PRAGMA busy_timeout=5000;` and connection timeout of 10.0s to allow non-blocking concurrent reads during burst write operations over local Wi-Fi hotspots.
 
-### 5.2 Intrusion Signal Triangulation
-* **Endpoint**: `POST /api/security/triangulate`
-* **Algorithm**: 3-Point RSSI trilateration using path loss distances to pinpoint intruder coordinates $(x_i, y_i)$ on the SVG zone map.
-
-### 5.3 Captive Portal Access Token Vending
-* **Endpoints**: `POST /api/pos/vouchers/generate` & `GET /api/pos/vouchers/verify`
-* **Mechanism**: Generates cryptographic Wi-Fi access tokens embedded as QR barcodes on POS checkout receipts, unlocking local network bandwidth based on purchase amount.
-
----
-
-## 6. VisionPro Glassmorphic UI Architecture & Dynamic Sub-Navigation Engine
-
-### 6.1 Layout Architecture & Glass Panel Composite Tokens
-* **CSS Glassmorphism Composite Rules**:
-  ```css
-  background: rgba(20, 26, 38, 0.85);
-  backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 28px;
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.25),
-    0 16px 40px rgba(0, 0, 0, 0.85);
-  ```
-* **3-Panel Grid Structure**:
-  - `layout-col-left` ($260\text{px}$ fixed width capsule): Logo badge, main navigation list, primary action pill CTA (`⚡ Quick Check-In`), and horizontal flex profile row (`.sidebar-user-drawer`).
-  - `layout-col-center` (Fluid flexible stage): Vault 1 cover banner (`MAD Node Hub — Vault 1`), contextual sub-navigation pill bar (`#subnav-pill-bar`), and active view sections (`#view-dashboard`, `#view-vpa1`, `#view-vpa2`, `#view-vpa3`, `#view-admin`).
-  - `layout-col-right` ($320\text{px}$ fixed width widget column): Metric search bar, System Health cards, Live Node Feeds, and collapsible bottom drawers (`Quick POS Terminal` & `Security Audit Log`).
-
-### 6.2 Horizontal Profile Row Component Contract
-* **Flex Alignment Specs**:
-  `display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; padding: 8px 12px; border-radius: 9999px;`
-* **Child Element Layout**:
-  1. **Avatar Badge**: $38\text{px} \times 38\text{px}$ circle (`flex-shrink: 0; background: linear-gradient(135deg, #00e5ff, #7c4dff);`).
-  2. **Text Metadata Block (`.user-meta-info`)**: Vertical flex column (`flex-direction: column; align-items: flex-start; margin-left: 10px; flex-grow: 1; min-width: 0;`).
-     - Display Name (`.user-display-name`): `font-weight: 600; font-size: 14px; color: #ffffff; text-overflow: ellipsis;`.
-     - Handle (`.user-handle`): `font-size: 12px; color: #8899a6; margin-top: 2px;`.
-  3. **Action Element (`.user-drawer-more`)**: `margin-left: auto; color: #8899a6; font-size: 14px; flex-shrink: 0;`.
-
-### 6.3 Contextual Sub-Navigation Switcher Engine
-* **Sub-Nav Engine Contract**:
-  When main navigation changes via `switchView(target)`, `updateSubNav(target)` dynamically injects sub-section pills into `#subnav-pill-bar` mapped via `SUBNAV_CONFIG`.
-* **Smooth Sub-Section Scroll**: `scrollToSubSection(targetId)` executes smooth element scrolling (`scrollIntoView({ behavior: 'smooth', block: 'start' })`).
+### 2.2 Cryptographic Authentication & Step-Up Security
+* **Password Hashing**: Derived via `hashlib.scrypt` ($N=16384, r=8, p=1, \text{dklen}=32$) with 16-byte cryptographically random salts (`os.urandom(16)`).
+* **Multi-Factor Authentication (2FA)**: RFC 6238 Time-Based One-Time Password (TOTP) algorithm using HMAC-SHA1 over 30-second time steps with dynamic truncation.
+* **Session Cookies**: 32-byte (256-bit) cryptographically random tokens stored in `HttpOnly`, `SameSite=Lax` cookies with coarse `/24` subnet and User-Agent fingerprint verification.
+* **CSRF Protection**: Double-Submit Cookie pattern. Non-GET operations validate `csrf_token` cookies against incoming `X-CSRF-Token` headers via constant-time comparison (`secrets.compare_digest`).
+* **Step-Up Authorization**: Sensitive administrative and financial operations require step-up re-authentication, setting an elevated session flag valid for 15 minutes.
 
 ---
 
-## Technical Maintenance & Verification Commands
+## 3. Portable Preflight & Node Generator Engine
 
-```bash
-# 1. Run Complete Backend Test Suite
-cd "Applications/Web App/backend"
-python test_auth.py
-python test_endpoints_live.py
-python test_cycle3.py
-python test_cycle4.py
+### 3.1 Portable Bootstrapper (`../start.py`)
+* **Preflight Inspection**: Inspects Python runtime ($\ge 3.9$) and checks for required packages (`fastapi`, `uvicorn`, `pydantic`, `cryptography`, `requests`).
+* **Process Supervision**: Supervises multi-node child processes (`Vault-Node` on `:8000`, `Data-Node-Primary` on `:8002`, and custom exported sub-nodes) with unified stdout log multiplexing.
+* **Browser Auto-Launcher**: Spawns a background thread that monitors port `:8000` and automatically launches the host web browser to `http://127.0.0.1:8000` as soon as the Vault Node router is mounted.
+* **CLI Flags**:
+  - `--all`: Start Vault and Data Nodes (default).
+  - `--vault-only`: Start only Vault Coordinator (:8000).
+  - `--data-only`: Start only Data Node (:8002).
+  - `--status`: Inspect local port availability.
+  - `--no-browser`: Suppress automatic web browser launch.
+  - `--create-node <name> <type> <port>`: Synthesize new standalone bundle via CLI.
 
-# 2. Start Local Production Backend Server
-python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+### 3.2 Self-Replicating Node Generator (`../node_generator.py`)
+Synthesizes fully autonomous portable node bundles into `../Exported_Nodes/MADN_<name>_Port<port>/`. Every bundle contains:
+- Autonomous `start.py` preflight launcher with browser auto-opening.
+- `server.py`: FastAPI server exposing local `/api/storage/*` and `/api/node/*` lifecycle endpoints.
+- `storage.py`: Standalone SQLite WAL KV store (`kv_records`).
+- `beacon.py`: Embedded UDP multicast heartbeat broadcaster.
+- `frontend/index.html`: Dedicated glassmorphic web dashboard.
 
-# 3. Execute Version Registry Bootstrap & Verification
-python ../../../.agents/skills/document-now/scripts/version_registry.py bootstrap
-```
+---
+
+## 4. Remote Node Lifecycle Protocol & Maintenance Mode
+
+Standalone Data Nodes expose remote lifecycle endpoints:
+* `GET /api/node/status`: Returns current operating state (`active` vs `deactivated`), port, and free storage quota.
+* `POST /api/node/activate`: Enables storage mutation endpoints and resumes periodic UDP multicast beacon broadcasts (`224.0.0.251:8001`).
+* `POST /api/node/deactivate`: Pauses beacon heartbeats and rejects write requests with `HTTP 503 Service Unavailable (Maintenance Mode)` while keeping read operations accessible.
+
+---
+
+## 5. Multi-Tenant RBAC & Business Operator Access Delegation
+
+The system implements hierarchical multi-business tenancy:
+* **Business Stores**: Isolated business profiles in `businesses` table (*Green Valley Organics*, *Khumalo Millers*, *Matopos Dairy*).
+* **Staff Delegation**: Business owners and admins assign operators via `business_operators` table with granular subsystem permission strings:
+  - `pos`: Point of sale register and transaction processing.
+  - `inventory`: Product catalog and stock adjustments.
+  - `agriculture`: Planting cycles, crop cost tracking, and harvest work orders.
+  - `security`: Visitor gatekeeper check-ins and RF mesh monitoring.
+  - `social`: Public feed publishing, stories, and tipping.
+  - `reports`: Financial exports and ledger analytics.
+  - `admin`: Business profile settings and operator management.
+
+---
+
+## 6. Customer Digital Banking & Multi-Currency Tri-Ledger
+
+* **Customer Digital Wallets (`customer_wallets`)**: Every customer account is provisioned with a sovereign multi-currency digital wallet (`ACC-2026-XXXXXX`) tracking USD, ZAR, and ZWG balances.
+* **Double-Entry Ledger (`wallet_ledger`)**: All financial mutations (top-ups, P2P transfers, voucher deposits, POS wallet checkouts) execute under `BEGIN IMMEDIATE` locks and append immutable ledger entries with HMAC-SHA256 signature chains:
+  $$\sigma_{\text{ledger}} = \text{HMAC-SHA256}\Big(K_{\text{vault}}, \; \text{tx\_id} \parallel \text{acc\_num} \parallel \text{type} \parallel \text{currency} \parallel \text{amount} \parallel \text{balance\_after} \parallel t_{\text{utc}}\Big)$$
+
+---
+
+## 7. Personal Digital Receipt Vault & Offline Bearer Vouchers
+
+* **Permanent Receipt Archival (`customer_receipts`)**: Completed POS checkouts automatically archive itemized receipt payloads stamped with cryptographic SHA-256 hashes:
+  $$H_{\text{receipt}} = \text{SHA-256}\Big(\text{receipt\_json}\Big)$$
+* **Offline Bearer Vouchers (`offline_vouchers`)**: Minted when change cannot be rendered in physical cash. Signed with HMAC-SHA256 and rendered as offline QR codes. Single-use redemption transitions status from `active` to `redeemed`, preventing double-spend fraud.
+
+---
+
+## 8. Physical Mesh & Signal Ray-Tracing Engine (VPA 2.x)
+
+* **Spatial Bounding Index**: SQLite R\*Tree virtual index (`map_obstacles_rtree`).
+* **Liang-Barsky 2D Ray-Tracing**: Computes obstacle intersections using parametric clipping:
+  $$\max(0, \max_{p_k < 0}(u_k)) \le \min(1, \min_{p_k > 0}(u_k))$$
+* **Log-Distance Path Loss Model**:
+  $$PL(d) = PL(d_0) + 10 \cdot \gamma \cdot \log_{10}\left(\frac{d}{d_0}\right) + \sum_{i} A_{\text{obstacle}, i}$$
+* **A\* Max-Min Link Quality Mesh Pathfinding**: Optimizes the bottleneck link quality across relay hops, applying a $-20.0\text{ dBm}$ penalty for battery levels $< 20\%$.
+
+---
+
+## 9. Dynamic Value Systems: Continuous Decay POS (VPA 3.x)
+
+* **Continuous Exponential Price Decay**: Perishable products dynamically adjust price based on time-to-spoilage while protecting margin floors:
+  $$P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}}) \cdot e^{-\lambda t}, \quad \lambda = \frac{\ln(2)}{T_{\text{half\_life}}}$$
+* **Tri-Currency Tender Split Reconciliation**:
+  $$V_{\text{paid}} = T_{\text{USD}} + \frac{T_{\text{ZAR}}}{\text{rate}_{\text{ZAR}}} + \frac{T_{\text{ZWG}}}{\text{rate}_{\text{ZWG}}}$$

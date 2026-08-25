@@ -1,6 +1,6 @@
-# Version and Codename Registry
+# Master Version Registry — Modular Adaptive Data Node (MADN)
 
-| Version | Ndebele Codename | Meaning / Translation | Date & Time | Progress File |
+| Version | Codename | Meaning | Date & Time | Progress Tracking File |
 | :--- | :--- | :--- | :--- | :--- |
 | **1.0.0** | `Isisekelo` |  | 2026-05-13 13:31 | [2026-05-13_1331_Initial_Git_Setup.md](./2026-05-13_1331_Initial_Git_Setup.md) |
 | **1.0.1** | `Inqubo` |  | 2026-05-13 13:48 | [2026-05-13_1348_Chapter_3_Methodology_Planning.md](./2026-05-13_1348_Chapter_3_Methodology_Planning.md) |
@@ -31,3 +31,4 @@
 | **1.18.4** | `Ukufakazela` | Verification / Proof / Attestation | Wednesday, 12 August 2026, 07:36 PM (local time) | [2026-08-12_1936_Chapter_5_Results_Testing_and_Analysis_Compilation.md](./2026-08-12_1936_Chapter_5_Results_Testing_and_Analysis_Compilation.md) |
 | **1.19.1** | `Ukulonda` | Preserving / Safe Keeping | Sunday, 23 August 2026, 07:22 PM (local time) | [2026-08-23_1922_Customer_Banking_and_Receipt_Vault.md](./2026-08-23_1922_Customer_Banking_and_Receipt_Vault.md) |
 | **1.19.2** | `Ukudlulisa` | Transmission / Transfer / Portability | Sunday, 23 August 2026, 08:24 PM (local time) | [2026-08-23_2024_Portable_Applications_and_Node_Generator.md](./2026-08-23_2024_Portable_Applications_and_Node_Generator.md) |
+| **1.19.3** | `Ingxubevange` | Diverse Mixture / Multi-Asset Fusion | Tuesday, 25 August 2026, 09:40 AM (local time) | [2026-08-25_0940_Dynamic_MultiCurrency_World_Catalog_And_ZiG_Integration.md](./2026-08-25_0940_Dynamic_MultiCurrency_World_Catalog_And_ZiG_Integration.md) |

@@ -97,7 +97,15 @@ Create a new Markdown file inside the `progress tracking/` directory in the proj
 
 ---
 
-### Step 3: Register Version in Registry Database via Python
+### Step 3: Synchronize System Internals, User Manual & Project Checklist (Mandatory)
+Before registering the version, audit and synchronize the three core documentation files:
+1. **`Applications/Web App/SYSTEM_INTERNALS.md`**: Update edition/version header, mathematical equations, relative path references (`./`, `../`, `../../`), and newly implemented kernel architectures.
+2. **`Applications/Web App/USER_MANUAL.md`**: Update operational guides, demo account tables, and launcher instructions with relative paths.
+3. **`Applications/Web App/PROJECT_CHECKLIST.md`**: Check off newly completed tasks and verify all relative file links.
+
+---
+
+### Step 4: Register Version in Registry Database via Python
 Execute the version registration script to append the new version details to `progress tracking/version_registry.json` and `progress tracking/Version_Registry.md`:
 ```bash
 python .agents/skills/document-now/scripts/version_registry.py register <version> <codename> "<meaning>" "<date_str>" <filename>
@@ -105,7 +113,7 @@ python .agents/skills/document-now/scripts/version_registry.py register <version
 
 ---
 
-### Step 4: Stage & Git Commit
+### Step 5: Stage & Git Commit
 1. **Stage Changes**:
    Execute `git add .` to stage all newly created progress files, rules, documentation, and codebase modifications.
 2. **Construct Commit Message**:

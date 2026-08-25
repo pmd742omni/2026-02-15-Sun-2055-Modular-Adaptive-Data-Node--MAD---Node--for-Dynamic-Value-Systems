@@ -14,17 +14,33 @@ if CURRENT_DIR not in sys.path:
 
 from main import app
 from database import (
-    init_db, get_db,
+    init_db, get_db, hash_password,
     create_business, get_all_businesses,
     assign_business_operator, get_business_operators,
     get_operator_permissions, revoke_business_operator,
     has_business_permission
 )
 
+def create_test_user(username: str, role: str = "customer"):
+    import time
+    with get_db() as db:
+        cursor = db.execute("SELECT id FROM users WHERE username = ?", (username,))
+        if not cursor.fetchone():
+            now = int(time.time())
+            salt_hex, hash_hex = hash_password("Password123!")
+            db.execute("""
+                INSERT OR IGNORE INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password, pin)
+                VALUES (?, ?, ?, ?, 'active', ?, ?, 0, '1234')
+            """, (username, hash_hex, salt_hex, role, now, now))
+
 @pytest.fixture(scope="module", autouse=True)
 def setup_database():
     """Initialize database and seed initial test state."""
     init_db()
+    create_test_user("merchant", "merchant")
+    create_test_user("customer", "customer")
+    create_test_user("agronomist", "agronomist")
+    create_test_user("guard", "guard")
 
 
 def test_assign_and_list_business_operators():

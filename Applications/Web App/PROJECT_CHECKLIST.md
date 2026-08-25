@@ -1,20 +1,29 @@
 # Master Task List & Progress Checklist — MADN Web Application Development
 
+**Root Directory**: `./` (Relative to `Applications/Web App/`)  
+**Workspace Base**: `../../` (Relative to project root)
+
+---
+
 ## [x] Authentication & Admin Controls (Hardening Phase)
 - `[x]` **Backend Security Foundation**
-  - `[x]` Create `backend/auth_utils.py` with scrypt, constant-time validation, and RFC 6238 TOTP
-  - `[x]` Create `backend/database.py` with SQLite tables, WAL mode, admin bootstrap (env/TTY check), and append-only audit log file anchor
-  - `[x]` Update `backend/main.py` with FastAPI endpoints, HttpOnly cookies, Double-Submit CSRF check, and session/step-up authorization middleware
-  - `[x]` Create `backend/test_auth.py` automated test suite and run it to verify security properties
+  - `[x]` Create `./backend/auth_utils.py` with scrypt hashing, constant-time validation, and RFC 6238 TOTP
+  - `[x]` Create `./backend/database.py` with SQLite tables, WAL mode, admin bootstrap, and append-only audit log file anchor
+  - `[x]` Update `./backend/main.py` with FastAPI endpoints, HttpOnly cookies, Double-Submit CSRF check, and session/step-up authorization middleware
+  - `[x]` Create `./backend/test_auth.py` automated test suite and run it to verify security properties
 - `[x]` **Frontend Auth SPA Integration**
-  - `[x]` Update `frontend/index.html` with Login Overlay, User Profile Drawer, and Admin Control panel
-  - `[x]` Update `frontend/index.css` with glassmorphic styles, admin table states, and form feedback cues
-  - `[x]` Update `frontend/app.js` with secureFetch, checkActiveSession, form handlers, dynamically rendered user rosters, step-up elevation intercepts, and local canvas QR renderer
+  - `[x]` Update `./frontend/index.html` with Login Overlay, Quick Demo Role Switcher, User Profile Drawer, and Admin Control panel
+  - `[x]` Update `./frontend/index.css` with glassmorphic styles, admin table states, and form feedback cues
+  - `[x]` Update `./frontend/app.js` with secureFetch, checkActiveSession, form handlers, dynamically rendered user rosters, step-up elevation intercepts, and local canvas QR renderer
 
-## [x] Baseline Setup
-- `[x]` Create `index.html` main SPA skeleton inside `Applications/Web App/frontend/`
-- `[x]` Define CSS design system and custom properties in `Applications/Web App/frontend/index.css`
-- `[x]` Implement core state manager in `Applications/Web App/frontend/app.js`
+---
+
+## [x] Baseline Setup & Design System
+- `[x]` Create `./frontend/index.html` main Single Page Application skeleton
+- `[x]` Define CSS design system and custom properties in `./frontend/index.css`
+- `[x]` Implement core state manager in `./frontend/app.js`
+
+---
 
 ## [x] Cycle 1: Core Foundation & Initial Visualizers
 - `[x]` **VPA 1.1: Local Climate & Planting Scheduler** (Agriculture)
@@ -26,73 +35,99 @@
   - `[x]` Render Zone SVG map in frontend UI
   - `[x]` Add mock node connection toggle controls
   - `[x]` Integrate live signal strength (RSSI) visual status indicators
-  - `[x]` Test VPA 2.1 alongside VPA 1.1
 - `[x]` **VPA 3.1: Multi-Currency Tri-Ledger (USD/ZAR/ZWG)** (POS)
   - `[x]` Create transaction terminal layout card
   - `[x]` Implement currency converter with customizable exchange rates
   - `[x]` Program change calculator accepting mixed currency payments
-  - `[x]` Test VPA 3.1 integration and perform full Cycle 1 verification pass
+
+---
 
 ## [x] Cycle 2: Diagnostics, QR Validation & Analytics (VPA 1.2, 2.2, 3.2)
 - `[x]` **VPA 1.2: Interactive Symptom Diagnostic Tree** (Agriculture)
   - `[x]` Create symptom diagnostic card/wizard UI in Agricultural tab
   - `[x]` Define branching tree logic for crops and livestock diseases
-  - `[x]` Implement interactive question steps and local remedies outputs
 - `[x]` **VPA 2.2: Local QR Code Credential Generator & Scanner** (Security)
   - `[x]` Implement QR code guest credential generator
   - `[x]` Build HTML5 Canvas scanner/mock reader panel to process QR check-ins
-  - `[x]` Program visitor ledger logs validation against SQLite database records
 - `[x]` **VPA 3.2: Interactive Sales Analytics & Visualizer** (POS)
   - `[x]` Design responsive analytics dashboard and visual metrics cards
   - `[x]` Write custom HTML5 Canvas drawing functions to render hourly sales graphs without internet dependencies
-  - `[x]` Program date/range aggregates and sales volume statistics
+
+---
 
 ## [x] Cycle 3: Calculators, Logs & Inventories (VPA 1.3, 2.3, 3.3)
 - `[x]` **Database Schema & Configurations**
-  - `[x]` Update `database.py` to create SQLite tables: `inventory`, `inventory_wastage`, `transactions`, `transaction_tenders`, `transaction_items`, `calculator_config`, `estimator_runs`, `shift_handover_logs`, `processed_requests`
+  - `[x]` Update `./backend/database.py` with tables: `inventory`, `inventory_wastage`, `transactions`, `transaction_tenders`, `transaction_items`, `calculator_config`, `estimator_runs`, `shift_handover_logs`, `processed_requests`
   - `[x]` Implement `BEGIN IMMEDIATE` write locks, HMAC handover logging, and configurations seed
 - `[x]` **Backend API Endpoints**
   - `[x]` Create VPA 1.3 agricultural calculator and history endpoints
   - `[x]` Create VPA 2.3 security handover logs with PIN checks and audit tracking
   - `[x]` Create VPA 3.3 inventory directory, stock adjust, and spoilage logs
   - `[x]` Update `/api/pos/checkout` to support multi-tender, transaction items, atomic stock reduction, and idempotency key replays
-- `[x]` **Frontend SPA UI Integration**
-  - `[x]` Update `index.html` with estimators sliders, severity handovers, and static warnings
-  - `[x]` Update `index.css` with solid warning badges and layout grids
-  - `[x]` Update `app.js` with hotkeys, estimators math, local cart auto-recovery, and handover PIN triggers
-- `[x]` **Verification & Testing**
-  - `[x]` Create and run `backend/test_cycle3.py` stress test
-  - `[x]` Run manual/browser checks and document walkthrough details
+
+---
 
 ## [x] Cycle 4: Physics-Based RF Mesh, Smart Rules & Continuous Decay POS (VPA 1.4, 2.4, 3.4)
 - `[x]` **Database Schema & Math Engines**
-  - `[x]` Update `database.py` with tables: `security_nodes`, `map_obstacles_rtree`, `map_obstacles_meta`, `harvest_orders`, `agricultural_rules`, `pricing_multipliers`
-  - `[x]` Add PRAGMA migration check for `cost_price_usd` column on `inventory`
+  - `[x]` Update `./backend/database.py` with tables: `security_nodes`, `map_obstacles_rtree`, `map_obstacles_meta`, `harvest_orders`, `agricultural_rules`, `pricing_multipliers`
   - `[x]` Implement R*Tree ray-tracing attenuation math, A* multi-hop pathfinding, continuous exponential decay pricing, and field-level LWW sync helpers
-- `[x]` **Backend API Endpoints (`main.py`)**
-  - `[x]` Endpoint `GET/POST /api/agriculture/rules` & `POST /api/agriculture/rules/evaluate` (closed-loop & Cross-VPA harvest orders / spoilage flash sales)
-  - `[x]` Endpoint `GET /api/security/nodes` & `PUT /api/security/nodes/{node_id}/position` (R*Tree obstacle attenuation, A* multi-hop routing, LWW sync)
+- `[x]` **Backend API Endpoints (`./backend/main.py`)**
+  - `[x]` Endpoints `GET/POST /api/agriculture/rules` & `POST /api/agriculture/rules/evaluate` (closed-loop & Cross-VPA harvest orders / spoilage flash sales)
+  - `[x]` Endpoints `GET /api/security/nodes` & `PUT /api/security/nodes/{node_id}/position` (R*Tree obstacle attenuation, A* multi-hop routing, LWW sync)
   - `[x]` Endpoint `GET /api/pos/promotions` (continuous exponential decay pricing calculation)
-- `[x]` **Frontend SPA UI Integration**
-  - `[x]` Update `index.html` with Rules Manager, Harvest Work Orders feed, SVG map obstacles & Fresnel zones, Canvas signal coverage heatmap toggle, 24H Digital Twin timeline scrubber, and POS flash sale badges
-  - `[x]` Update `index.css` for obstacle styling, heatmap canvas, grabbing cursors, and work order badges
-  - `[x]` Update `app.js` with Pointer Events dragging, signal heatmap drawing, harvest order transitions, and continuous decay POS calculations
-- `[x]` **Verification & Testing**
-  - `[x]` Create and run `backend/test_cycle4.py` automated test suite
-  - `[x]` Perform E2E verification and update `walkthrough.md`
 
-## [ ] Cycle 5: Multi-Node Peer Sync, Intrusion Triangulation & Captive Portal Vending (VPA 1.5, 2.5, 3.5)
-- `[ ]` **Database Schema & Peer Ledger**
-  - `[ ]` Add SQLite tables for `peer_nodes`, `intrusion_triangulation_logs`, `captive_portal_vouchers`, and `sync_vector_ledger` in `database.py`
-  - `[ ]` Implement local hotspot subnet discovery and peer node heartbeat tracking
-- `[ ]` **Backend API Endpoints (`main.py`)**
-  - `[ ]` Endpoint `GET/POST /api/sync/peers` & `POST /api/sync/pull-push` for peer-to-peer LWW delta exchange over local Wi-Fi
-  - `[ ]` Endpoint `POST /api/security/triangulate` for 3-point RSSI signal trilateration to pinpoint intruder coordinates
-  - `[ ]` Endpoint `POST /api/pos/vouchers/generate` & `GET /api/pos/vouchers/verify` for issuing captive portal Wi-Fi access tokens on POS checkout receipts
+---
+
+## [x] Stage 1 Core Enhancements: Multi-Tenancy, Vouchers & Customer Digital Banking
+- `[x]` **Multi-Tenant Business Operations & RBAC**
+  - `[x]` Create `businesses` and `business_operators` tables in `./backend/database.py`
+  - `[x]` Implement staff permission delegation for `pos`, `inventory`, `agriculture`, `security`, `social`, `reports`
+- `[x]` **Offline QR Bearer Vouchers & Double-Spend Prevention**
+  - `[x]` Create `offline_vouchers` table with HMAC-SHA256 signature chains
+  - `[x]` Implement single-use redemption and POS voucher change issuing
+- `[x]` **Customer Digital Banking & Receipt Vault**
+  - `[x]` Create `customer_wallets` (`ACC-2026-XXXXXX`) and double-entry `wallet_ledger`
+  - `[x]` Implement atomic P2P transfers, voucher-to-wallet conversion, and POS wallet payments
+  - `[x]` Create `customer_receipts` table with SHA-256 integrity hash verification and PDF generation
+
+---
+
+## [x] Portability, Self-Replication & Node Lifecycle Management
+- `[x]` **Zero-Configuration Portable Bootstrapper (`../start.py`)**
+  - `[x]` Preflight requirement inspection and dependency auto-resolution
+  - `[x]` Multi-node process supervision (Vault Node :8000, Data Node :8002, Beacons :8001)
+  - `[x]` Automatic web browser launch to sign-in page upon server startup
+  - `[x]` CLI flags: `--all`, `--vault-only`, `--data-only`, `--status`, `--no-browser`, `--create-node`
+- `[x]` **Self-Replicating Node Generator Engine (`../node_generator.py`)**
+  - `[x]` Standalone bundle synthesis into `../Exported_Nodes/MADN_<name>_Port<port>/`
+  - `[x]` Bundle includes autonomous `start.py`, `server.py`, `storage.py`, `beacon.py`, `node_config.json`, `requirements.txt`, and embedded `frontend/` UI
+- `[x]` **Remote Edge Node Lifecycle Control**
+  - `[x]` Standardized `/api/node/status`, `/api/node/activate`, and `/api/node/deactivate` on standalone Data Nodes
+  - `[x]` HTTP 503 Maintenance Mode gating when nodes are placed in standby
+  - `[x]` Subnet-wide remote activation via Vault Node API `/api/cluster/nodes/{node_id}/toggle-active`
+## [x] Dynamic Extensible Multi-Currency & World Currency Ingestion Engine
+- `[x]` **Extensible Multi-Currency & Virtual Token Architecture**
+  - `[x]` Create `currencies` and `wallet_balances` dynamic tables in `./backend/database.py`
+  - `[x]` Support custom community tokens (e.g. `ECO`, `AGRI`, `LABOR`) with user-defined names, symbols, and USD rates
+  - `[x]` Align official ISO 4217 standard representation for **Zimbabwe Gold (ZiG)** (`ZWG`, symbol: `ZiG`, classification: `gold_backed`)
+  - `[x]` Enforce authentic `0.00` zero-balance account initialization across all active currencies
+- `[x]` **Global World Currency (ISO 4217) & Crypto Continuous Collector**
+  - `[x]` Create `../Data_Node/currency_collector.py` with 170+ ISO world fiat currencies and top 50+ cryptocurrencies
+  - `[x]` Create `global_currency_catalog` table in `./backend/database.py` with multi-tier collision detection (`validate_currency_code_collision`)
+  - `[x]` Add REST endpoints `GET /api/currencies/catalog`, `GET /api/currencies/validate`, `POST /api/currencies/catalog/sync`
+  - `[x]` Integrate real-time collision badge, "Adopt Official Standard 🪄" button, and World Catalog Explorer in `./frontend/app.js` and `./frontend/index.html`
+- `[x]` **Automated Verification Harness**
+  - `[x]` Updated `./backend/test_customer_banking.py` with dynamic currency creation and collision prevention tests
+  - `[x]` Executed full 27-test regression matrix with 100% pass rate (`pytest -v`)
+
+---
+
+## [ ] Cycle 5: Direct P2P Mesh Data Sync & Captive Portal Vending (Next Milestone)
+- `[ ]` **Database Schema & Vector Ledger**
+  - `[ ]` Add `sync_vector_ledger` and `peer_nodes` tables to `../Data_Node/storage.py` and `./backend/database.py`
+- `[ ]` **Backend API Endpoints**
+  - `[ ]` Endpoint `POST /api/sync/pull-push` for bidirectional delta sync across edge nodes using LWW timestamps
+  - `[ ]` Endpoint `POST /api/network/access-tokens/generate` for issuing timed captive portal Wi-Fi access tokens on POS receipts
 - `[ ]` **Frontend SPA UI Integration**
-  - `[ ]` Add Peer Node Mesh Sync status card & Manual Force Sync trigger in VPA 1 (Agriculture)
-  - `[ ]` Add Intrusion Triangulation heatmap marker & incident alert log overlay in VPA 2 (Security)
-  - `[ ]` Add Captive Portal Wi-Fi Voucher printing card & barcode preview on POS Checkout Receipts in VPA 3 (POS)
-- `[ ]` **Verification & Testing**
-  - `[ ]` Create and run `backend/test_cycle5.py` automated test suite
-  - `[ ]` Perform E2E system validation and update project walkthrough artifacts
+  - `[ ]` Add Peer Mesh Sync Center in Cluster view with manual `[ 🔄 Sync Mesh Data ]` action
+  - `[ ]` Add Wi-Fi token QR slip renderer to POS checkout receipts

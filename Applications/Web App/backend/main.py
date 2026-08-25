@@ -5,10 +5,11 @@ import time
 import uuid
 import json
 import datetime
-from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
+from fastapi import FastAPI, Request, Response, Depends, HTTPException, status, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
 
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
 
@@ -28,7 +29,10 @@ try:
         create_business, get_all_businesses, get_business_by_id,
         mint_offline_voucher, verify_and_redeem_voucher, get_voucher_by_id, generate_receipt_data,
         assign_business_operator, get_business_operators, get_operator_permissions, revoke_business_operator, has_business_permission,
-        create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts
+        get_all_currencies, get_currency_by_code, add_currency, update_currency, delete_currency, sync_all_collections_to_data_nodes,
+        search_global_currency_catalog, get_global_currency_by_code, validate_currency_code_collision, sync_global_currencies_from_data_node,
+        create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts,
+        get_user_profile, update_user_profile, register_or_rotate_node_key, list_node_communication_keys, get_node_communication_key
     )
     from .node_discovery import discovery_manager
     from .auth_utils import (
@@ -55,7 +59,10 @@ except ImportError:
         create_business, get_all_businesses, get_business_by_id,
         mint_offline_voucher, verify_and_redeem_voucher, get_voucher_by_id, generate_receipt_data,
         assign_business_operator, get_business_operators, get_operator_permissions, revoke_business_operator, has_business_permission,
-        create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts
+        get_all_currencies, get_currency_by_code, add_currency, update_currency, delete_currency, sync_all_collections_to_data_nodes,
+        search_global_currency_catalog, get_global_currency_by_code, validate_currency_code_collision, sync_global_currencies_from_data_node,
+        create_wallet_for_user, get_wallet_by_username, topup_wallet, execute_wallet_transfer, deposit_voucher_to_wallet, get_wallet_ledger, archive_customer_receipt, get_customer_receipts,
+        get_user_profile, update_user_profile, register_or_rotate_node_key, list_node_communication_keys, get_node_communication_key
     )
     from node_discovery import discovery_manager
     from auth_utils import (
@@ -110,25 +117,25 @@ async def add_security_headers(request: Request, call_next):
     client_ip = request.client.host if request.client else ""
     user_agent = request.headers.get("User-Agent", "")
     
-    # 1. Device IP Blocking Enforcement
-    if client_ip and is_device_blocked(client_ip):
-        return Response(
-            content='{"detail": "Device access blocked by system administrator."}',
-            status_code=403,
-            media_type="application/json"
-        )
-        
-    # 2. Track connected device activity
-    if client_ip:
-        track_device_activity(client_ip, user_agent)
+    # 1. Device IP Blocking & Activity Tracking for API endpoints only (avoids serializing static asset delivery)
+    if request.url.path.startswith("/api"):
+        if client_ip and is_device_blocked(client_ip):
+            return Response(
+                content='{"detail": "Device access blocked by system administrator."}',
+                status_code=403,
+                media_type="application/json"
+            )
+            
+        if client_ip:
+            track_device_activity(client_ip, user_agent)
 
-    # 3. If forensic mode is active, block all api requests except health checks
-    if FORENSIC_MODE and request.url.path.startswith("/api") and request.url.path != "/api/health":
-        return Response(
-            content='{"detail": "Security System Integrity Compromised. Forensic Mode Active."}',
-            status_code=500,
-            media_type="application/json"
-        )
+        # 2. If forensic mode is active, block all api requests except health checks
+        if FORENSIC_MODE and request.url.path != "/api/health":
+            return Response(
+                content='{"detail": "Security System Integrity Compromised. Forensic Mode Active."}',
+                status_code=500,
+                media_type="application/json"
+            )
         
     response = await call_next(request)
     response.headers["Content-Security-Policy"] = (
@@ -147,8 +154,8 @@ async def add_security_headers(request: Request, call_next):
 @app.middleware("http")
 async def csrf_validation(request: Request, call_next):
     if request.method in ["POST", "PUT", "DELETE"] and request.url.path.startswith("/api"):
-        # Bypass login/register check if no cookie was issued yet
-        if request.url.path not in ["/api/auth/login", "/api/auth/register"]:
+        # Bypass login/register/logout check if no cookie was issued yet or during session termination
+        if request.url.path not in ["/api/auth/login", "/api/auth/register", "/api/auth/logout"]:
             cookie_csrf = request.cookies.get("csrf_token")
             header_csrf = request.headers.get("X-CSRF-Token")
             
@@ -219,15 +226,27 @@ async def get_health():
 
 # --- AUTHENTICATION ENDPOINTS ---
 
+class RegisterPayload(BaseModel):
+    username: str
+    password: str
+
+class LoginPayload(BaseModel):
+    username: str
+    password: str
+    mfa_token: Optional[str] = None
+    totp_token: Optional[str] = None
+
 @app.post("/api/auth/register")
-async def register(request: Request):
-    body = await request.json()
-    username = body.get("username", "").strip()
-    password = body.get("password", "")
+async def register(payload: RegisterPayload, request: Request):
+    username = payload.username.strip()
+    password = payload.password
     
     if not username or not password:
         raise HTTPException(status_code=400, detail="Username and password are required")
         
+    if len(username) < 3 or not username.replace("_", "").isalnum():
+        raise HTTPException(status_code=400, detail="Username must be at least 3 alphanumeric characters")
+
     if len(password) < 12:
         raise HTTPException(status_code=400, detail="Password must be at least 12 characters")
         
@@ -245,23 +264,31 @@ async def register(request: Request):
         
     salt_hex, hash_hex = hash_password(password)
     now = int(time.time())
+    now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     
     db.execute("""
-        INSERT INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (username, hash_hex, salt_hex, "operator", "pending", now, now, 0))
+        INSERT INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password, pin)
+        VALUES (?, ?, ?, 'customer', 'active', ?, ?, 0, '1234')
+    """, (username, hash_hex, salt_hex, now, now))
+
+    # Provision user multi-currency wallet
+    acc = f"ACC-2026-{uuid.uuid4().hex[:6].upper()}"
+    db.execute("""
+        INSERT OR IGNORE INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status)
+        VALUES (?, ?, 0.00, 0.00, 0.00, ?, 'active')
+    """, (acc, username, now_utc))
+
     db.commit()
     db.close()
     
-    write_audit_log("SYSTEM", "REGISTER", f"Account '{username}' created with status pending approval.")
-    return {"message": "Registration successful. Please wait for an administrator to activate your account."}
+    write_audit_log("SYSTEM", "REGISTER", f"Account '{username}' registered with active customer role and digital wallet provisioned.")
+    return {"status": "success", "message": f"Account '{username}' registered successfully! You may now sign in.", "username": username}
 
 @app.post("/api/auth/login")
-async def login(request: Request, response: Response):
-    body = await request.json()
-    username = body.get("username", "").strip()
-    password = body.get("password", "")
-    mfa_token = body.get("mfa_token", "").strip()
+async def login(payload: LoginPayload, request: Request, response: Response):
+    username = payload.username.strip()
+    password = payload.password
+    mfa_token = (payload.totp_token or payload.mfa_token or "").strip()
     
     db = get_db()
     cursor = db.execute("SELECT * FROM users WHERE username = ?", (username,))
@@ -288,7 +315,7 @@ async def login(request: Request, response: Response):
             detail=f"Account is temporarily locked. Try again in {remaining} seconds."
         )
         
-    # 3. Verify Password
+    # 3. Strict Scrypt Cryptographic Verification
     if not verify_password(password, user["salt"], user["password_hash"]):
         # Login failed: calculate exponential lockout delay
         failed_count = user["failed_login_count"] + 1
@@ -309,7 +336,7 @@ async def login(request: Request, response: Response):
     # Check Status
     if user["status"] != "active":
         db.close()
-        raise HTTPException(status_code=403, detail="Account status is not active (pending or disabled)")
+        raise HTTPException(status_code=403, detail="Account status is not active (pending approval or suspended)")
         
     # 4. MFA check (if enabled)
     if user["mfa_secret"]:
@@ -352,13 +379,16 @@ async def login(request: Request, response: Response):
     db.commit()
     db.close()
     
+    # Determine HTTPS security flag
+    is_secure = (request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https" or os.environ.get("MADN_HTTPS_ENABLED") == "1")
+
     # Set secure HttpOnly cookies
     response.set_cookie(
         key="madn_session",
         value=session_token,
         httponly=True,
-        samesite="strict",
-        secure=False  # Set to True if local host is run with TLS/HTTPS proxy
+        samesite="lax",
+        secure=is_secure
     )
     
     # Set non-HttpOnly CSRF token cookie
@@ -367,7 +397,8 @@ async def login(request: Request, response: Response):
         key="csrf_token",
         value=csrf_token,
         httponly=False,
-        samesite="strict"
+        samesite="lax",
+        secure=is_secure
     )
     
     write_audit_log(username, "LOGIN", "Successful login session created.")
@@ -414,18 +445,78 @@ async def step_up(request: Request, current_user = Depends(get_current_user)):
     write_audit_log(current_user["username"], "STEP_UP", "Session elevated for destructive operations.")
     return {"message": "Privileges elevated for 5 minutes."}
 
-@app.post("/api/auth/logout")
-async def logout(request: Request, response: Response, current_user = Depends(get_current_user)):
-    db = get_db()
-    db.execute("DELETE FROM sessions WHERE token_hash = ?", (current_user["token_hash"],))
-    db.commit()
-    db.close()
+@app.api_route("/api/auth/logout", methods=["GET", "POST"])
+async def logout(request: Request, response: Response):
+    raw_token = request.cookies.get("madn_session")
+    username = "unknown"
+    if raw_token:
+        try:
+            token_hash = hash_session_token(raw_token)
+            db = get_db()
+            cursor = db.execute("SELECT u.username FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.token_hash = ?", (token_hash,))
+            row = cursor.fetchone()
+            if row:
+                username = row["username"]
+            db.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
+            db.commit()
+            db.close()
+            write_audit_log(username, "LOGOUT", "Session terminated by user.")
+        except Exception:
+            pass
     
-    response.delete_cookie("madn_session")
-    response.delete_cookie("csrf_token")
-    
-    write_audit_log(current_user["username"], "LOGOUT", "Session terminated by user.")
-    return {"message": "Logged out successfully."}
+    is_secure = request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+    # Delete across both lax and strict samesite, and secure/insecure variants
+    response.delete_cookie("madn_session", path="/", samesite="lax", secure=is_secure)
+    response.delete_cookie("csrf_token", path="/", samesite="lax", secure=is_secure)
+    response.delete_cookie("madn_session", path="/", samesite="lax", secure=False)
+    response.delete_cookie("csrf_token", path="/", samesite="lax", secure=False)
+    response.delete_cookie("madn_session", path="/", samesite="strict")
+    response.delete_cookie("csrf_token", path="/", samesite="strict")
+    return {"status": "success", "message": "Logged out successfully."}
+
+@app.get("/api/network/info")
+def get_network_info(request: Request):
+    """Returns local network adapter IP addresses and reachable LAN URLs with HTTPS support."""
+    import socket
+    ips = set()
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.settimeout(0.2)
+            s.connect(("8.8.8.8", 80))
+            primary_ip = s.getsockname()[0]
+            if primary_ip and not primary_ip.startswith("127."):
+                ips.add(primary_ip)
+    except Exception:
+        pass
+
+    try:
+        hostname = socket.gethostname()
+        for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
+            ip = info[4][0]
+            if ip and not ip.startswith("127."):
+                ips.add(ip)
+    except Exception:
+        pass
+
+    certs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "certs")
+    has_tls = os.path.exists(os.path.join(certs_dir, "cert.pem")) or request.url.scheme == "https" or os.environ.get("MADN_HTTPS_ENABLED") == "1"
+    scheme = "https" if has_tls else "http"
+
+    local_ips = sorted(list(ips))
+    network_urls = [f"{scheme}://{ip}:8000" for ip in local_ips]
+    primary_url = network_urls[0] if network_urls else f"{scheme}://127.0.0.1:8000"
+
+    return {
+        "hostname": socket.gethostname(),
+        "scheme": scheme,
+        "localhost_url": f"{scheme}://127.0.0.1:8000",
+        "primary_url": primary_url,
+        "local_ips": local_ips,
+        "network_urls": network_urls,
+        "vault_port": 8000,
+        "data_node_port": 8002,
+        "beacon_multicast": "224.0.0.251:8001"
+    }
 
 @app.post("/api/auth/change-password")
 async def change_password(request: Request, current_user = Depends(get_current_user)):
@@ -485,6 +576,44 @@ async def check_session(current_user = Depends(get_current_user)):
         "role": current_user["role"],
         "must_change_password": current_user["must_change_password"]
     }
+
+class ProfileUpdatePayload(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    username: Optional[str] = None
+    pin: Optional[str] = None
+
+@app.get("/api/user/profile")
+async def get_current_user_profile_endpoint(current_user = Depends(get_current_user)):
+    """Fetches full profile, contact info, PIN status, and digital accounts for current authenticated operator."""
+    profile = get_user_profile(current_user["user_id"])
+    if not profile:
+        raise HTTPException(status_code=404, detail="User profile not found")
+    return profile
+
+@app.put("/api/user/profile")
+async def update_current_user_profile_endpoint(payload: ProfileUpdatePayload, current_user = Depends(get_current_user)):
+    """Updates contact details, PIN, and dynamic username for the authenticated operator."""
+    try:
+        updated = update_user_profile(
+            user_id=current_user["user_id"],
+            full_name=payload.full_name,
+            phone=payload.phone,
+            email=payload.email,
+            new_username=payload.username,
+            pin=payload.pin
+        )
+        return {"status": "success", "message": "Profile successfully updated", "profile": updated}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
+
+@app.put("/api/user/change-password")
+async def update_password_alias(request: Request, current_user = Depends(get_current_user)):
+    """Alias for PUT /api/user/change-password."""
+    return await change_password(request, current_user)
 
 # --- MFA QR/ENROLLMENT ENDPOINTS ---
 
@@ -1218,6 +1347,33 @@ def get_exported_nodes_endpoint():
         return {"status": "success", "exported_nodes": []}
     return {"status": "success", "exported_nodes": list_exported_nodes()}
 
+@app.get("/api/cluster/keys", dependencies=[Depends(require_admin)])
+def get_cluster_keys_endpoint():
+    """Lists all cluster node communication keys registered in the Vault DB."""
+    return {"status": "success", "keys": list_node_communication_keys()}
+
+class NodeKeyRegistrationPayload(BaseModel):
+    node_id: str
+    node_type: str = "data_node"
+    ip_address: str = "127.0.0.1"
+    port: int = 8002
+    secret_key: Optional[str] = None
+    notes: Optional[str] = ""
+
+@app.post("/api/cluster/keys", dependencies=[Depends(require_admin)])
+def register_cluster_key_endpoint(payload: NodeKeyRegistrationPayload, current_user = Depends(get_current_user)):
+    """Registers or rotates HMAC communication key for a cluster node in the Vault DB."""
+    res = register_or_rotate_node_key(
+        node_id=payload.node_id,
+        node_type=payload.node_type,
+        ip_address=payload.ip_address,
+        port=payload.port,
+        secret_key=payload.secret_key,
+        notes=payload.notes or ""
+    )
+    write_audit_log(current_user["username"], "NODE_KEY_MANAGEMENT", f"Registered/Rotated communication key for node '{payload.node_id}' in Vault DB")
+    return {"status": "success", "result": res}
+
 
 
 # =====================================================================
@@ -1452,12 +1608,12 @@ def list_businesses_endpoint():
     """List all registered business entities."""
     return {"status": "success", "businesses": get_all_businesses()}
 
-@app.post("/api/businesses", dependencies=[Depends(require_admin)])
+@app.post("/api/businesses", dependencies=[Depends(get_current_user)])
 async def create_business_endpoint(request: Request, current_user = Depends(get_current_user)):
-    """Register a new business enterprise."""
+    """Register a new business enterprise profile."""
     body = await request.json()
     name = body.get("name", "").strip()
-    category = body.get("category", "Agriculture").strip()
+    category = body.get("category", "Horticulture & Fresh Produce").strip()
     phone = body.get("contact_phone", "").strip()
     address = body.get("location_address", "").strip()
     tax_id = body.get("tax_id", "").strip()
@@ -1587,6 +1743,103 @@ async def get_my_business_permissions_endpoint(biz_id: str, current_user = Depen
         "permissions": perms,
         "is_business_admin": "admin" in perms or current_user["role"] == "admin"
     }
+
+# =====================================================================
+# DYNAMIC MULTI-CURRENCY & VIRTUAL TOKEN ENDPOINTS
+# =====================================================================
+
+class AddCurrencyRequest(BaseModel):
+    code: str
+    name: str
+    symbol: str
+    exchange_rate_to_usd: float
+    currency_type: Optional[str] = "fiat"
+    is_default: Optional[int] = 0
+
+class UpdateCurrencyRequest(BaseModel):
+    name: Optional[str] = None
+    symbol: Optional[str] = None
+    exchange_rate_to_usd: Optional[float] = None
+    is_active: Optional[int] = None
+
+@app.get("/api/currencies")
+def get_currencies_endpoint(include_inactive: bool = False):
+    """Retrieve all active fiat, precious-metal, and personalized virtual currencies."""
+    currs = get_all_currencies(include_inactive=include_inactive)
+    return {"status": "success", "currencies": currs}
+
+@app.post("/api/admin/currencies", dependencies=[Depends(get_current_user)])
+def add_currency_endpoint(req: AddCurrencyRequest, current_user = Depends(get_current_user)):
+    """Admin / Operator endpoint to register a new currency or virtual community token."""
+    if current_user["role"] not in ["admin", "merchant", "agronomist"]:
+        raise HTTPException(status_code=403, detail="Permission denied. Only operators can configure currencies.")
+    try:
+        res = add_currency(
+            code=req.code,
+            name=req.name,
+            symbol=req.symbol,
+            exchange_rate_to_usd=req.exchange_rate_to_usd,
+            currency_type=req.currency_type or "fiat",
+            is_default=req.is_default or 0,
+            performed_by=current_user["username"]
+        )
+        return {"status": "success", "currency": res}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.put("/api/admin/currencies/{code}", dependencies=[Depends(get_current_user)])
+def update_currency_endpoint(code: str, req: UpdateCurrencyRequest, current_user = Depends(get_current_user)):
+    """Admin / Operator endpoint to update currency properties or live exchange rates."""
+    if current_user["role"] not in ["admin", "merchant", "agronomist"]:
+        raise HTTPException(status_code=403, detail="Permission denied.")
+    try:
+        res = update_currency(
+            code=code,
+            name=req.name,
+            symbol=req.symbol,
+            exchange_rate_to_usd=req.exchange_rate_to_usd,
+            is_active=req.is_active,
+            performed_by=current_user["username"]
+        )
+        return {"status": "success", "currency": res}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/api/admin/currencies/{code}", dependencies=[Depends(get_current_user)])
+def delete_currency_endpoint(code: str, current_user = Depends(get_current_user)):
+    """Admin / Operator endpoint to deactivate a currency."""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only Administrator can deactivate currencies.")
+    try:
+        res = delete_currency(code=code, performed_by=current_user["username"])
+        return {"status": "success", "result": res}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/cluster/sync-data-nodes", dependencies=[Depends(get_current_user)])
+def sync_data_nodes_endpoint(current_user = Depends(get_current_user)):
+    """Collects and replicates state between Vault Node and active Data Nodes (:8002)."""
+    res = sync_all_collections_to_data_nodes()
+    return {"status": "success", "sync": res}
+
+@app.get("/api/currencies/catalog")
+def get_global_currency_catalog_endpoint(q: Optional[str] = "", category: Optional[str] = None, limit: int = 50):
+    """Searches the global catalog of ISO 4217 world currencies and top cryptocurrencies."""
+    results = search_global_currency_catalog(query=q or "", category=category, limit=limit)
+    return {"status": "success", "count": len(results), "catalog": results}
+
+@app.get("/api/currencies/validate")
+def validate_currency_endpoint(code: str = Query(...), name: Optional[str] = ""):
+    """Real-time collision validation endpoint for proposed currency codes and custom virtual tokens."""
+    validation = validate_currency_code_collision(code=code, name=name or "")
+    return {"status": "success", "validation": validation}
+
+@app.post("/api/currencies/catalog/sync", dependencies=[Depends(get_current_user)])
+def sync_global_catalog_endpoint(current_user = Depends(get_current_user)):
+    """Synchronizes global ISO 4217 & crypto reference catalog from connected Data Node."""
+    res = sync_global_currencies_from_data_node()
+    return {"status": "success", "result": res}
+
 
 # =====================================================================
 # CUSTOMER DIGITAL BANKING & RECEIPT VAULT ENDPOINTS
