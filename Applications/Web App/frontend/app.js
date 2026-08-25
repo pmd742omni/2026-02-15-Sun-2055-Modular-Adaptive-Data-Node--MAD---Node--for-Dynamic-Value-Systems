@@ -130,6 +130,7 @@ window.renderLatexInUI = renderLatexInUI;
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
   initAuthSystem();
+  initLoginPossibilitiesTicker();
   initNavigation();
   initAgriModule();
   initSecurityModule();
@@ -227,7 +228,7 @@ function initAuthSystem() {
     if (errBox) errBox.style.display = 'none';
     if (btnLogin) {
       btnLogin.disabled = true;
-      btnLogin.innerText = "Authenticating...";
+      btnLogin.innerText = "Signing in...";
     }
 
     try {
@@ -271,7 +272,7 @@ function initAuthSystem() {
     } finally {
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerText = "Authenticate Session";
+        btnLogin.innerText = "Sign In to Your Workspace 🚀";
       }
     }
   };
@@ -2780,8 +2781,78 @@ function adoptCatalogItem(code, name, symbol, category, rate) {
   }
 
   handleCurrencyCodeInput(code);
+  switchCurrencySubTab('add');
   const formEl = document.getElementById('form-create-currency');
   if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function switchCurrencySubTab(subTab) {
+  const tabs = ['active', 'add', 'catalog'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab-btn-curr-${t}`);
+    const view = document.getElementById(`curr-subview-${t}`);
+    if (btn) btn.classList.toggle('active', t === subTab);
+    if (view) view.style.display = (t === subTab ? 'block' : 'none');
+  });
+  if (subTab === 'catalog') {
+    searchGlobalCatalog(document.getElementById('catalog-search-input')?.value || "");
+  }
+}
+
+function togglePanelFullscreen(panelId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const isFs = panel.classList.toggle('panel-fullscreen');
+  const btn = panel.querySelector('.btn-panel-expand');
+  if (btn) {
+    btn.innerHTML = isFs ? '🗗 Restore (Esc)' : '⛶ Expand';
+    btn.title = isFs ? 'Exit Fullscreen Mode (or press Esc)' : 'Expand to Fullscreen';
+  }
+  if (isFs) {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+// Global escape key listener to close any expanded panel
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    const fsPanels = document.querySelectorAll('.panel-fullscreen');
+    fsPanels.forEach(panel => {
+      panel.classList.remove('panel-fullscreen');
+      const btn = panel.querySelector('.btn-panel-expand');
+      if (btn) {
+        btn.innerHTML = '⛶ Expand';
+        btn.title = 'Expand to Fullscreen';
+      }
+    });
+  }
+});
+
+const LOGIN_POSSIBILITIES = [
+  "🌱 <strong>Smart Farming:</strong> Plan crop plantings, get weather advice & maximize harvest yield effortlessly.",
+  "💸 <strong>Offline Digital Banking:</strong> Transfer funds & pay for items seamlessly without needing internet.",
+  "🏪 <strong>Effortless Touch Register:</strong> Lightning-fast checkouts, automatic change vouchers & live stock sync.",
+  "🔒 <strong>100% Private & Sovereign:</strong> Your records stay in your hands, safe, private, and always accessible.",
+  "🌐 <strong>Multi-Currency Freedom:</strong> Trade freely in USD, Zimbabwe Gold (ZiG), and custom community tokens.",
+  "🤝 <strong>Connected Communities:</strong> Manage multiple shops, staff, and customer accounts in one unified hub."
+];
+
+let loginTickerIndex = 0;
+let loginTickerTimer = null;
+
+function initLoginPossibilitiesTicker() {
+  const textEl = document.getElementById('login-possibilities-text');
+  if (!textEl) return;
+  clearInterval(loginTickerTimer);
+
+  loginTickerTimer = setInterval(() => {
+    loginTickerIndex = (loginTickerIndex + 1) % LOGIN_POSSIBILITIES.length;
+    textEl.style.opacity = '0';
+    setTimeout(() => {
+      textEl.innerHTML = LOGIN_POSSIBILITIES[loginTickerIndex];
+      textEl.style.opacity = '1';
+    }, 350);
+  }, 4200);
 }
 
 async function syncGlobalCurrencyCatalog() {
