@@ -407,6 +407,10 @@ def init_db():
         id TEXT PRIMARY KEY,
         crop_variety TEXT NOT NULL,
         plot_bed_id TEXT NOT NULL,
+        field_id TEXT DEFAULT '',
+        field_name TEXT DEFAULT '',
+        area_utilized REAL DEFAULT 1.0,
+        area_unit TEXT DEFAULT 'hectares',
         planting_date_utc TEXT NOT NULL,
         seeding_density REAL DEFAULT 0.0,
         target_maturity_date_utc TEXT,
@@ -533,13 +537,23 @@ def init_db():
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL UNIQUE,
         category TEXT NOT NULL,
-        contact_phone TEXT,
-        location_address TEXT,
-        tax_id TEXT,
-        receipt_header TEXT,
-        receipt_footer_note TEXT,
+        tagline TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        logo_url TEXT DEFAULT '',
+        banner_url TEXT DEFAULT '',
+        contact_phone TEXT DEFAULT '',
+        contact_email TEXT DEFAULT '',
+        location_address TEXT DEFAULT '',
+        tax_id TEXT DEFAULT '',
+        website_url TEXT DEFAULT '',
+        operating_hours TEXT DEFAULT '',
+        return_policy TEXT DEFAULT '',
+        bank_account_number TEXT DEFAULT '',
+        receipt_header TEXT DEFAULT '',
+        receipt_footer_note TEXT DEFAULT '',
         currency_preference TEXT DEFAULT 'USD',
         owner_username TEXT,
+        extra_attributes TEXT DEFAULT '{}',
         created_at_utc TEXT NOT NULL,
         is_active INTEGER DEFAULT 1
     );
@@ -580,16 +594,18 @@ def init_db():
     );
     """)
 
-    # Customer Digital Bank Accounts & Multi-Currency Ledger
+    # Customer & Business Digital Bank Accounts & Multi-Currency Ledger
     db.execute("""
     CREATE TABLE IF NOT EXISTS wallets (
         account_number TEXT PRIMARY KEY,
-        username TEXT NOT NULL UNIQUE,
+        username TEXT NOT NULL,
         balance_usd REAL DEFAULT 0.0,
         balance_zar REAL DEFAULT 0.0,
         balance_zwg REAL DEFAULT 0.0,
         created_at_utc TEXT NOT NULL,
         status TEXT DEFAULT 'active',
+        account_type TEXT DEFAULT 'personal',
+        business_id TEXT DEFAULT '',
         FOREIGN KEY (username) REFERENCES users(username)
     );
     """)
@@ -765,18 +781,38 @@ def init_db():
         except sqlite3.OperationalError:
             pass
 
-    # PRAGMA Migrations: add field_id, field_name, area_utilized to agri_plantings
-    cursor = db.execute("PRAGMA table_info(agri_plantings)")
-    agri_cols = [row["name"] for row in cursor.fetchall()]
+    # PRAGMA Migrations: modular columns for businesses
+    cursor = db.execute("PRAGMA table_info(businesses)")
+    biz_cols = [row["name"] for row in cursor.fetchall()]
     for col_name, col_def in [
-        ("field_id", "TEXT"),
-        ("field_name", "TEXT DEFAULT ''"),
-        ("area_utilized", "REAL DEFAULT 1.0"),
-        ("area_unit", "TEXT DEFAULT 'hectares'")
+        ("tagline", "TEXT DEFAULT ''"),
+        ("description", "TEXT DEFAULT ''"),
+        ("logo_url", "TEXT DEFAULT ''"),
+        ("banner_url", "TEXT DEFAULT ''"),
+        ("contact_email", "TEXT DEFAULT ''"),
+        ("website_url", "TEXT DEFAULT ''"),
+        ("operating_hours", "TEXT DEFAULT ''"),
+        ("return_policy", "TEXT DEFAULT ''"),
+        ("bank_account_number", "TEXT DEFAULT ''"),
+        ("extra_attributes", "TEXT DEFAULT '{}'")
     ]:
-        if col_name not in agri_cols:
+        if col_name not in biz_cols:
             try:
-                db.execute(f"ALTER TABLE agri_plantings ADD COLUMN {col_name} {col_def};")
+                db.execute(f"ALTER TABLE businesses ADD COLUMN {col_name} {col_def};")
+                db.commit()
+            except sqlite3.OperationalError:
+                pass
+
+    # PRAGMA Migrations: account_type and business_id for wallets
+    cursor = db.execute("PRAGMA table_info(wallets)")
+    wallet_cols = [row["name"] for row in cursor.fetchall()]
+    for col_name, col_def in [
+        ("account_type", "TEXT DEFAULT 'personal'"),
+        ("business_id", "TEXT DEFAULT ''")
+    ]:
+        if col_name not in wallet_cols:
+            try:
+                db.execute(f"ALTER TABLE wallets ADD COLUMN {col_name} {col_def};")
                 db.commit()
             except sqlite3.OperationalError:
                 pass
@@ -1061,6 +1097,20 @@ def add_inventory_item(
         item_id = str(uuid.uuid4())
         cost_price = float(cost_price_usd or (price_usd * 0.6))
         
+        # Resolve and validate business association
+        target_biz_id = str(business_id or '').strip()
+        if target_biz_id and target_biz_id != "biz-default":
+            cursor_biz = db.execute("SELECT id FROM businesses WHERE id = ? AND is_active = 1", (target_biz_id,))
+            if not cursor_biz.fetchone():
+                raise ValueError(f"Specified business '{target_biz_id}' does not exist.")
+        else:
+            cursor_any = db.execute("SELECT id FROM businesses WHERE is_active = 1 ORDER BY created_at_utc ASC LIMIT 1")
+            first_biz = cursor_any.fetchone()
+            if not first_biz:
+                raise ValueError("Store setup required: No active business/store found. Please register a business before adding inventory.")
+            target_biz_id = first_biz["id"]
+        business_id = target_biz_id
+
         # Systematically auto-assign SKU if not provided
         if not sku or not sku.strip():
             sku = generate_system_sku(name, category)
@@ -1081,7 +1131,7 @@ def add_inventory_item(
             item_id, name, sku, float(quantity), str(unit or 'pcs'), float(price_usd), float(cost_price), float(threshold or 5.0),
             str(barcode or ''), str(category or ''), str(subcategory or ''), str(brand or ''), str(description or ''),
             specs_str, str(image_url or ''), float(wholesale_price_usd or 0.0), float(wholesale_min_qty or 0.0),
-            extras_str, str(business_id or 'biz-default')
+            extras_str, str(business_id)
         ))
         db.commit()
         write_audit_log(actor, "ADD_INVENTORY", f"Added item '{name}' (SKU: {sku}) with initial quantity {quantity} {unit}")
@@ -1280,6 +1330,43 @@ def execute_checkout_transaction(operator_username: str, total_due: float, clien
                 INSERT INTO transaction_items (id, transaction_id, inventory_id, quantity, price_usd_at_sale)
                 VALUES (?, ?, ?, ?, ?)
             """, (sale_item_id, tx_id, item["inventory_id"], item["quantity"], item["price_usd_at_sale"]))
+
+        # 5b. Route sales revenue to respective business banking accounts
+        biz_rev_map = {}
+        for item in items:
+            inv_id = item["inventory_id"]
+            qty = float(item["quantity"])
+            price_at_sale = float(item["price_usd_at_sale"])
+            item_rev = qty * price_at_sale
+
+            cursor_b = db.execute("SELECT business_id FROM inventory WHERE id = ?", (inv_id,))
+            b_row = cursor_b.fetchone()
+            item_biz_id = b_row["business_id"] if b_row and b_row["business_id"] else business_id
+            biz_rev_map[item_biz_id] = biz_rev_map.get(item_biz_id, 0.0) + item_rev
+
+        for b_id, b_rev in biz_rev_map.items():
+            cursor_acc = db.execute("SELECT account_number FROM wallets WHERE business_id = ? AND account_type = 'business'", (b_id,))
+            acc_row = cursor_acc.fetchone()
+            if acc_row:
+                b_acc = acc_row["account_number"]
+                bal_cur = db.execute("SELECT balance FROM wallet_balances WHERE account_number = ? AND currency = 'USD'", (b_acc,))
+                b_bal_row = bal_cur.fetchone()
+                b_curr_bal = b_bal_row["balance"] if b_bal_row else 0.0
+                b_new_bal = b_curr_bal + b_rev
+
+                db.execute("UPDATE wallets SET balance_usd = ? WHERE account_number = ?", (b_new_bal, b_acc))
+                db.execute("""
+                    INSERT INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+                    VALUES (?, 'USD', ?, ?)
+                    ON CONFLICT(account_number, currency) DO UPDATE SET balance = ?, updated_at_utc = ?
+                """, (b_acc, b_new_bal, now_utc, b_new_bal, now_utc))
+
+                wtx_id = f"wtx-pos-{uuid.uuid4().hex[:8]}"
+                sig = hmac.new(VAULT_SECRET_KEY, f"{wtx_id}|{b_acc}|pos_sale|{b_rev:.2f}|{b_new_bal:.2f}".encode("utf-8"), hashlib.sha256).hexdigest()
+                db.execute("""
+                    INSERT INTO wallet_ledger (id, account_number, transaction_type, currency, amount, balance_after, counterparty, reference_id, notes, timestamp_utc, signature_hmac)
+                    VALUES (?, ?, 'pos_sale', 'USD', ?, ?, ?, ?, 'POS Checkout Revenue', ?, ?)
+                """, (wtx_id, b_acc, b_rev, b_new_bal, operator_username, tx_id, now_utc, sig))
 
         # 6. Mint voucher change if requested
         voucher_issued = None
@@ -2076,12 +2163,16 @@ def log_harvest_and_sync_inventory(planting_id: str, crop_name: str, harvest_dat
                 WHERE id = ?
             """, (mass_comm, base_price, cost_floor, inv_id))
         else:
+            cursor_b = db.execute("SELECT id FROM businesses WHERE is_active = 1 LIMIT 1")
+            b_row = cursor_b.fetchone()
+            biz_id = b_row["id"] if b_row else "biz-green-valley"
+
             inv_id = str(uuid.uuid4())
             sku = f"{crop_name.upper().replace(' ', '-')[:8]}-{uuid.uuid4().hex[:4].upper()}"
             db.execute("""
-                INSERT INTO inventory (id, name, sku, quantity, unit, price_usd, cost_price_usd, low_stock_threshold)
-                VALUES (?, ?, ?, ?, 'kg', ?, ?, 5.0)
-            """, (inv_id, item_name, sku, mass_comm, base_price, cost_floor))
+                INSERT INTO inventory (id, name, sku, quantity, unit, price_usd, cost_price_usd, low_stock_threshold, business_id)
+                VALUES (?, ?, ?, ?, 'kg', ?, ?, 5.0, ?)
+            """, (inv_id, item_name, sku, mass_comm, base_price, cost_floor, biz_id))
 
         # Record Harvest
         db.execute("""
@@ -2293,20 +2384,69 @@ def compute_voucher_hmac(vid: str, business_id: str, value_amount: float, curren
     return hmac.new(secret.encode("utf-8"), msg.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def create_business(name: str, category: str, contact_phone: str = "", location_address: str = "", tax_id: str = "", receipt_header: str = "", receipt_footer_note: str = "", currency_preference: str = "USD", owner_username: str = "admin") -> dict:
-    """Creates a new business entity for multi-tenant enterprise operations and assigns owner permissions."""
+def create_business(
+    name: str, 
+    category: str = "General", 
+    tagline: str = "",
+    description: str = "",
+    logo_url: str = "",
+    banner_url: str = "",
+    contact_phone: str = "", 
+    contact_email: str = "",
+    location_address: str = "", 
+    tax_id: str = "", 
+    website_url: str = "",
+    operating_hours: str = "",
+    return_policy: str = "",
+    receipt_header: str = "", 
+    receipt_footer_note: str = "", 
+    currency_preference: str = "USD", 
+    owner_username: str = "admin",
+    extra_attributes: any = None
+) -> dict:
+    """Creates a new business entity for multi-tenant enterprise operations and provisions dedicated banking accounts."""
     biz_id = f"biz-{uuid.uuid4().hex[:8]}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    bank_account_number = f"BIZ-ACC-{biz_id[4:].upper()}"
     if not receipt_header:
-        receipt_header = f"{name} - Fresh Agricultural Depot"
+        receipt_header = f"{name} Store"
     if not receipt_footer_note:
-        receipt_footer_note = "Thank you for supporting local community agriculture!"
+        receipt_footer_note = "Thank you for supporting our business!"
+    
+    extras_str = json.dumps(extra_attributes) if isinstance(extra_attributes, (dict, list)) else str(extra_attributes or "{}")
 
     with get_db() as db:
         db.execute("""
-            INSERT INTO businesses (id, name, category, contact_phone, location_address, tax_id, receipt_header, receipt_footer_note, currency_preference, owner_username, created_at_utc, is_active)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-        """, (biz_id, name, category, contact_phone, location_address, tax_id, receipt_header, receipt_footer_note, currency_preference, owner_username, now_utc))
+            INSERT INTO businesses (
+                id, name, category, tagline, description, logo_url, banner_url,
+                contact_phone, contact_email, location_address, tax_id, website_url,
+                operating_hours, return_policy, bank_account_number, receipt_header,
+                receipt_footer_note, currency_preference, owner_username, extra_attributes,
+                created_at_utc, is_active
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        """, (
+            biz_id, name, category or "General", tagline or "", description or "", logo_url or "", banner_url or "",
+            contact_phone or "", contact_email or "", location_address or "", tax_id or "", website_url or "",
+            operating_hours or "", return_policy or "", bank_account_number, receipt_header,
+            receipt_footer_note, currency_preference or "USD", owner_username, extras_str,
+            now_utc
+        ))
+
+        # Provision dedicated business wallet / banking account
+        db.execute("""
+            INSERT OR IGNORE INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status, account_type, business_id)
+            VALUES (?, ?, 0.0, 0.0, 0.0, ?, 'active', 'business', ?)
+        """, (bank_account_number, owner_username, now_utc, biz_id))
+
+        # Initialize wallet_balances for all active currencies
+        curr_cursor = db.execute("SELECT code FROM currencies WHERE is_active = 1")
+        active_codes = [r["code"] for r in curr_cursor.fetchall()] or ["USD", "ZAR", "ZWG"]
+        for c_code in active_codes:
+            db.execute("""
+                INSERT OR IGNORE INTO wallet_balances (account_number, currency, balance, updated_at_utc)
+                VALUES (?, ?, 0.0, ?)
+            """, (bank_account_number, c_code, now_utc))
 
         # Automatically assign owner as business administrator if user exists
         cursor = db.execute("SELECT id FROM users WHERE username = ?", (owner_username,))
@@ -2339,7 +2479,7 @@ def create_business(name: str, category: str, contact_phone: str = "", location_
 def get_all_businesses() -> list:
     """Retrieves list of all active businesses."""
     with get_db() as db:
-        cursor = db.execute("SELECT * FROM businesses WHERE is_active = 1 ORDER BY name ASC")
+        cursor = db.execute("SELECT * FROM businesses WHERE is_active = 1 ORDER BY created_at_utc ASC")
         return [dict(row) for row in cursor.fetchall()]
 
 
@@ -2349,6 +2489,143 @@ def get_business_by_id(biz_id: str) -> dict:
         cursor = db.execute("SELECT * FROM businesses WHERE id = ?", (biz_id,))
         row = cursor.fetchone()
         return dict(row) if row else None
+
+
+def get_business_banking_accounts(owner_username: str = None) -> list:
+    """Retrieves all business banking settlement accounts with real-time multi-currency balances."""
+    with get_db() as db:
+        if owner_username and owner_username != "admin":
+            cursor = db.execute("""
+                SELECT w.*, b.name as business_name, b.category as business_category, b.logo_url as business_logo, b.currency_preference
+                FROM wallets w
+                JOIN businesses b ON w.business_id = b.id
+                JOIN business_operators bo ON b.id = bo.business_id
+                WHERE w.account_type = 'business' AND bo.username = ? AND b.is_active = 1
+                ORDER BY b.name ASC
+            """, (owner_username,))
+        else:
+            cursor = db.execute("""
+                SELECT w.*, b.name as business_name, b.category as business_category, b.logo_url as business_logo, b.currency_preference
+                FROM wallets w
+                JOIN businesses b ON w.business_id = b.id
+                WHERE w.account_type = 'business' AND b.is_active = 1
+                ORDER BY b.name ASC
+            """)
+        accounts = []
+        for row in cursor.fetchall():
+            acc = dict(row)
+            acc_num = acc["account_number"]
+            bal_cursor = db.execute("SELECT currency, balance FROM wallet_balances WHERE account_number = ?", (acc_num,))
+            balances = {r["currency"]: r["balance"] for r in bal_cursor.fetchall()}
+            if "USD" not in balances: balances["USD"] = acc.get("balance_usd", 0.0)
+            if "ZAR" not in balances: balances["ZAR"] = acc.get("balance_zar", 0.0)
+            if "ZWG" not in balances: balances["ZWG"] = acc.get("balance_zwg", 0.0)
+            acc["balances"] = balances
+            accounts.append(acc)
+        return accounts
+
+
+def get_business_sales_analytics(business_id: str = None, time_range: str = "24h") -> dict:
+    """
+    Computes sales revenue, COGS, gross margins, transaction count, units sold,
+    and hourly velocity for a single business or aggregated across all businesses.
+    """
+    with get_db() as db:
+        where_clause = "WHERE t.type = 'SALE'"
+        params = []
+        if business_id and business_id != "all":
+            where_clause += " AND (inv.business_id = ? OR (inv.business_id IS NULL AND t.business_id = ?))"
+            params.extend([business_id, business_id])
+
+        # Gross revenue & units
+        cursor_summary = db.execute(f"""
+            SELECT 
+                COUNT(DISTINCT t.id) as tx_count,
+                COALESCE(SUM(ti.quantity * ti.price_usd_at_sale), 0.0) as gross_revenue,
+                COALESCE(SUM(ti.quantity), 0.0) as total_units_sold,
+                COALESCE(SUM(ti.quantity * COALESCE(inv.cost_price_usd, ti.price_usd_at_sale * 0.6)), 0.0) as total_cogs
+            FROM transactions t
+            JOIN transaction_items ti ON t.id = ti.transaction_id
+            LEFT JOIN inventory inv ON ti.inventory_id = inv.id
+            {where_clause}
+        """, params)
+        summary = cursor_summary.fetchone()
+        
+        gross_rev = float(summary["gross_revenue"] or 0.0)
+        cogs = float(summary["total_cogs"] or 0.0)
+        gross_profit = gross_rev - cogs
+        margin_pct = ((gross_profit / gross_rev) * 100.0) if gross_rev > 0 else 0.0
+
+        # Top items
+        cursor_top = db.execute(f"""
+            SELECT 
+                COALESCE(inv.name, 'Item') as item_name,
+                COALESCE(inv.sku, 'N/A') as sku,
+                COALESCE(inv.brand, '') as brand,
+                COALESCE(inv.image_url, '') as image_url,
+                SUM(ti.quantity) as units_sold,
+                SUM(ti.quantity * ti.price_usd_at_sale) as total_revenue
+            FROM transactions t
+            JOIN transaction_items ti ON t.id = ti.transaction_id
+            LEFT JOIN inventory inv ON ti.inventory_id = inv.id
+            {where_clause}
+            GROUP BY ti.inventory_id
+            ORDER BY total_revenue DESC
+            LIMIT 5
+        """, params)
+        top_items = [dict(r) for r in cursor_top.fetchall()]
+
+        # Per business breakdown
+        cursor_breakdown = db.execute("""
+            SELECT 
+                COALESCE(b.id, 'biz-unknown') as business_id,
+                COALESCE(b.name, 'Default Store') as business_name,
+                COALESCE(b.logo_url, '') as logo_url,
+                COUNT(DISTINCT t.id) as tx_count,
+                SUM(ti.quantity * ti.price_usd_at_sale) as revenue,
+                SUM(ti.quantity) as units
+            FROM transactions t
+            JOIN transaction_items ti ON t.id = ti.transaction_id
+            LEFT JOIN inventory inv ON ti.inventory_id = inv.id
+            LEFT JOIN businesses b ON inv.business_id = b.id
+            WHERE t.type = 'SALE'
+            GROUP BY b.id
+            ORDER BY revenue DESC
+        """)
+        breakdown = [dict(r) for r in cursor_breakdown.fetchall()]
+
+        # Hourly velocity (last 24 hours)
+        now_ts = int(time.time())
+        day_ago = now_ts - 86400
+        cursor_hourly = db.execute(f"""
+            SELECT 
+                (t.timestamp / 3600) * 3600 as hour_bucket,
+                SUM(ti.quantity * ti.price_usd_at_sale) as hourly_rev
+            FROM transactions t
+            JOIN transaction_items ti ON t.id = ti.transaction_id
+            LEFT JOIN inventory inv ON ti.inventory_id = inv.id
+            {where_clause} AND t.timestamp >= {day_ago}
+            GROUP BY hour_bucket
+            ORDER BY hour_bucket ASC
+        """, params)
+        hourly_map = {str(r["hour_bucket"]): float(r["hourly_rev"]) for r in cursor_hourly.fetchall()}
+
+        return {
+            "business_id": business_id or "all",
+            "gross_revenue_usd": round(gross_rev, 2),
+            "cogs_usd": round(cogs, 2),
+            "total_cogs_usd": round(cogs, 2),
+            "gross_profit_usd": round(gross_profit, 2),
+            "gross_margin_pct": round(margin_pct, 1),
+            "total_transactions": int(summary["tx_count"] or 0),
+            "transactions_count": int(summary["tx_count"] or 0),
+            "total_units_sold": float(summary["total_units_sold"] or 0.0),
+            "units_sold_total": float(summary["total_units_sold"] or 0.0),
+            "top_selling_items": top_items,
+            "business_breakdown": breakdown,
+            "hourly_velocity": hourly_map
+        }
+
 
 
 def mint_offline_voucher(business_id: str, value_amount: float, currency: str = "ZWG", issued_by_node_id: str = "node-vault-01", issued_for_tx_id: str = None, validity_days: int = 90) -> dict:
@@ -2715,13 +2992,13 @@ def create_wallet_for_user(username: str) -> dict:
     acc_num = f"ACC-2026-{uuid.uuid4().hex[:6].upper()}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     with get_db() as db:
-        cursor = db.execute("SELECT * FROM wallets WHERE username = ?", (username,))
+        cursor = db.execute("SELECT * FROM wallets WHERE username = ? AND (account_type = 'personal' OR account_type IS NULL OR account_type = '')", (username,))
         existing = cursor.fetchone()
         if existing:
             return get_wallet_by_username(username, auto_create=False)
         db.execute("""
-            INSERT INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status)
-            VALUES (?, ?, 0.0, 0.0, 0.0, ?, 'active')
+            INSERT INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status, account_type)
+            VALUES (?, ?, 0.0, 0.0, 0.0, ?, 'active', 'personal')
         """, (acc_num, username, now_utc))
         
         # Provision 0.0 balance for all active currencies
@@ -2743,7 +3020,7 @@ def create_wallet_for_user(username: str) -> dict:
 def get_wallet_by_username(username: str, auto_create: bool = True) -> Optional[dict]:
     """Returns the multi-currency wallet details for a user with dynamic balances."""
     with get_db() as db:
-        cursor = db.execute("SELECT * FROM wallets WHERE username = ?", (username,))
+        cursor = db.execute("SELECT * FROM wallets WHERE username = ? AND (account_type = 'personal' OR account_type IS NULL OR account_type = '')", (username,))
         row = cursor.fetchone()
         if not row:
             if auto_create:

@@ -719,7 +719,23 @@ async function submitChangePassword() {
   }
 }
 
-// --- MULTI-BUSINESS / TENANCY HANDLERS ---
+// --- STATE EXTENSIONS FOR MODULAR STORE & MULTI-BUSINESS ---
+state.selectedPosBusinessId = 'all';
+state.activeBizFields = {
+  branding: false,
+  contact: false,
+  tax: false,
+  currency: false,
+  web: false,
+  hours: false,
+  policy: false,
+  receipt: false
+};
+state.pendingBizLogo = '';
+state.pendingBizBanner = '';
+state.businessAccounts = [];
+
+// --- MULTI-BUSINESS & MODULAR STORE SETUP HANDLERS ---
 async function loadBusinesses() {
   try {
     const res = await secureFetch("/api/businesses");
@@ -729,30 +745,89 @@ async function loadBusinesses() {
 
     const select = document.getElementById('header-business-select');
     const adminBizName = document.getElementById('admin-current-biz-name');
+    const noStoreGate = document.getElementById('vpa3-no-store-container');
+    const emptyPosBox = document.getElementById('pos-empty-store-container');
+    const activePosBox = document.getElementById('pos-active-terminal-container');
 
-    if (select) {
-      if (state.businesses.length === 0) {
-        select.innerHTML = `<option value="">➕ Register Business</option>`;
-        state.activeBusinessId = null;
-        if (adminBizName) adminBizName.innerText = "No Registered Business";
-      } else {
-        if (!state.activeBusinessId || !state.businesses.find(b => b.id === state.activeBusinessId)) {
-          state.activeBusinessId = state.businesses[0].id;
-        }
+    // Handle 0-Store Gatekeeper vs Active Store UI
+    if (state.businesses.length === 0) {
+      if (noStoreGate) noStoreGate.style.display = 'block';
+      if (emptyPosBox) emptyPosBox.style.display = 'none';
+      if (activePosBox) activePosBox.style.display = 'none';
+      if (select) select.innerHTML = `<option value="">➕ Register Business</option>`;
+      state.activeBusinessId = null;
+      if (adminBizName) adminBizName.innerText = "No Registered Business";
+    } else {
+      if (noStoreGate) noStoreGate.style.display = 'none';
+      if (!state.activeBusinessId || !state.businesses.find(b => b.id === state.activeBusinessId)) {
+        state.activeBusinessId = state.businesses[0].id;
+      }
 
+      if (select) {
         select.innerHTML = state.businesses.map(b => `
           <option value="${b.id}" ${b.id === state.activeBusinessId ? 'selected' : ''}>${b.name.length > 22 ? b.name.substring(0, 20) + '...' : b.name}</option>
         `).join('') + `<option value="__NEW__">➕ Register New Store...</option>`;
+      }
 
-        const activeBiz = state.businesses.find(b => b.id === state.activeBusinessId);
-        if (adminBizName && activeBiz) {
-          adminBizName.innerText = activeBiz.name;
-        }
+      const activeBiz = state.businesses.find(b => b.id === state.activeBusinessId);
+      if (adminBizName && activeBiz) {
+        adminBizName.innerText = activeBiz.name;
       }
     }
+
+    // Render POS Store Switcher Pills
+    renderPosBusinessSwitcherPills();
+
+    // Populate Analytics Store Dropdown
+    const analyticsSelect = document.getElementById('biz-analytics-store-select');
+    if (analyticsSelect) {
+      const curVal = analyticsSelect.value || 'all';
+      analyticsSelect.innerHTML = `<option value="all">🌐 All Businesses (Aggregated)</option>` +
+        state.businesses.map(b => `<option value="${b.id}" ${b.id === curVal ? 'selected' : ''}>🏢 ${b.name}</option>`).join('');
+    }
+
+    // Refresh Analytics and Business Banking Accounts
+    loadBusinessAnalytics(state.selectedPosBusinessId || 'all');
+    loadBusinessBankingAccounts();
   } catch (e) {
     console.error("Failed to load businesses:", e);
   }
+}
+
+function renderPosBusinessSwitcherPills() {
+  const container = document.getElementById('pos-business-switcher-pills');
+  if (!container) return;
+
+  const isAll = (state.selectedPosBusinessId === 'all');
+  let html = `
+    <button type="button" class="btn-pill-small ${isAll ? 'active' : ''}" onclick="switchPosBusinessFilter('all')" id="btn-biz-filter-all" style="${isAll ? 'background: var(--accent-cyan); color: #000; font-weight: 700;' : ''}">🌐 All Stores</button>
+  `;
+
+  state.businesses.forEach(b => {
+    const isSelected = (state.selectedPosBusinessId === b.id);
+    html += `
+      <button type="button" class="btn-pill-small ${isSelected ? 'active' : ''}" onclick="switchPosBusinessFilter('${b.id}')" style="${isSelected ? 'background: #10b981; color: #fff; font-weight: 700;' : ''}">
+        ${b.logo_url ? `<img src="${b.logo_url}" style="width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; margin-right: 4px;" onerror="this.remove()">` : '🏢 '}
+        ${b.name.length > 18 ? b.name.substring(0, 16) + '...' : b.name}
+      </button>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function switchPosBusinessFilter(bizId) {
+  state.selectedPosBusinessId = bizId;
+  renderPosBusinessSwitcherPills();
+  
+  const analyticsSelect = document.getElementById('biz-analytics-store-select');
+  if (analyticsSelect) {
+    analyticsSelect.value = bizId;
+  }
+
+  loadPosProducts();
+  loadBusinessCatalog();
+  loadBusinessAnalytics(bizId);
 }
 
 function handleLiveBusinessSwitch(bizId) {
@@ -764,7 +839,6 @@ function handleLiveBusinessSwitch(bizId) {
   state.activeBusinessId = bizId;
   console.log(`[MADN] Active business switched to: ${bizId}`);
   
-  // Update admin header text
   const currentBiz = state.businesses.find(b => b.id === bizId);
   const nameEl = document.getElementById('admin-current-biz-name');
   if (nameEl && currentBiz) {
@@ -772,67 +846,356 @@ function handleLiveBusinessSwitch(bizId) {
   }
 
   loadPosProducts();
+  loadBusinessCatalog();
   loadMarketplaceCatalog();
   loadPlantings();
   loadHarvests();
   loadBusinessOperators(bizId);
+  loadBusinessBankingAccounts();
+  loadBusinessAnalytics(bizId);
   updateUIPermissions();
 }
 
 function openCreateBusinessModal() {
-  document.getElementById('modal-overlay').style.display = 'flex';
-  document.getElementById('modal-create-business').style.display = 'block';
-  setTimeout(() => {
-    const el = document.getElementById('new-biz-name');
-    if (el) el.focus();
-  }, 100);
+  document.querySelectorAll('.auth-card').forEach(m => m.style.display = 'none');
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal-create-business');
+  if (overlay && modal) {
+    overlay.style.display = 'flex';
+    modal.style.display = 'block';
+
+    // Reset modular fields
+    state.activeBizFields = {
+      branding: false,
+      contact: false,
+      tax: false,
+      currency: false,
+      web: false,
+      hours: false,
+      policy: false,
+      receipt: false
+    };
+    Object.keys(state.activeBizFields).forEach(k => toggleBizField(k, false));
+
+    state.pendingBizLogo = '';
+    state.pendingBizBanner = '';
+    const logoPrev = document.getElementById('new-biz-logo-preview');
+    const bannerPrev = document.getElementById('new-biz-banner-preview');
+    if (logoPrev) logoPrev.style.display = 'none';
+    if (bannerPrev) bannerPrev.style.display = 'none';
+
+    setTimeout(() => {
+      const el = document.getElementById('new-biz-name');
+      if (el) el.focus();
+    }, 100);
+  }
+}
+
+function toggleBizField(fieldKey, forceState) {
+  const el = document.getElementById(`biz-field-${fieldKey}`);
+  const pill = document.getElementById(`pill-biz-${fieldKey}`);
+  if (!el) return;
+
+  const willShow = forceState !== undefined ? forceState : el.style.display === 'none';
+  el.style.display = willShow ? 'block' : 'none';
+  state.activeBizFields[fieldKey] = willShow;
+
+  if (pill) {
+    if (willShow) {
+      pill.style.background = 'rgba(16, 185, 129, 0.25)';
+      pill.style.color = '#34d399';
+      pill.style.borderColor = '#10b981';
+    } else {
+      pill.style.background = 'rgba(255, 255, 255, 0.06)';
+      pill.style.color = '#fff';
+      pill.style.borderColor = 'transparent';
+    }
+  }
+}
+
+function handleBizLogoUpload(inputEl) {
+  if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+  const file = inputEl.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    state.pendingBizLogo = dataUrl;
+    const urlInput = document.getElementById('new-biz-logo-url');
+    if (urlInput) urlInput.value = dataUrl.substring(0, 48) + '... (embedded image)';
+    const previewBox = document.getElementById('new-biz-logo-preview');
+    const previewImg = document.getElementById('new-biz-logo-img');
+    if (previewBox && previewImg) {
+      previewImg.src = dataUrl;
+      previewBox.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleBizLogoUrlInput(url) {
+  const clean = (url || '').trim();
+  state.pendingBizLogo = clean;
+  const previewBox = document.getElementById('new-biz-logo-preview');
+  const previewImg = document.getElementById('new-biz-logo-img');
+  if (previewBox && previewImg) {
+    if (clean) {
+      previewImg.src = clean;
+      previewBox.style.display = 'block';
+    } else {
+      previewBox.style.display = 'none';
+    }
+  }
+}
+
+function handleBizBannerUpload(inputEl) {
+  if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
+  const file = inputEl.files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    state.pendingBizBanner = dataUrl;
+    const urlInput = document.getElementById('new-biz-banner-url');
+    if (urlInput) urlInput.value = dataUrl.substring(0, 48) + '... (embedded banner)';
+    const previewBox = document.getElementById('new-biz-banner-preview');
+    const previewImg = document.getElementById('new-biz-banner-img');
+    if (previewBox && previewImg) {
+      previewImg.src = dataUrl;
+      previewBox.style.display = 'block';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleBizBannerUrlInput(url) {
+  const clean = (url || '').trim();
+  state.pendingBizBanner = clean;
+  const previewBox = document.getElementById('new-biz-banner-preview');
+  const previewImg = document.getElementById('new-biz-banner-img');
+  if (previewBox && previewImg) {
+    if (clean) {
+      previewImg.src = clean;
+      previewBox.style.display = 'block';
+    } else {
+      previewBox.style.display = 'none';
+    }
+  }
 }
 
 async function submitCreateBusiness() {
-  const name = document.getElementById('new-biz-name').value.trim();
-  const category = document.getElementById('new-biz-category').value;
-  const currency = document.getElementById('new-biz-currency').value;
-  const phone = document.getElementById('new-biz-phone').value.trim();
-  const taxId = document.getElementById('new-biz-tax-id').value.trim();
-  const address = document.getElementById('new-biz-address').value.trim();
-  const header = document.getElementById('new-biz-header').value.trim();
-  const footer = document.getElementById('new-biz-footer').value.trim();
+  const name = (document.getElementById('new-biz-name')?.value || '').trim();
+  const tagline = (document.getElementById('new-biz-tagline')?.value || '').trim();
+  const desc = (document.getElementById('new-biz-desc')?.value || '').trim();
 
   if (!name) {
-    alert("Please enter a Business Name.");
+    alert("Please enter a Business / Store Name.");
     return;
   }
+  if (!tagline) {
+    alert("Please enter a Brief Tagline for your store.");
+    return;
+  }
+
+  // Gather optional modular fields
+  const category = document.getElementById('new-biz-category')?.value || 'Horticulture & Fresh Produce';
+  const currency = document.getElementById('new-biz-currency')?.value || 'USD';
+  const phone = (document.getElementById('new-biz-phone')?.value || '').trim();
+  const email = (document.getElementById('new-biz-email')?.value || '').trim();
+  const taxId = (document.getElementById('new-biz-tax-id')?.value || '').trim();
+  const address = (document.getElementById('new-biz-address')?.value || '').trim();
+  const website = (document.getElementById('new-biz-website')?.value || '').trim();
+  const hours = (document.getElementById('new-biz-hours')?.value || '').trim();
+  const policy = (document.getElementById('new-biz-policy')?.value || '').trim();
+  const header = (document.getElementById('new-biz-header')?.value || '').trim();
+  const footer = (document.getElementById('new-biz-footer')?.value || '').trim();
+
+  const logoUrl = state.pendingBizLogo || (document.getElementById('new-biz-logo-url')?.value || '').trim();
+  const bannerUrl = state.pendingBizBanner || (document.getElementById('new-biz-banner-url')?.value || '').trim();
+
+  const payload = {
+    name: name,
+    tagline: tagline,
+    description: desc,
+    category: category,
+    currency_preference: currency,
+    logo_url: logoUrl,
+    banner_url: bannerUrl,
+    contact_phone: phone,
+    contact_email: email,
+    location_address: address,
+    tax_id: taxId,
+    website_url: website,
+    operating_hours: hours,
+    return_policy: policy,
+    receipt_header: header,
+    receipt_footer_note: footer
+  };
 
   try {
     const res = await secureFetch("/api/businesses", {
       method: "POST",
-      body: JSON.stringify({
-        name: name,
-        category: category,
-        currency_preference: currency,
-        contact_phone: phone,
-        tax_id: taxId,
-        location_address: address,
-        receipt_header: header,
-        receipt_footer_note: footer
-      })
+      body: JSON.stringify(payload)
     });
 
     if (res.ok) {
       const data = await res.json();
       hideModals();
-      document.getElementById('form-create-business').reset();
+      document.getElementById('form-create-business')?.reset();
       await loadBusinesses();
       if (data.business && data.business.id) {
         handleLiveBusinessSwitch(data.business.id);
       }
-      alert(`Business profile "${name}" successfully registered and synchronized to Data Node!`);
+      showSuccessToast(`Store "${name}" created with dedicated Banking Settlement Account! 🏪`);
     } else {
       const err = await res.json();
-      alert("Failed to create business: " + (err.detail || "Unknown error"));
+      alert("Failed to create store: " + (err.detail || "Unknown error"));
     }
   } catch (e) {
-    alert("Network error creating business: " + e.message);
+    alert("Network error creating store: " + e.message);
+  }
+}
+
+// --- MULTI-STORE ANALYTICS HANDLERS ---
+async function loadBusinessAnalytics(bizId = 'all') {
+  try {
+    const res = await secureFetch(`/api/businesses/analytics?business_id=${bizId}&time_range=30d`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const a = data.analytics || {};
+
+    const revEl = document.getElementById('biz-kpi-revenue');
+    const cogsEl = document.getElementById('biz-kpi-cogs');
+    const marginEl = document.getElementById('biz-kpi-margin');
+    const ordersEl = document.getElementById('biz-kpi-orders');
+    const unitsEl = document.getElementById('biz-kpi-units');
+
+    if (revEl) revEl.innerText = `$${(a.gross_revenue_usd || 0).toFixed(2)}`;
+    if (cogsEl) cogsEl.innerText = `$${(a.total_cogs_usd || 0).toFixed(2)}`;
+    if (marginEl) {
+      const margin = a.gross_margin_pct || 0;
+      marginEl.innerText = `${margin.toFixed(1)}%`;
+      marginEl.style.color = margin >= 0 ? '#34d399' : '#f87171';
+    }
+    if (ordersEl) ordersEl.innerText = `${a.transactions_count || 0} orders`;
+    if (unitsEl) unitsEl.innerText = `${a.units_sold_total || 0} units sold (${a.top_selling_items?.length || 0} unique items)`;
+
+    // Render hourly sales chart onto canvas
+    drawHourlySalesChart(a.hourly_sales_distribution || []);
+  } catch (e) {
+    console.error("Failed to load business analytics:", e);
+  }
+}
+
+function drawHourlySalesChart(hourlyData) {
+  const canvas = document.getElementById('sales-chart-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+  ctx.fillRect(0, 0, w, h);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+  ctx.lineWidth = 1;
+  for (let y = 20; y < h; y += 35) {
+    ctx.beginPath();
+    ctx.moveTo(30, y);
+    ctx.lineTo(w - 10, y);
+    ctx.stroke();
+  }
+
+  // Draw 24h bar graph
+  const barWidth = (w - 50) / 24;
+  const maxVal = Math.max(...hourlyData.map(d => d.amount_usd || 0), 10);
+
+  hourlyData.forEach((d, i) => {
+    const val = d.amount_usd || 0;
+    const barHeight = (val / maxVal) * (h - 50);
+    const x = 35 + i * barWidth;
+    const y = h - 25 - barHeight;
+
+    // Gradient bar
+    const grad = ctx.createLinearGradient(0, y, 0, h - 25);
+    grad.addColorStop(0, '#00e5ff');
+    grad.addColorStop(1, 'rgba(0, 229, 255, 0.1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x + 2, y, barWidth - 4, barHeight);
+
+    // X Axis hour label every 4 hours
+    if (i % 4 === 0) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = '9px monospace';
+      ctx.fillText(`${i}:00`, x, h - 8);
+    }
+  });
+}
+
+// --- ENTERPRISE BUSINESS BANKING ACCOUNTS ---
+async function loadBusinessBankingAccounts() {
+  const grid = document.getElementById('business-accounts-grid');
+  if (!grid) return;
+
+  try {
+    const res = await secureFetch("/api/banking/business-accounts");
+    if (!res.ok) return;
+    const data = await res.json();
+    state.businessAccounts = data.accounts || [];
+
+    if (state.businessAccounts.length === 0) {
+      grid.innerHTML = `
+        <div class="glass-panel" style="grid-column: 1 / -1; padding: 28px; text-align: center; background: rgba(255,255,255,0.02);">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">🏢</div>
+          <h4 style="color: #fff; margin-bottom: 4px;">No Business Settlement Accounts</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">Establish a store to automatically generate its dedicated multi-currency settlement wallet.</p>
+          <button class="btn-pill-primary" onclick="openCreateBusinessModal()">+ Register Store Profile</button>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = state.businessAccounts.map(acc => {
+      const balances = acc.balances || {};
+      const currencies = Object.keys(balances);
+
+      return `
+        <div class="glass-panel" style="padding: 20px; border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
+                ${acc.business_logo ? `<img src="${acc.business_logo}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.innerHTML='🏢'">` : '🏢'}
+              </div>
+              <div>
+                <h4 style="margin: 0; font-size: 1.05rem; color: #fff;">${acc.business_name}</h4>
+                <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">Account: <span style="color: var(--accent-cyan); font-weight: 700;">${acc.account_number}</span></div>
+              </div>
+            </div>
+
+            ${acc.business_tagline ? `<p style="font-size: 0.8rem; color: var(--text-muted); margin: 0 0 14px 0; font-style: italic;">"${acc.business_tagline}"</p>` : ''}
+
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Settlement Balances</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 16px;">
+              ${currencies.map(c => `
+                <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                  <div style="font-size: 0.68rem; color: var(--text-muted);">${c}</div>
+                  <div style="font-size: 0.95rem; font-weight: 700; color: #fff; font-family: var(--font-display);">${(balances[c] || 0).toFixed(2)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px;">
+            <button class="btn-pill-small" style="flex-grow: 1; background: rgba(16,185,129,0.15); color: #34d399;" onclick="openTopupModal()">➕ Deposit Funds</button>
+            <button class="btn-pill-small" style="flex-grow: 1; background: rgba(56,189,248,0.15); color: #38bdf8;" onclick="switchPosBusinessFilter('${acc.business_id}')">View Analytics 📊</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error("Failed to load business banking accounts:", e);
   }
 }
 
@@ -1702,12 +2065,27 @@ async function submitHarvest() {
 }
 
 function openAddStoreProductModal() {
+  if (!state.businesses || state.businesses.length === 0) {
+    alert("Store setup required. Please establish a business store first before adding products.");
+    openCreateBusinessModal();
+    return;
+  }
+
   const overlay = document.getElementById('modal-overlay');
   const modal = document.getElementById('modal-add-store-product');
   if (overlay && modal) {
     document.querySelectorAll('.auth-card').forEach(m => m.style.display = 'none');
     overlay.style.display = 'flex';
     modal.style.display = 'block';
+
+    // Populate business store select
+    const bizSelect = document.getElementById('store-product-business-select');
+    if (bizSelect) {
+      bizSelect.innerHTML = state.businesses.map(b => `
+        <option value="${b.id}" ${b.id === state.selectedPosBusinessId || b.id === state.activeBusinessId ? 'selected' : ''}>${b.name}</option>
+      `).join('');
+    }
+
     updateSystemSkuPreview();
   }
 }
@@ -1835,6 +2213,7 @@ function addProductSpecRow(key = '', val = '') {
 }
 
 async function submitAddStoreProduct() {
+  const bizId = document.getElementById('store-product-business-select')?.value || state.activeBusinessId || (state.businesses[0] ? state.businesses[0].id : '');
   const name = document.getElementById('store-product-name-input').value.trim();
   const cost = parseFloat(document.getElementById('store-product-cost-input').value || "0");
   const price = parseFloat(document.getElementById('store-product-price-input').value || "0");
@@ -1879,6 +2258,7 @@ async function submitAddStoreProduct() {
     const res = await secureFetch("/api/inventory", {
       method: "POST",
       body: JSON.stringify({
+        business_id: bizId,
         name: name,
         sku: "", // Automatically assigned by system
         cost_price_usd: cost,
@@ -2457,18 +2837,29 @@ async function loadPosProducts() {
     const res = await secureFetch("/api/pos/promotions");
     if (!res.ok) return;
     const items = await res.json();
-    state.posProducts = items || [];
+    state.allPosProducts = items || [];
+
+    // Filter by selected business store if not 'all'
+    if (state.selectedPosBusinessId && state.selectedPosBusinessId !== 'all') {
+      state.posProducts = state.allPosProducts.filter(p => p.business_id === state.selectedPosBusinessId);
+    } else {
+      state.posProducts = state.allPosProducts;
+    }
+
     updateDashboardLiveFeeds();
 
     const dashCatalog = document.getElementById('dash-catalog-count');
     if (dashCatalog) {
-      dashCatalog.innerText = `● ${state.posProducts.length} Catalog Items`;
+      dashCatalog.innerText = `● ${state.allPosProducts.length} Catalog Items`;
     }
 
     const emptyBox = document.getElementById('pos-empty-store-container');
     const activeTerm = document.getElementById('pos-active-terminal-container');
 
-    if (state.posProducts.length === 0) {
+    if (state.businesses.length === 0) {
+      if (emptyBox) emptyBox.style.display = 'none';
+      if (activeTerm) activeTerm.style.display = 'none';
+    } else if (state.posProducts.length === 0) {
       if (emptyBox) emptyBox.style.display = 'block';
       if (activeTerm) activeTerm.style.display = 'none';
     } else {
@@ -2483,9 +2874,11 @@ async function loadPosProducts() {
       if (state.posProducts.length === 0) {
         select.innerHTML = `<option value="">-- No items in store. Click "+ New Product" --</option>`;
       } else {
-        select.innerHTML = state.posProducts.map(p => `
-          <option value="${p.id}">${p.name} ($${p.current_price_usd.toFixed(2)} / ${p.unit}) - Qty: ${p.quantity}</option>
-        `).join('');
+        select.innerHTML = state.posProducts.map(p => {
+          const b = state.businesses.find(biz => biz.id === p.business_id);
+          const bName = b ? ` [${b.name}]` : '';
+          return `<option value="${p.id}">${p.name}${bName} ($${p.current_price_usd.toFixed(2)} / ${p.unit}) - Qty: ${p.quantity}</option>`;
+        }).join('');
       }
     }
 
@@ -2508,7 +2901,14 @@ async function loadBusinessCatalog() {
     const res = await secureFetch("/api/inventory");
     if (!res.ok) return;
     const data = await res.json();
-    state.businessProducts = Array.isArray(data) ? data : (data.items || []);
+    state.allBusinessProducts = Array.isArray(data) ? data : (data.items || []);
+
+    // Filter by selected business store if not 'all'
+    if (state.selectedPosBusinessId && state.selectedPosBusinessId !== 'all') {
+      state.businessProducts = state.allBusinessProducts.filter(p => p.business_id === state.selectedPosBusinessId);
+    } else {
+      state.businessProducts = state.allBusinessProducts;
+    }
 
     // Populate category filter dropdown
     const catSelect = document.getElementById('catalog-category-filter');
@@ -2569,6 +2969,7 @@ function renderBusinessProductsTable(products) {
           <tr>
             <th style="width: 50px;">Image</th>
             <th>Item & Brand</th>
+            <th>Store</th>
             <th>SKU / Barcode</th>
             <th>Category</th>
             <th>Cost (COGS)</th>
@@ -2583,6 +2984,8 @@ function renderBusinessProductsTable(products) {
             const price = p.price_usd || 0;
             const margin = price > 0 ? (((price - cost) / price) * 100).toFixed(0) : 0;
             const isLowStock = p.quantity <= (p.low_stock_threshold || 5);
+            const b = state.businesses.find(biz => biz.id === p.business_id);
+            const storeName = b ? b.name : 'Store';
             return `
               <tr>
                 <td>
@@ -2593,6 +2996,11 @@ function renderBusinessProductsTable(products) {
                 <td>
                   <div style="font-weight: 700; color: #fff;">${p.name}</div>
                   ${p.brand ? `<div style="font-size: 0.72rem; color: var(--accent-cyan);">🏢 ${p.brand}</div>` : ''}
+                </td>
+                <td>
+                  <span style="padding: 2px 8px; border-radius: 6px; background: rgba(16,185,129,0.15); color: #34d399; font-size: 0.72rem; font-weight: 600;">
+                    ${storeName}
+                  </span>
                 </td>
                 <td>
                   <div style="font-family: monospace; font-size: 0.8rem; color: #38bdf8;">${p.sku || 'N/A'}</div>
@@ -2673,7 +3081,7 @@ async function loadMarketplaceCatalog() {
 }
 
 function quickAddToCart(itemId) {
-  const prod = state.posProducts.find(p => p.id === itemId);
+  const prod = state.allPosProducts ? state.allPosProducts.find(p => p.id === itemId) : state.posProducts.find(p => p.id === itemId);
   if (!prod) return;
   const existing = state.cart.find(c => c.id === itemId);
   if (existing) existing.qty += 1;
@@ -2688,14 +3096,17 @@ function renderCart() {
 
   let total = 0.0;
   if (state.cart.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:16px; color: var(--text-muted);">Cart is empty.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:16px; color: var(--text-muted);">Cart is empty.</td></tr>`;
   } else {
     tbody.innerHTML = state.cart.map((c, idx) => {
       const subtotal = c.current_price_usd * c.qty;
       total += subtotal;
+      const b = state.businesses.find(biz => biz.id === c.business_id);
+      const storeName = b ? b.name : 'Store';
       return `
         <tr>
           <td><strong>${c.name}</strong></td>
+          <td><span style="padding: 2px 6px; border-radius: 4px; background: rgba(16,185,129,0.15); color: #34d399; font-size: 0.72rem;">${storeName}</span></td>
           <td>${c.qty}</td>
           <td>$${c.current_price_usd.toFixed(2)}</td>
           <td><strong>$${subtotal.toFixed(2)}</strong></td>

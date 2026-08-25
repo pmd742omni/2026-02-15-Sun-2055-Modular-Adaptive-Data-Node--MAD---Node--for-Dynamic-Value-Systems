@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) System Internals & Low-Level Subsystem Reference Manual
 
-**Document Edition**: 1.19.3 | **Codename Target**: Ingxubevange (Diverse Mixture / Multi-Asset Fusion)  
+**Document Edition**: 1.19.6 | **Codename Target**: Inzuzo (Enterprise Revenue, Profit Analytics & Multi-Store Banking Settlement)  
 **Host Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Workspace Root**: `../../` (Relative to project workspace base)  
 **Audience**: Systems Architects, Embedded Systems Engineers, Security Analysts, and Autonomous AI Coding Agents
@@ -12,9 +12,37 @@
 The Modular Adaptive Data Node (MADN) is a zero-internet, physics-grounded, dynamic-value edge computing architecture designed for resilient operation across resource-constrained, decentralized agricultural, security, and retail environments. 
 
 The software system implements a decoupled, heterogeneous **Tri-Node Topology** comprising:
-1. **Operator Node**: Zero-installation web client executing inside modern web browsers (`./frontend/index.html` at `http://127.0.0.1:8000`), providing touch POS registers, dynamic multi-currency banking, personal receipt vaults, world currency collision validation, and real-time node lifecycle management controls.
+1. **Operator Node**: Zero-installation web client executing inside modern web browsers (`./frontend/index.html` at `http://127.0.0.1:8000`), providing touch POS registers, dynamic multi-currency banking, personal receipt vaults, world currency collision validation, multi-store switcher pills, modular dynamic field store creators, and real-time node lifecycle management controls.
 2. **Data Node**: Standalone edge caching and discovery daemon (`../Data_Node/data_node.py` at `http://127.0.0.1:8002`), managing local key-value storage (`kv_records`), continuous online/offline collection of 170+ ISO 4217 fiat and 50+ cryptocurrency references (`../Data_Node/currency_collector.py`), enforcing remote lifecycle activation states (`/api/node/activate`, `/api/node/deactivate`), and broadcasting periodic UDP multicast heartbeats (`224.0.0.251:8001`).
-3. **Vault Node**: High-security central coordinator and extensible multi-currency tri-ledger (`./backend/main.py` at `http://127.0.0.1:8000`), enforcing `scrypt`/TOTP authentication, SQLite Write-Ahead Logging (WAL) concurrency with `BEGIN IMMEDIATE` locks, HMAC-SHA256 bearer vouchers, digital receipt hashes, world currency collision-prevention, and the **Portable Node Generator Engine** (`../node_generator.py`).
+3. **Vault Node**: High-security central coordinator and extensible multi-currency tri-ledger (`./backend/main.py` at `http://127.0.0.1:8000`), enforcing `scrypt`/TOTP authentication, SQLite Write-Ahead Logging (WAL) concurrency with `BEGIN IMMEDIATE` locks, HMAC-SHA256 bearer vouchers, digital receipt hashes, world currency collision-prevention, dedicated enterprise business wallets (`BIZ-ACC-...`), multi-store checkout revenue routing, and the **Portable Node Generator Engine** (`../node_generator.py`).
+
+---
+
+## 10. Multi-Enterprise Store Engine & Dynamic Revenue Routing
+
+### 10.1 Store Setup Prerequisite Enforcement
+The system mandates that an operator must establish at least one active Business Enterprise Profile prior to creating inventory items or recording harvests:
+- **Backend Gatekeeper**: `POST /api/inventory` inspects `COUNT(id) FROM businesses WHERE is_active = 1`. If zero stores exist, the endpoint returns `HTTP 400 Bad Request` with `detail: "Store setup required"`.
+- **Frontend Gatekeeper**: The operator UI renders `#vpa3-no-store-container`, shielding catalog tables and POS registers behind a prominent setup banner.
+
+### 10.2 Modular Dynamic Field Store Intake
+Operators dynamically compose store profiles by activating modular attribute pills:
+* **Mandatory**: Business Name, Tagline, Description.
+* **Branding**: Base64 / URL Store Logo & Storefront Hero Banner.
+* **Contact & Location**: Phone, Email, Physical Address.
+* **Compliance & Taxonomy**: Tax ID / VAT Number, Industry Category.
+* **Settlement & Operations**: Preferred Settlement Currency, Operating Hours, Return Policy, Receipt Header / Footer Notes.
+
+### 10.3 Enterprise Business Settlement Accounts & Banking
+Creating a business automatically provisions a dedicated enterprise banking account:
+* Account Number: `BIZ-ACC-<HEX8>` in `wallets` with `account_type='business'` and `business_id='biz-<hex8>'`.
+* Multi-Currency Balances: Sovereign zero-seed initialization in `wallet_balances` (USD, ZAR, ZWG, and custom community tokens).
+
+### 10.4 Unified Multi-Store POS Cart Checkout & Cryptographic Revenue Settlement
+A single customer cart can contain products belonging to multiple distinct stores. During checkout:
+$$\text{Revenue credit to Store } k: \quad R_k = \sum_{i \in \text{Cart}, \, \text{biz}(i) = k} \Big(q_i \times P_i\Big)$$
+Each store's dedicated wallet is credited under `BEGIN IMMEDIATE` locks with signed HMAC-SHA256 ledger records:
+$$\sigma_{\text{settlement}} = \text{HMAC-SHA256}\Big(K_{\text{vault}}, \; \text{wtx\_id} \parallel \text{account\_number} \parallel \text{"pos\_sale"} \parallel R_k \parallel \text{balance\_after}\Big)$$
 
 
 ```mermaid

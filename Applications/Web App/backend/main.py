@@ -27,7 +27,7 @@ try:
         log_harvest_and_sync_inventory, list_harvests, list_dispositions,
         checkin_visitor, checkout_visitor, list_visitors, get_active_visitors,
         create_social_post, list_social_posts, add_social_comment, get_social_comments, tip_social_post,
-        create_business, get_all_businesses, get_business_by_id,
+        create_business, get_all_businesses, get_business_by_id, get_business_banking_accounts, get_business_sales_analytics,
         mint_offline_voucher, verify_and_redeem_voucher, get_voucher_by_id, generate_receipt_data,
         assign_business_operator, get_business_operators, get_operator_permissions, revoke_business_operator, has_business_permission,
         get_all_currencies, get_currency_by_code, add_currency, update_currency, delete_currency, sync_all_collections_to_data_nodes,
@@ -59,7 +59,7 @@ except ImportError:
         log_harvest_and_sync_inventory, list_harvests, list_dispositions,
         checkin_visitor, checkout_visitor, list_visitors, get_active_visitors,
         create_social_post, list_social_posts, add_social_comment, get_social_comments, tip_social_post,
-        create_business, get_all_businesses, get_business_by_id,
+        create_business, get_all_businesses, get_business_by_id, get_business_banking_accounts, get_business_sales_analytics,
         mint_offline_voucher, verify_and_redeem_voucher, get_voucher_by_id, generate_receipt_data,
         assign_business_operator, get_business_operators, get_operator_permissions, revoke_business_operator, has_business_permission,
         get_all_currencies, get_currency_by_code, add_currency, update_currency, delete_currency, sync_all_collections_to_data_nodes,
@@ -1126,11 +1126,21 @@ async def add_new_stock_item(request: Request, current_user = Depends(get_curren
         
     if cost_price < 0:
         raise HTTPException(status_code=400, detail="Cost price cannot be negative")
+
+    db = get_db()
+    cursor_b = db.execute("SELECT id FROM businesses WHERE is_active = 1")
+    all_b = cursor_b.fetchall()
+    if not all_b:
+        db.close()
+        raise HTTPException(status_code=400, detail="Store setup required. Please create a business/store before adding inventory items.")
+        
+    valid_b_ids = [r["id"] for r in all_b]
+    if business_id not in valid_b_ids:
+        business_id = valid_b_ids[0]
         
     if not sku:
         sku = generate_system_sku(name, category)
 
-    db = get_db()
     cursor = db.execute("SELECT id FROM inventory WHERE name = ? OR (sku != '' AND sku = ?)", (name, sku))
     if cursor.fetchone():
         db.close()
@@ -1162,6 +1172,7 @@ async def add_new_stock_item(request: Request, current_user = Depends(get_curren
     return {
         "status": "success",
         "id": item_id,
+        "item_id": item_id,
         "name": name,
         "sku": sku,
         "price_usd": price,
@@ -1758,22 +1769,66 @@ def list_businesses_endpoint():
 
 @app.post("/api/businesses", dependencies=[Depends(get_current_user)])
 async def create_business_endpoint(request: Request, current_user = Depends(get_current_user)):
-    """Register a new business enterprise profile."""
+    """Register a new business enterprise profile with modular dynamic fields and dedicated banking account."""
     body = await request.json()
     name = body.get("name", "").strip()
-    category = body.get("category", "Horticulture & Fresh Produce").strip()
+    category = body.get("category", "General Retail & Wholesale").strip() or "General Retail & Wholesale"
+    tagline = body.get("tagline", "").strip()
+    description = body.get("description", "").strip()
+    logo_url = body.get("logo_url", "").strip()
+    banner_url = body.get("banner_url", "").strip()
     phone = body.get("contact_phone", "").strip()
+    email = body.get("contact_email", "").strip()
     address = body.get("location_address", "").strip()
     tax_id = body.get("tax_id", "").strip()
+    website = body.get("website_url", "").strip()
+    hours = body.get("operating_hours", "").strip()
+    return_policy = body.get("return_policy", "").strip()
     header = body.get("receipt_header", "").strip()
     footer = body.get("receipt_footer_note", "").strip()
     curr = body.get("currency_preference", "USD").strip()
+    extra_attributes = body.get("extra_attributes") or {}
 
     if not name:
-        raise HTTPException(status_code=400, detail="Business name is required.")
+        raise HTTPException(status_code=400, detail="Business / Store Name is required.")
 
-    biz = create_business(name, category, phone, address, tax_id, header, footer, curr, current_user["username"])
+    if not tagline and not description:
+        raise HTTPException(status_code=400, detail="Tagline or Description is required for store overview.")
+
+    biz = create_business(
+        name=name,
+        category=category,
+        tagline=tagline,
+        description=description,
+        logo_url=logo_url,
+        banner_url=banner_url,
+        contact_phone=phone,
+        contact_email=email,
+        location_address=address,
+        tax_id=tax_id,
+        website_url=website,
+        operating_hours=hours,
+        return_policy=return_policy,
+        receipt_header=header,
+        receipt_footer_note=footer,
+        currency_preference=curr,
+        owner_username=current_user["username"],
+        extra_attributes=extra_attributes
+    )
+    write_audit_log(current_user["username"], "STORE_CREATED", f"Registered new business enterprise '{name}' (ID: {biz['id']}, Bank: {biz['bank_account_number']})")
     return {"status": "success", "business": biz}
+
+@app.get("/api/businesses/analytics")
+def get_business_analytics_endpoint(business_id: str = None, time_range: str = "24h", current_user = Depends(get_current_user)):
+    """Retrieve sales revenue, margins, COGS, and velocity for a single business or aggregated across all."""
+    analytics = get_business_sales_analytics(business_id=business_id, time_range=time_range)
+    return {"status": "success", "analytics": analytics}
+
+@app.get("/api/banking/business-accounts")
+def get_business_banking_accounts_endpoint(current_user = Depends(get_current_user)):
+    """Retrieve all business settlement accounts with live multi-currency balances."""
+    accounts = get_business_banking_accounts(owner_username=current_user["username"])
+    return {"status": "success", "accounts": accounts}
 
 @app.get("/api/businesses/{biz_id}")
 def get_business_endpoint(biz_id: str):

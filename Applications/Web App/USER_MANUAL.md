@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) — Operations Manual & User Guide
 
-**Document Version**: 1.19.3 (*Ingxubevange*)  
+**Document Version**: 1.19.6 (*Inzuzo*)  
 **Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Portable Launcher**: `../start.py` (Relative to `Applications/Web App/`)  
 **Target Environment**: Edge Nodes (Raspberry Pi 4 / CM4, Linux / Windows / macOS Laptops & Mobile Tablets)
@@ -10,26 +10,54 @@
 ## Table of Contents
 1. [System Overview & Operating Principles](#1-system-overview--operating-principles)
 2. [How to Run the Application & Auto-Launch Browser](#2-how-to-run-the-application--auto-launch-browser)
-   - [2.1 Quick Start (Single-Command Execution)](#21-quick-start-single-command-execution)
-   - [2.2 Available CLI Options](#22-available-cli-options)
-   - [2.3 Manual Server Launch (Direct Uvicorn)](#23-manual-server-launch-direct-uvicorn)
-   - [2.4 Running Automated Verification Tests](#24-running-automated-verification-tests)
 3. [User Authentication & Demo Accounts](#3-user-authentication--demo-accounts)
-   - [3.1 Demo Accounts & Passwords](#31-demo-accounts--passwords)
-   - [3.2 Quick Demo Role Login Buttons](#32-quick-demo-role-login-buttons)
-   - [3.3 Multi-Factor Authentication (TOTP)](#33-multi-factor-authentication-totp)
-4. [Dynamic Multi-Currency & World Catalog Collision Prevention](#4-dynamic-multi-currency--world-catalog-collision-prevention)
-   - [4.1 Managing Active Currencies & Personalized Virtual Tokens](#41-managing-active-currencies--personalized-virtual-tokens)
-   - [4.2 Real-Time Collision Prevention & Adoption](#42-real-time-collision-prevention--adoption)
-   - [4.3 World Currency & Crypto Catalog Explorer](#43-world-currency--crypto-catalog-explorer)
-5. [Customer Digital Banking & Receipt Vault](#5-customer-digital-banking--receipt-vault)
-   - [5.1 Sovereign Multi-Currency Wallet](#51-sovereign-multi-currency-wallet)
-   - [5.2 Peer-to-Peer (P2P) Fund Transfers](#52-peer-to-peer-p2p-fund-transfers)
-   - [5.3 Converting Offline Bearer Vouchers to Wallet Balance](#53-converting-offline-bearer-vouchers-to-wallet-balance)
-   - [5.4 Personal Receipt Vault Archiving & PDF Downloads](#54-personal-receipt-vault-archiving--pdf-downloads)
-6. [Cluster Topology, Portable Node Export & Remote Lifecycle](#6-cluster-topology-portable-node-export--remote-lifecycle)
-7. [Multi-Tenant Business Operator Management](#7-multi-tenant-business-operator-management)
-8. [Troubleshooting & FAQs](#8-troubleshooting--faqs)
+4. [Multi-Enterprise Store Setup & Unified POS Register](#4-multi-enterprise-store-setup--unified-pos-register)
+5. [Dynamic Multi-Currency & World Catalog Collision Prevention](#5-dynamic-multi-currency--world-catalog-collision-prevention)
+6. [Customer & Business Digital Banking](#6-customer--business-digital-banking)
+7. [Cluster Topology, Portable Node Export & Remote Lifecycle](#7-cluster-topology-portable-node-export--remote-lifecycle)
+8. [Multi-Tenant Business Operator Management](#8-multi-tenant-business-operator-management)
+9. [Troubleshooting & FAQs](#9-troubleshooting--faqs)
+
+---
+
+## 4. Multi-Enterprise Store Setup & Unified POS Register
+
+### 4.1 Store Setup Prerequisite
+Before an operator can register inventory products or log crop harvests, at least one store must be created:
+1. Open the **`🏬 Business`** tab.
+2. If no stores exist, click **`+ Set Up Business Store`**.
+3. Complete the mandatory fields:
+   - **Business / Store Name**: e.g., *Umguza Valley Organics*
+   - **Tagline**: e.g., *Fresh Soil-Grown Vegetables*
+   - **Description**: e.g., *Agro-ecological family farm.*
+4. Select modular optional pills:
+   - `+ 🖼️ Logo & Banner`: Upload image files or paste image URLs.
+   - `+ 📞 Contact & Location`: Add phone, email, and farm/store address.
+   - `+ 🏷️ Tax ID & Industry`: Add VAT registration and category.
+   - `+ 💳 Settlement Currency`: Choose default accounting currency.
+   - `+ ⏰ Operating Hours` & `+ 🛡️ Return Policy`.
+5. Click **`Register Store & Open Banking Wallet 🚀`**.
+
+### 4.2 Adding Store Products
+1. Click **`+ Add Store Product`**.
+2. Select which store owns the item from the **Assigned Business / Store** dropdown.
+3. Provide item details, cost price (COGS), selling price, unit, stock quantity, and optional specifications.
+
+### 4.3 Unified Multi-Store POS Checkout
+1. Add items from multiple different stores to the same POS cart.
+2. Enter tendered amounts (cash USD, ZAR, ZWG, or Digital Wallet balance).
+3. Complete checkout. The backend automatically routes each store's proceeds to its own dedicated `BIZ-ACC-...` wallet!
+
+### 4.4 Business Sales & Spoilage Analytics
+1. Use the **`🌐 All Stores`** or store-specific filter switcher pills.
+2. View Gross Revenue, Total Cost of Goods Sold (COGS), Gross Profit Margin %, and the 24-hour hourly velocity chart.
+
+---
+
+## 8. Troubleshooting & FAQs
+
+* **Port Already in Use**: If port `8000` or `8002` is in use by another instance, inspect active ports with `python Applications/start.py --status`.
+* **Database Reset**: To re-seed clean databases with authentic 0.00 balances, delete `Applications/Web App/backend/data_store/` and run `python Applications/start.py`.
 
 ---
 

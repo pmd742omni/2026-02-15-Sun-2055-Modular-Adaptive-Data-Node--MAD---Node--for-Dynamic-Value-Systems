@@ -22,6 +22,12 @@ def auth_session():
     assert login_res.status_code == 200
     csrf = login_res.cookies.get("csrf_token", "")
     headers = {"X-CSRF-Token": csrf}
+    # Ensure a business store exists so inventory can be added
+    c.post("/api/businesses", json={
+        "name": "Umguza Agri Farm & Agro-Hub",
+        "tagline": "Organic agricultural produce and agro-supplies",
+        "description": "Primary agricultural demonstration hub"
+    }, headers=headers)
     return c, headers
 
 def test_01_verify_no_dummy_data_on_startup(auth_session):

@@ -133,10 +133,14 @@
     - `+ 📝 Description & Specs`: Textarea plus dynamic key-value spec rows with `+ Add Custom Specification`
     - `+ 💎 Wholesale Price`: Bulk tier unit price & minimum order quantity
     - `+ ⚠️ Low Stock Threshold`: Custom alert trigger
-- `[x]` **Decentralized Data Node Replication & Integration Tests**
-  - `[x]` Immediate background replication of all registered products to standalone Data Node (`:8002`) key-value storage
-  - `[x]` Automated integration tests in `./backend/test_agri_fields_and_store.py` (100% pass rate)
-  - `[x]` Full test regression matrix: 39 passed, 3 skipped live server tests, 0 failed
+- `[x]` **Store Setup Prerequisite & Multi-Enterprise Business Banking (Version 1.19.6 - Inzuzo)**
+  - `[x]` Enforced store setup prerequisite: Gated inventory addition behind mandatory business store creation in `./backend/database.py` and `POST /api/inventory` (HTTP 400 when 0 stores exist)
+  - `[x]` Modular dynamic field choice store creation modal (`#modal-create-business`) with mandatory fields (`name`, `tagline`, `description`) and modular pills (`Logo & Banner`, `Contact & Location`, `Tax ID & Industry`, `Settlement Currency`, `Operating Hours`, `Return Policy`, `Receipt Footer`)
+  - `[x]` Auto-provisioned dedicated enterprise banking accounts (`BIZ-ACC-...`) in `wallets` table with multi-currency balance tracking
+  - `[x]` Multi-store unified POS cart checkout routing proceeds directly to respective business wallets with HMAC-SHA256 ledger signatures
+  - `[x]` Multi-business sales analytics dashboard (`GET /api/businesses/analytics`) calculating Gross Revenue, COGS, Profit Margins, and 24h velocity for single stores or aggregated across all stores
+  - `[x]` Automated test suite `./backend/test_store_setup_and_multibiz_banking.py` (100% pass rate)
+  - `[x]` Full regression matrix: 42 passed, 3 skipped live server tests, 0 failed
 
 ---
 
