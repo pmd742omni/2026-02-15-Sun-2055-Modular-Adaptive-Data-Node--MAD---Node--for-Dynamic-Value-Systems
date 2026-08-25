@@ -123,6 +123,7 @@ def init_db():
         full_name TEXT DEFAULT '',
         phone TEXT DEFAULT '',
         email TEXT DEFAULT '',
+        avatar_url TEXT DEFAULT '',
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
         last_login_at INTEGER,
@@ -134,6 +135,11 @@ def init_db():
         pin TEXT DEFAULT '1234'
     );
     """)
+    
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT '';")
+    except Exception:
+        pass
     
     db.execute("""
     CREATE TABLE IF NOT EXISTS password_history (
@@ -3392,6 +3398,7 @@ def get_user_profile(user_id_or_username) -> Optional[dict]:
             "full_name": user_dict.get("full_name") or "",
             "phone": user_dict.get("phone") or "",
             "email": user_dict.get("email") or "",
+            "avatar_url": user_dict.get("avatar_url") or "",
             "role": user_dict["role"],
             "status": user_dict["status"],
             "created_at": user_dict["created_at"],
@@ -3409,8 +3416,8 @@ def get_user_profile(user_id_or_username) -> Optional[dict]:
         }
 
 
-def update_user_profile(user_id: int, full_name: str = None, phone: str = None, email: str = None, new_username: str = None, pin: str = None) -> dict:
-    """Updates operator profile fields and safely cascades username modifications."""
+def update_user_profile(user_id: int, full_name: str = None, phone: str = None, email: str = None, new_username: str = None, pin: str = None, avatar_url: str = None) -> dict:
+    """Updates operator profile fields, profile picture, and safely cascades username modifications."""
     now = int(time.time())
     with get_db() as db:
         cursor = db.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -3432,13 +3439,15 @@ def update_user_profile(user_id: int, full_name: str = None, phone: str = None, 
             
             target_username = clean_user
             
-            # Cascade username update across related tables
+            # Temporarily disable foreign keys during cascading username update to prevent constraint failure
+            db.execute("PRAGMA foreign_keys = OFF;")
             db.execute("UPDATE users SET username = ? WHERE id = ?", (target_username, user_id))
             db.execute("UPDATE wallets SET username = ? WHERE username = ?", (target_username, old_username))
             db.execute("UPDATE business_operators SET username = ? WHERE username = ?", (target_username, old_username))
             db.execute("UPDATE business_operators SET granted_by = ? WHERE granted_by = ?", (target_username, old_username))
             db.execute("UPDATE customer_receipts SET customer_username = ? WHERE customer_username = ?", (target_username, old_username))
             db.execute("UPDATE businesses SET owner_username = ? WHERE owner_username = ?", (target_username, old_username))
+            db.execute("PRAGMA foreign_keys = ON;")
 
         updates = []
         params = []
@@ -3451,12 +3460,16 @@ def update_user_profile(user_id: int, full_name: str = None, phone: str = None, 
         if email is not None:
             updates.append("email = ?")
             params.append(email.strip())
+        if avatar_url is not None:
+            updates.append("avatar_url = ?")
+            params.append(avatar_url.strip())
         if pin is not None:
             clean_pin = pin.strip()
             if clean_pin and (len(clean_pin) != 4 or not clean_pin.isdigit()):
                 raise ValueError("Security PIN must be exactly 4 digits")
-            updates.append("pin = ?")
-            params.append(clean_pin)
+            if clean_pin:
+                updates.append("pin = ?")
+                params.append(clean_pin)
 
         updates.append("updated_at = ?")
         params.append(now)

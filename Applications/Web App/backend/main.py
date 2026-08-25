@@ -587,6 +587,7 @@ class ProfileUpdatePayload(BaseModel):
     email: Optional[str] = None
     username: Optional[str] = None
     pin: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 @app.get("/api/user/profile")
 async def get_current_user_profile_endpoint(current_user = Depends(get_current_user)):
@@ -598,7 +599,7 @@ async def get_current_user_profile_endpoint(current_user = Depends(get_current_u
 
 @app.put("/api/user/profile")
 async def update_current_user_profile_endpoint(payload: ProfileUpdatePayload, current_user = Depends(get_current_user)):
-    """Updates contact details, PIN, and dynamic username for the authenticated operator."""
+    """Updates contact details, PIN, profile picture, and dynamic username for the authenticated operator."""
     try:
         updated = update_user_profile(
             user_id=current_user["user_id"],
@@ -606,7 +607,8 @@ async def update_current_user_profile_endpoint(payload: ProfileUpdatePayload, cu
             phone=payload.phone,
             email=payload.email,
             new_username=payload.username,
-            pin=payload.pin
+            pin=payload.pin,
+            avatar_url=payload.avatar_url
         )
         return {"status": "success", "message": "Profile successfully updated", "profile": updated}
     except ValueError as e:

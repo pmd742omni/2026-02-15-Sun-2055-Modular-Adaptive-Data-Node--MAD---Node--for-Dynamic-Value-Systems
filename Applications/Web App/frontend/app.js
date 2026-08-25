@@ -496,8 +496,16 @@ function updateUserUI(user) {
   const avatarPic = document.getElementById('user-avatar-pic');
   const roleSelect = document.getElementById('role-switcher-select');
 
-  if (profileUser) profileUser.innerText = user.username;
-  if (avatarPic) avatarPic.innerText = user.username.charAt(0).toUpperCase();
+  const displayName = user.full_name || user.username || 'Operator';
+  if (profileUser) profileUser.innerText = displayName;
+  
+  if (avatarPic) {
+    if (user.avatar_url) {
+      avatarPic.innerHTML = `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    } else {
+      avatarPic.innerHTML = displayName.charAt(0).toUpperCase();
+    }
+  }
 
   const roleClassMap = {
     admin: 'role-badge-admin',
@@ -583,9 +591,9 @@ async function openProfileModal() {
     }
     const profile = await res.json();
     state.operatorProfile = profile;
+    state.pendingProfileAvatar = profile.avatar_url || '';
 
     // Populate modal elements
-    const avatarEl = document.getElementById('profile-modal-avatar');
     const titleEl = document.getElementById('profile-modal-title');
     const roleBadgeEl = document.getElementById('profile-modal-role-badge');
     const accEl = document.getElementById('profile-modal-acc-num');
@@ -600,7 +608,8 @@ async function openProfileModal() {
     const pinInput = document.getElementById('profile-input-pin');
 
     const displayName = profile.full_name || profile.username;
-    if (avatarEl) avatarEl.innerText = displayName.charAt(0).toUpperCase();
+    renderProfileModalAvatarPreview(state.pendingProfileAvatar, displayName);
+
     if (titleEl) titleEl.innerText = `${displayName}'s Profile`;
     if (roleBadgeEl) {
       roleBadgeEl.innerText = (profile.role || 'OPERATOR').toUpperCase();
@@ -628,6 +637,62 @@ async function openProfileModal() {
   }
 }
 
+function renderProfileModalAvatarPreview(avatarUrl, fallbackName) {
+  const avatarEl = document.getElementById('profile-modal-avatar');
+  if (!avatarEl) return;
+  const name = fallbackName || document.getElementById('profile-input-fullname')?.value || document.getElementById('profile-input-username')?.value || 'A';
+  if (avatarUrl) {
+    avatarEl.innerHTML = `<img src="${avatarUrl}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+  } else {
+    avatarEl.innerHTML = name.trim().charAt(0).toUpperCase() || 'A';
+  }
+}
+
+function handleProfileAvatarUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showErrorToast("Please select a valid image file (PNG, JPG, WebP).");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 256;
+      let w = img.width;
+      let h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      state.pendingProfileAvatar = compressedDataUrl;
+      renderProfileModalAvatarPreview(compressedDataUrl);
+      showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProfileAvatar() {
+  state.pendingProfileAvatar = "";
+  renderProfileModalAvatarPreview("");
+  showSuccessToast("Profile photo removed. Click 'Save Profile Settings' to save.");
+}
+
 async function submitSaveProfile() {
   const fnInput = document.getElementById('profile-input-fullname');
   const unInput = document.getElementById('profile-input-username');
@@ -635,12 +700,25 @@ async function submitSaveProfile() {
   const emInput = document.getElementById('profile-input-email');
   const pinInput = document.getElementById('profile-input-pin');
 
+  const username = unInput ? unInput.value.trim() : "";
+  if (!username || username.length < 3) {
+    showErrorToast("Username must be at least 3 characters long.");
+    return;
+  }
+
+  const pin = pinInput ? pinInput.value.trim() : "";
+  if (pin && (pin.length !== 4 || !/^\d{4}$/.test(pin))) {
+    showErrorToast("Security PIN must be exactly 4 digits.");
+    return;
+  }
+
   const payload = {
     full_name: fnInput ? fnInput.value.trim() : "",
-    username: unInput ? unInput.value.trim() : "",
+    username: username,
     phone: phInput ? phInput.value.trim() : "",
     email: emInput ? emInput.value.trim() : "",
-    pin: pinInput ? pinInput.value.trim() : ""
+    pin: pin,
+    avatar_url: state.pendingProfileAvatar || ""
   };
 
   try {
@@ -659,6 +737,8 @@ async function submitSaveProfile() {
     showSuccessToast("Operator profile updated successfully! 💾");
     if (data.profile) {
       state.user.username = data.profile.username;
+      state.user.full_name = data.profile.full_name;
+      state.user.avatar_url = data.profile.avatar_url;
       updateUserUI(state.user);
     }
     hideModals();

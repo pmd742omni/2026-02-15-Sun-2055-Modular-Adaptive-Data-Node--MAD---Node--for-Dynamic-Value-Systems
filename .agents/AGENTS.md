@@ -51,6 +51,12 @@ Whenever developing frontend navigation or subview controllers:
 2. UI containers must initialize with `display: none;` where appropriate to prevent initial visual bleed before state evaluation.
 3. Clean domain route names (`agriculture`, `security`, `business`, `banking`, `social`, `cluster`, `admin`, `tutorials`) must be used exclusively.
 
+## 9. Sovereign Operator Profile & Coherent VisionPro Form Aesthetics Rule
+Whenever developing form inputs, authentication, or operator profile management:
+1. **Autofill Shielding**: Form inputs must enforce dark glassmorphic backgrounds via `-webkit-autofill` inset box-shadow overrides and `color-scheme: dark;` to prevent bright white browser autofill bleeding.
+2. **Coherent Non-Intrusive Validation**: All `<form>` tags must include `novalidate` to suppress jarring OS/browser native validation balloons. All validation feedback must strictly utilize glassmorphic toast notifications (`showErrorToast`, `showSuccessToast`) or subtle inline glowing labels.
+3. **Operator Identity & Avatar Customization**: Operator profiles must support client-side image compression ($\le 256\times 256$ Canvas data URLs), live visual previews, and foreign-key safe database cascading across all sub-ledgers.
+
 ---
 
 ## Tri-Node Architecture & Composable Dynamic Value Systems Standard

@@ -62,7 +62,7 @@ Every user account receives a sovereign multi-currency digital wallet (`ACC-2026
 Universal multi-subsystem milestone release pipeline verification
 
 
-<!-- Milestone Feature Synchronization: 2026-08-25 Tue 1907 -->
+<!-- Milestone Feature Synchronization: 2026-08-25 Tue 2018 -->
 Fast Universal Release Orchestrator
 
 
@@ -84,3 +84,60 @@ The MADN architecture implements a decoupled, field-selectable inventory model w
 
 4. **Empty-State POS Bypass & Data Node Replication**:
    When inventory count $N = 0$, the checkout terminal is systematically bypassed, rendering an operator setup intake form. Every registered item is asynchronously replicated to decentralized Data Nodes (`http://127.0.0.1:8002/api/node/data/inventory`) ensuring complete offline continuity.
+
+
+### 4.4.8 Multi-Enterprise Store Architecture & Modular Dynamic Field Engine
+
+The Modular Adaptive Data Node (MADN) enforces a strict **Store Setup Prerequisite** across all commercial operations. Prior to the registration of inventory, products, or farm harvest batches, an operator must establish at least one active Business Enterprise Profile.
+
+```mermaid
+graph TD
+    A[Operator Intake] -->|Step 1: Required| B[Modular Store Setup Engine]
+    B --> C[Assign Public Brand Assets & Dynamic Metadata]
+    B --> D[Provision Dedicated Business Wallet BIZ-ACC-XXXX]
+    D --> E[Zero-Seed Balances: USD, ZAR, ZWG, Tokens]
+    C --> F[Gatekeeper Unlocks Product Intake & POS]
+    F --> G[Unified Multi-Store POS Register]
+    G -->|Multi-Tenant Cart Checkout| H[Cryptographic Revenue Routing]
+    H -->|Item Total 1| D
+    H -->|Item Total 2| I[Store 2 Wallet BIZ-ACC-YYYY]
+```
+
+#### Modular Dynamic Field Choice System
+The store setup workflow empowers operators to dynamically activate optional metadata fields tailored to their enterprise domain:
+- **Mandatory Brand Identity**: Store Name, Tagline, Overview Description.
+- **Visual Brand Assets**: Base64 data URI / Remote URL Store Logo and Storefront Hero Banner.
+- **Commercial Contact & Physical Footprint**: Official Phone, Email Address, Physical Location Address.
+- **Enterprise Compliance**: Tax ID (VAT / ZIMRA / SARS Registration), Industry Category taxonomy.
+- **Settlement & Operations**: Preferred Settlement Currency (`USD`, `ZAR`, `ZWG`, Community Tokens), Operating Hours, Freshness / Return Policies.
+- **Receipt Customization**: Custom Header Text and Customer Appreciation Footer Notes.
+
+#### Multi-Store Unified POS Checkout & Cryptographic Revenue Settlement
+When an operator conducts a Point of Sale sale containing products belonging to multiple distinct stores in a single cart:
+1. **Cart Decomposition**: The Vault Node groups cart items by `business_id`.
+2. **Dedicated Ledger Credits**: For each store $k$, the gross sales revenue $R_k = \sum_{j \in 	ext{Store}_k} (q_j 	imes P_j)$ is credited directly into that store's dedicated wallet `BIZ-ACC-...`.
+3. **HMAC-Signed Ledger Records**: Every credit is committed using SQLite `BEGIN IMMEDIATE` with an HMAC-SHA256 bearer signature validating `wtx_id`, `account_number`, and post-transaction balance.
+4. **Isolated & Aggregated Profit Analytics**: Analytics endpoints evaluate Gross Sales Revenue, COGS, Gross Profit Margin %, and 24-hour velocity on both a single-store filter and an aggregated multi-enterprise basis.
+
+
+### 4.2.9 Dynamic Progressive Disclosure & Condition-Gated Subsystem Architecture
+To ensure accessibility for non-technical retail operators and prevent cognitive overload, the MADN user experience adheres to a formal **Progressive Disclosure State Machine**:
+
+1. **Business & Retail Commerce Lifecycle**:
+   $$\mathcal{S}_{\text{business}} = \begin{cases} 
+   \{\text{Store Setup}\} & \text{if } N_{\text{biz}} = 0 \\ 
+   \{\text{Products \& Catalog}\} & \text{if } N_{\text{biz}} \ge 1 \land N_{\text{items}} = 0 \\ 
+   \{\text{Point of Sale (POS)}, \text{Products \& Catalog}, \text{Customer Marketplace}, \text{Sales Analytics \& Spoilage}\} & \text{if } N_{\text{biz}} \ge 1 \land N_{\text{items}} \ge 1 
+   \end{cases}$$
+   *When zero inventory exists, commercial checkout registers, public storefronts, and empty sales graphs are dynamically gated out of the navigation tree until merchant products are established.*
+
+2. **Precision Agriculture Lifecycle**:
+   $$\mathcal{S}_{\text{agri}} = \begin{cases} 
+   \{\text{Farm Fields \& Plots}, \text{Bulawayo Climate}\} & \text{if } N_{\text{fields}} = 0 \\ 
+   \{\text{Farm Fields \& Plots}, \text{Crop Plantings \& Plans}, \text{Bulawayo Climate}\} & \text{if } N_{\text{fields}} \ge 1 \land N_{\text{plantings}} = 0 \\ 
+   \{\text{Farm Fields}, \text{Plantings}, \text{Cost \& Price Calculator}, \text{Harvest \& POS Sync}, \text{Climate}\} & \text{if } N_{\text{plantings}} \ge 1 \land N_{\text{harvests}} = 0 \\ 
+   \{\text{Farm Fields}, \text{Plantings}, \text{Cost Calc}, \text{Harvest Sync}, \text{Yield Dispositions}, \text{Climate}\} & \text{if } N_{\text{harvests}} \ge 1 
+   \end{cases}$$
+
+3. **Subsystem Domain Nomenclature**:
+   Eliminated all legacy prototype shorthand (`VPA 1.x`, `VPA 2.x`, `VPA 3.x`, `Cross-VPA`) in favor of unified domain architecture: `agriculture` (Precision Agriculture), `security` (Security Gatekeeper), `business` (Business & Retail Commerce), and `banking` (Digital Banking & Sovereign Receipt Vault).

@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) — Operations Manual & User Guide
 
-**Document Version**: 1.19.10 (*Isiphephelo — Sovereign Zero-Data Exposure & Database Git Isolation*)  
+**Document Version**: 1.19.11 (*Ukuzazi — Sovereign Operator Profile, Avatar Customization & VisionPro Form Shielding*)  
 **Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Portable Launcher**: `../start.py` (Relative to `Applications/Web App/`)  
 **Target Environment**: Edge Nodes (Raspberry Pi 4 / CM4, Linux / Windows / macOS Laptops & Mobile Tablets)
@@ -186,10 +186,20 @@ The node will self-bootstrap and automatically launch its own glassmorphic web d
 
 ---
 
-## 8. Multi-Tenant Business Operator Management
+## 8. Multi-Tenant Business Operator & Profile Management
+
+### 8.1 Granular Business Staff Permissions
 1. Log in as `admin`.
 2. Navigate to **`👥 Admin Control`** $\to$ **🏢 Business Staff & Permissions**.
 3. Click **`Grant Operator Access ➕`** to delegate granular access rights (`pos`, `inventory`, `agriculture`, `security`, `social`, `reports`) to staff members for specific business stores (*Green Valley Organics*, *Khumalo Millers*, *Matopos Dairy*).
+
+### 8.2 Operator Profile, Custom Avatar & Security Settings
+1. Click the **User Capsule** at the bottom of the left navigation sidebar.
+2. In the **Operator Profile & Settings** modal:
+   - Click **`📷 Upload Photo`** to select an avatar picture from your computer or camera (automatically compressed and scaled to a crisp circular badge).
+   - Update your **Display Name**, **Operator Username**, **Phone/WhatsApp**, and **Email**.
+   - Set your **4-Digit POS PIN** for touch register authorization.
+   - Click **`Save Profile Settings 💾`** to update all linked digital banking ledgers and sidebar badges in real time.
 
 ---
 

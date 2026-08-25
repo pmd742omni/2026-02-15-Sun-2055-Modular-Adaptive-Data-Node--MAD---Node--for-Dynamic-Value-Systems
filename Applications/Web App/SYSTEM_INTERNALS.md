@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) System Internals & Low-Level Subsystem Reference Manual
 
-**Document Edition**: 1.19.10 | **Codename Target**: Isiphephelo (Sovereign Zero-Data Exposure & Git Database Isolation)  
+**Document Edition**: 1.19.11 | **Codename Target**: Ukuzazi (Sovereign Operator Profile, Avatar Customization & VisionPro Form Shielding)  
 **Host Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Workspace Root**: `../../` (Relative to project workspace base)  
 **Audience**: Systems Architects, Embedded Systems Engineers, Security Analysts, and Autonomous AI Coding Agents
@@ -289,4 +289,17 @@ $$\mathcal{S}_{\text{agri}} = \begin{cases}
 \{\text{Farm Fields}, \text{Plantings}, \text{Cost \& Price Calculator}, \text{Harvest \& POS Sync}, \text{Climate}\} & \text{if } N_{\text{plantings}} \ge 1 \land N_{\text{harvests}} = 0 \\ 
 \{\text{Farm Fields}, \text{Plantings}, \text{Cost Calc}, \text{Harvest Sync}, \text{Yield Dispositions}, \text{Climate}\} & \text{if } N_{\text{harvests}} \ge 1 
 \end{cases}$$
+
+---
+
+## 14. Sovereign Operator Profile Customization & VisionPro Form Shielding
+
+### 14.1 Operator Profile Identity & Image Ingestion
+Operator accounts support rich personal identity customization with client-side image optimization:
+- **Canvas Compression**: Uploaded images are pre-processed in browser memory via HTML5 Canvas, bound to a maximum dimension of $256\times 256$ pixels, and converted to high-quality compressed JPEG data URLs before transmission.
+- **Relational Username Cascading**: Username modifications safely disable foreign key constraints (`PRAGMA foreign_keys = OFF;`) during atomic updates across `users`, `wallets`, `businesses`, `business_operators`, and `customer_receipts`, ensuring zero referential integrity violations.
+
+### 14.2 VisionPro Glassmorphic Form Shielding & Validation
+- **Autofill Bleed Suppression**: Overrides browser `-webkit-autofill` pseudo-classes with `box-shadow: 0 0 0 1000px rgba(18, 24, 38, 0.96) inset` and `color-scheme: dark;`, guaranteeing that browser credential autocomplete never turns inputs opaque white.
+- **Coherent Non-Intrusive Validation**: Enforces `novalidate` on all forms to suppress jarring native browser tooltip bubbles, routing all field feedback through animated glassmorphic toasts (`showErrorToast`, `showSuccessToast`).
 

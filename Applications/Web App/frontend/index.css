@@ -314,6 +314,7 @@ html, body {
   width: 34px !important;
   height: 34px !important;
   border-radius: 50% !important;
+  overflow: hidden !important;
   flex-shrink: 0 !important;
   background: linear-gradient(135deg, #00e5ff 0%, #7c4dff 100%);
   color: #ffffff;
@@ -601,6 +602,41 @@ html, body {
 
 .search-input::placeholder {
   color: var(--text-muted);
+}
+
+/* Universal Form Input & Autofill Glassmorphism Protection */
+input, select, textarea {
+  color-scheme: dark;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgba(18, 24, 38, 0.96) inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 0 0 1000px rgba(18, 24, 38, 0.96) inset !important;
+  caret-color: #00e5ff !important;
+  border-color: rgba(0, 229, 255, 0.4) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input:focus, select:focus, textarea:focus {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: #00e5ff !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.25) !important;
+  outline: none !important;
+}
+
+:invalid, :-moz-submit-invalid, :-moz-ui-invalid {
+  box-shadow: none;
 }
 
 /* Right Side Cards (Matching "You might like" / "What's happening") */
