@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) System Internals & Low-Level Subsystem Reference Manual
 
-**Document Edition**: 1.19.6 | **Codename Target**: Inzuzo (Enterprise Revenue, Profit Analytics & Multi-Store Banking Settlement)  
+**Document Edition**: 1.19.7 | **Codename Target**: Isivikelo (Sovereign Heavy Data-at-Rest Encryption & Sequential Visibility Gating)  
 **Host Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Workspace Root**: `../../` (Relative to project workspace base)  
 **Audience**: Systems Architects, Embedded Systems Engineers, Security Analysts, and Autonomous AI Coding Agents
@@ -13,8 +13,35 @@ The Modular Adaptive Data Node (MADN) is a zero-internet, physics-grounded, dyna
 
 The software system implements a decoupled, heterogeneous **Tri-Node Topology** comprising:
 1. **Operator Node**: Zero-installation web client executing inside modern web browsers (`./frontend/index.html` at `http://127.0.0.1:8000`), providing touch POS registers, dynamic multi-currency banking, personal receipt vaults, world currency collision validation, multi-store switcher pills, modular dynamic field store creators, and real-time node lifecycle management controls.
-2. **Data Node**: Standalone edge caching and discovery daemon (`../Data_Node/data_node.py` at `http://127.0.0.1:8002`), managing local key-value storage (`kv_records`), continuous online/offline collection of 170+ ISO 4217 fiat and 50+ cryptocurrency references (`../Data_Node/currency_collector.py`), enforcing remote lifecycle activation states (`/api/node/activate`, `/api/node/deactivate`), and broadcasting periodic UDP multicast heartbeats (`224.0.0.251:8001`).
-3. **Vault Node**: High-security central coordinator and extensible multi-currency tri-ledger (`./backend/main.py` at `http://127.0.0.1:8000`), enforcing `scrypt`/TOTP authentication, SQLite Write-Ahead Logging (WAL) concurrency with `BEGIN IMMEDIATE` locks, HMAC-SHA256 bearer vouchers, digital receipt hashes, world currency collision-prevention, dedicated enterprise business wallets (`BIZ-ACC-...`), multi-store checkout revenue routing, and the **Portable Node Generator Engine** (`../node_generator.py`).
+2. **Data Node**: Standalone edge caching and discovery daemon (`../Data_Node/data_node.py` at `http://127.0.0.1:8002`), managing local AES-256-GCM encrypted key-value storage (`kv_records`), continuous online/offline collection of 170+ ISO 4217 fiat and 50+ cryptocurrency references (`../Data_Node/currency_collector.py`), enforcing remote lifecycle activation states (`/api/node/activate`, `/api/node/deactivate`), and broadcasting periodic UDP multicast heartbeats (`224.0.0.251:8001`).
+3. **Vault Node**: High-security central coordinator and extensible multi-currency tri-ledger (`./backend/main.py` at `http://127.0.0.1:8000`), enforcing `scrypt`/TOTP authentication, military-grade AES-256-GCM authenticated payload encryption at rest, SQLite Write-Ahead Logging (WAL) concurrency with `BEGIN IMMEDIATE` locks, HMAC-SHA256 bearer vouchers, digital receipt hashes, world currency collision-prevention, dedicated enterprise business wallets (`BIZ-ACC-...`), multi-store checkout revenue routing, and the **Portable Node Generator Engine** (`../node_generator.py`).
+
+---
+
+## 11. Sovereign Heavy System Data Encryption at Rest (AES-256-GCM + scrypt KDF)
+
+### 11.1 Master Key Derivation Envelope
+Master encryption keys are generated directly from the operator's sovereign passphrase via $\text{scrypt}$ with high-workfactor parameters:
+$$K_{\text{vault}} = \text{scrypt}\Big(\text{passphrase}, \; \text{salt}=\text{"MADN\_SOVEREIGN\_VAULT\_SALT\_2026"}, \; N=16384, \; r=8, \; p=1, \; dklen=32, \; maxmem=64\text{MB}\Big)$$
+
+### 11.2 Authenticated Payload Enveloping (AEAD)
+All sensitive data records across both Vault Node SQLite (`customer_receipts`, `visitor_logs`, `wallets`, `vouchers`) and standalone Data Node storage (`kv_records.data_json`) are encrypted using Galois/Counter Mode (AES-256-GCM) with 96-bit cryptographically secure pseudorandom nonces and 128-bit authentication tags:
+$$C, T = \text{AES-256-GCM-Encrypt}\Big(K_{\text{vault}}, \; \text{IV}_{96}, \; P_{\text{json}}\Big)$$
+$$\text{Encrypted Storage Format: } \quad \text{"ENC:"} \parallel \text{Base64}(\text{IV}_{96}) \parallel \text{":"} \parallel \text{Base64}(C \parallel T)$$
+
+Any external file modification or byte tampering instantly causes tag mismatch verification failure, preventing offline database tampering.
+
+---
+
+## 12. Continuous Data Node Replication Architecture
+
+### 12.1 Concept & Purpose of "Continuous Data Node Replication"
+In a decentralized edge environment, individual hardware nodes (Raspberry Pis, field tablets, and edge microservers) frequently lose power or experience intermittent connectivity. **Continuous Data Node Replication** means:
+- **Asynchronous Edge Mirroring**: As soon as any product, inventory harvest, or exchange rate is modified on the primary Vault Node, the background replicator thread continuously synchronizes the encrypted key-value record to all discovered peer Data Nodes on the local mesh (`http://127.0.0.1:8002/api/kv`).
+- **Autonomous Air-Gapped Survivability**: If the main Vault Node goes offline or undergoes maintenance, local Operator Nodes and customer web clients continue querying nearby Data Nodes for active price catalogs, inventory levels, and verified receipt records with zero service interruption.
+- **Bi-Directional Conflict-Free Eventual Consistency**: Standalone Data Nodes broadcast UDP heartbeats (`224.0.0.251:8001`) with sequence vectors, allowing seamless automatic re-synchronization when connection is re-established.
+
+---
 
 ---
 

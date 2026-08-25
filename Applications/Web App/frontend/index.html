@@ -107,10 +107,10 @@
         { label: '🎬 Reels', subId: 'social-reels-box' }
       ],
       vpa3: [
-        { label: '🏪 Merchant POS Register', subId: 'vpa3-terminal-box' },
+        { label: '🏪 Point of Sale (POS)', subId: 'vpa3-terminal-box' },
         { label: '📦 Products & Catalog', subId: 'vpa3-catalog-box' },
         { label: '🛒 Customer Marketplace', subId: 'vpa3-marketplace-box' },
-        { label: '📊 Business Analytics & Spoilage', subId: 'vpa3-inventory-box' }
+        { label: '📊 Sales Analytics & Spoilage', subId: 'vpa3-inventory-box' }
       ],
       cluster: [
         { label: '📡 Discovered Data Nodes', subId: 'cluster-nodes-box' },
@@ -758,11 +758,11 @@
       </form>
     </div>
 
-    <!-- Modal 12B: Modular Dynamic Field Store Product Intake Modal -->
+    <!-- Modal 12B: Add Store Product Modal -->
     <div class="auth-card glass-panel" id="modal-add-store-product" style="padding: 28px; width: 620px; max-width: 95%; max-height: 90vh; overflow-y: auto; text-align: left; display: none;">
       <div class="auth-header" style="text-align: center; margin-bottom: 18px;">
         <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: #fff;">🏪 Add Store Product</h3>
-        <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Modular dynamic inventory intake — all product data replicates to Data Nodes</p>
+        <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Add store products with pricing, details, and optional images</p>
       </div>
       <form id="form-add-store-product" onsubmit="return false;">
         <!-- Core Mandatory Fields -->
@@ -995,10 +995,10 @@
       </form>
     </div>
 
-    <!-- Modal 14: Modular Dynamic Field Choice Store Setup Modal -->
+    <!-- Modal 14: Store Setup Modal -->
     <div class="auth-card glass-panel" id="modal-create-business" style="padding: 28px; width: 620px; max-width: 95%; text-align: left; display: none; max-height: 90vh; overflow-y: auto;">
       <div class="auth-header" style="text-align: center; margin-bottom: 16px;">
-        <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: #fff;">🏪 Setup Business & Store Profile</h3>
+        <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: #fff;">🏪 Set Up Business / Store</h3>
         <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Configure your store identity, visual branding, and banking settlement</p>
       </div>
 
@@ -1006,7 +1006,7 @@
         <!-- Mandatory Core Section -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 14px;">
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
-            📌 Core Store Profile (Mandatory)
+            📌 Core Store Details (Mandatory)
           </div>
 
           <div style="margin-bottom: 10px;">
@@ -2056,14 +2056,14 @@
             You must establish at least one business or store before adding inventory items or operating the POS checkout register. Set up your store name, branding logo, and settlement currency.
           </p>
           <button type="button" class="btn-pill-primary" onclick="openCreateBusinessModal()" style="padding: 14px 32px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 18px rgba(16,185,129,0.35);">
-            + Setup Your Store (Modular Intake) 🏪
+            + Set Up Your Store 🏪
           </button>
         </div>
 
-        <!-- Subview 1: Merchant POS Terminal (Bypasses to Inventory Intake when Empty) -->
+        <!-- Subview 1: Point of Sale Terminal (Bypasses to Inventory Intake when Empty) -->
         <div class="glass-panel" id="vpa3-terminal-box" style="padding: 28px; position: relative;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <h3 style="margin: 0;">🏪 Merchant Point of Sale Register</h3>
+            <h3 style="margin: 0;">🏪 Point of Sale (POS) & Checkout</h3>
             <div style="display: flex; gap: 8px;">
               <button type="button" class="btn-pill-primary" onclick="openAddStoreProductModal()" style="margin: 0; background: linear-gradient(135deg, #00e5ff, #0284c7);">+ Add Store Product</button>
               <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('vpa3-terminal-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
@@ -2087,7 +2087,7 @@
               The Point of Sale checkout register, barcode scanner, and multi-currency payment controls activate as soon as you have items to sell. Add your first store product to get started.
             </p>
             <button type="button" class="btn-pill-primary" onclick="openAddStoreProductModal()" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; background: linear-gradient(135deg, #00e5ff, #0284c7);">
-              + Add First Store Product (Modular Intake) 🛒
+              + Add First Store Product 🛒
             </button>
           </div>
 
@@ -2237,11 +2237,11 @@
           </div>
         </div>
 
-        <!-- Subview 4: Business Analytics, KPIs & Spoilage Logs -->
+        <!-- Subview 4: Sales Analytics, KPIs & Spoilage Logs -->
         <div class="glass-panel" id="vpa3-inventory-box" style="padding: 28px; position: relative;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div>
-              <h3 style="margin: 0;">📊 Business Analytics & Spoilage Adjustments</h3>
+              <h3 style="margin: 0;">📊 Sales Analytics & Spoilage Adjustments</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0 0;">Real-time multi-tenant revenue tracking, profit margins, COGS, and inventory adjustments.</p>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">

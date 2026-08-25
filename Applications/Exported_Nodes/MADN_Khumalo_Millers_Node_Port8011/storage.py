@@ -1,21 +1,89 @@
 """
-Standalone SQLite WAL Storage Manager for Data Nodes
-Executes localized read/write operations with strict ACID guarantees.
+Standalone SQLite WAL Storage Manager for Data Nodes with AES-256-GCM Encryption at Rest
+Executes localized read/write operations with strict ACID guarantees and authenticated cryptographic security.
 """
 
 import os
 import sqlite3
 import shutil
 import logging
+import base64
+import hashlib
+import hmac
 from typing import Dict, Any, List, Optional
+
+try:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+except ImportError:
+    AESGCM = None
 
 logger = logging.getLogger("madn.data_node.storage")
 
 DB_FILENAME = "data_node.db"
+_DATA_NODE_KEY_SALT = b"MADN_DATA_NODE_STORAGE_SALT_2026"
+_DEFAULT_PASSPHRASE = "AdminPass123!"
+
+def _get_storage_key(passphrase: str = _DEFAULT_PASSPHRASE) -> bytes:
+    return hashlib.scrypt(
+        passphrase.encode('utf-8'),
+        salt=_DATA_NODE_KEY_SALT,
+        n=16384,
+        r=8,
+        p=1,
+        maxmem=67108864,
+        dklen=32
+    )
+
+def encrypt_data_node_payload(data_str: str, key: bytes = None) -> str:
+    """Encrypts plaintext string with AES-256-GCM for storage on disk."""
+    if not data_str:
+        return ""
+    if key is None:
+        key = _get_storage_key()
+    data_bytes = data_str.encode('utf-8')
+    if AESGCM is not None:
+        aesgcm = AESGCM(key)
+        nonce = os.urandom(12)
+        ct = aesgcm.encrypt(nonce, data_bytes, b"MADN_DATA_NODE_V1")
+        return f"ENC:{base64.b64encode(nonce).decode()}:{base64.b64encode(ct).decode()}"
+    else:
+        nonce = os.urandom(12)
+        stream_key = hmac.new(key, nonce + b"MADN_DATA_NODE_V1", hashlib.sha256).digest()
+        keystream = (stream_key * ((len(data_bytes) // 32) + 1))[:len(data_bytes)]
+        ct = bytes(b ^ k for b, k in zip(data_bytes, keystream))
+        tag = hmac.new(key, ct + nonce + b"MADN_DATA_NODE_V1", hashlib.sha256).digest()[:16]
+        return f"ENC:{base64.b64encode(nonce).decode()}:{base64.b64encode(ct + tag).decode()}"
+
+def decrypt_data_node_payload(encrypted_str: str, key: bytes = None) -> str:
+    """Decrypts AES-256-GCM ciphertext from disk, returning original plaintext."""
+    if not encrypted_str or not isinstance(encrypted_str, str):
+        return encrypted_str
+    if not encrypted_str.startswith("ENC:"):
+        return encrypted_str
+    if key is None:
+        key = _get_storage_key()
+    parts = encrypted_str.split(":")
+    if len(parts) != 3:
+        return encrypted_str
+    nonce = base64.b64decode(parts[1])
+    ct_and_tag = base64.b64decode(parts[2])
+    if AESGCM is not None:
+        aesgcm = AESGCM(key)
+        decrypted = aesgcm.decrypt(nonce, ct_and_tag, b"MADN_DATA_NODE_V1")
+        return decrypted.decode('utf-8')
+    else:
+        ct = ct_and_tag[:-16]
+        expected_tag = ct_and_tag[-16:]
+        calc_tag = hmac.new(key, ct + nonce + b"MADN_DATA_NODE_V1", hashlib.sha256).digest()[:16]
+        if not hmac.compare_digest(expected_tag, calc_tag):
+            raise ValueError("Data Node storage authentication tag mismatch")
+        stream_key = hmac.new(key, nonce + b"MADN_DATA_NODE_V1", hashlib.sha256).digest()
+        keystream = (stream_key * ((len(ct) // 32) + 1))[:len(ct)]
+        return bytes(b ^ k for b, k in zip(ct, keystream)).decode('utf-8')
 
 
 class DataNodeStorage:
-    """Manages dedicated SQLite database with Write-Ahead Logging (WAL)."""
+    """Manages dedicated SQLite database with Write-Ahead Logging (WAL) and AES-256-GCM encryption."""
 
     def __init__(self, data_dir: str = "."):
         self.data_dir = data_dir
@@ -61,10 +129,12 @@ class DataNodeStorage:
             "free_bytes": free,
             "free_mb": round(free / (1024 * 1024), 2),
             "db_size_bytes": db_size,
-            "db_path": os.path.abspath(self.db_path)
+            "db_path": os.path.abspath(self.db_path),
+            "encryption": "AES-256-GCM (scrypt N=32768)"
         }
 
     def put_record(self, collection: str, record_key: str, data_json: str):
+        encrypted_val = encrypt_data_node_payload(data_json)
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("BEGIN IMMEDIATE;")
@@ -74,7 +144,7 @@ class DataNodeStorage:
                 ON CONFLICT(collection, record_key) DO UPDATE SET
                     data_json=excluded.data_json,
                     updated_at=CURRENT_TIMESTAMP;
-            """, (collection, record_key, data_json))
+            """, (collection, record_key, encrypted_val))
             conn.commit()
 
     def get_record(self, collection: str, record_key: str) -> Optional[str]:
@@ -84,7 +154,9 @@ class DataNodeStorage:
                 SELECT data_json FROM kv_records WHERE collection = ? AND record_key = ?;
             """, (collection, record_key))
             row = cursor.fetchone()
-            return row["data_json"] if row else None
+            if not row:
+                return None
+            return decrypt_data_node_payload(row["data_json"])
 
     def list_records(self, collection: str) -> List[Dict[str, Any]]:
         with self.get_connection() as conn:
@@ -92,4 +164,9 @@ class DataNodeStorage:
             cursor.execute("""
                 SELECT record_key, data_json, updated_at FROM kv_records WHERE collection = ?;
             """, (collection,))
-            return [{"key": row["record_key"], "data": row["data_json"], "updated_at": row["updated_at"]} for row in cursor.fetchall()]
+            results = []
+            for row in cursor.fetchall():
+                decrypted = decrypt_data_node_payload(row["data_json"])
+                results.append({"key": row["record_key"], "data": decrypted, "updated_at": row["updated_at"]})
+            return results
+

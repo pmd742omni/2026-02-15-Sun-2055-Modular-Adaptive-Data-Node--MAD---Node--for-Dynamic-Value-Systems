@@ -2955,7 +2955,7 @@ function renderBusinessProductsTable(products) {
       <div style="padding: 32px; text-align: center; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); border-radius: 16px;">
         <div style="font-size: 2.2rem; margin-bottom: 8px;">📦</div>
         <h4 style="color: #fff; margin-bottom: 6px;">No Store Products Found</h4>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">Use the modular product creator to register products, prices, barcodes, and specs.</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">Use the product form to register items, prices, barcodes, and details.</p>
         <button class="btn-pill-primary" onclick="openAddStoreProductModal()">+ Add Store Product</button>
       </div>
     `;

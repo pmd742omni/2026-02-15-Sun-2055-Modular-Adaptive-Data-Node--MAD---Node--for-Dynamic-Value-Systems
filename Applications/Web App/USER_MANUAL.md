@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) — Operations Manual & User Guide
 
-**Document Version**: 1.19.6 (*Inzuzo*)  
+**Document Version**: 1.19.7 (*Isivikelo*)  
 **Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Portable Launcher**: `../start.py` (Relative to `Applications/Web App/`)  
 **Target Environment**: Edge Nodes (Raspberry Pi 4 / CM4, Linux / Windows / macOS Laptops & Mobile Tablets)
@@ -10,13 +10,14 @@
 ## Table of Contents
 1. [System Overview & Operating Principles](#1-system-overview--operating-principles)
 2. [How to Run the Application & Auto-Launch Browser](#2-how-to-run-the-application--auto-launch-browser)
-3. [User Authentication & Demo Accounts](#3-user-authentication--demo-accounts)
+3. [User Authentication & Security Credentials](#3-user-authentication--demo-accounts)
 4. [Multi-Enterprise Store Setup & Unified POS Register](#4-multi-enterprise-store-setup--unified-pos-register)
 5. [Dynamic Multi-Currency & World Catalog Collision Prevention](#5-dynamic-multi-currency--world-catalog-collision-prevention)
 6. [Customer & Business Digital Banking](#6-customer--business-digital-banking)
 7. [Cluster Topology, Portable Node Export & Remote Lifecycle](#7-cluster-topology-portable-node-export--remote-lifecycle)
 8. [Multi-Tenant Business Operator Management](#8-multi-tenant-business-operator-management)
-9. [Troubleshooting & FAQs](#9-troubleshooting--faqs)
+9. [Sovereign Heavy Encryption & Continuous Data Replication](#9-sovereign-heavy-encryption--continuous-data-replication)
+10. [Troubleshooting & FAQs](#10-troubleshooting--faqs)
 
 ---
 
@@ -185,14 +186,29 @@ The node will self-bootstrap and automatically launch its own glassmorphic web d
 
 ---
 
-## 6. Multi-Tenant Business Operator Management
+## 8. Multi-Tenant Business Operator Management
 1. Log in as `admin`.
-2. Navigate to **`👥 Admin Control`** \(\to\) **🏢 Business Staff & Permissions**.
+2. Navigate to **`👥 Admin Control`** $\to$ **🏢 Business Staff & Permissions**.
 3. Click **`Grant Operator Access ➕`** to delegate granular access rights (`pos`, `inventory`, `agriculture`, `security`, `social`, `reports`) to staff members for specific business stores (*Green Valley Organics*, *Khumalo Millers*, *Matopos Dairy*).
 
 ---
 
-## 7. Troubleshooting & FAQs
+## 9. Sovereign Heavy Encryption & Continuous Data Replication
+
+### 9.1 Military-Grade Data-at-Rest Encryption (AES-256-GCM)
+All business accounts, personal wallets, customer digital receipts, visitor records, and replicated key-value entries are encrypted with AES-256-GCM using keys derived via scrypt. If the device or disk is seized, data cannot be read without the authorized operator passphrase.
+
+### 9.2 What is "Continuous Data Node Replication"?
+"Continuous Data Node Replication" means that whenever any price, product, harvest record, or exchange rate changes on the main Vault Node, the system automatically and silently replicates the encrypted data to all other connected Data Nodes across your local Wi-Fi, Ethernet, or mesh network. 
+
+**Why is this important?**
+* **Never Lose Sales**: Even if the primary computer goes down or loses power, edge tablets and remote checkout registers keep working because they read locally replicated data from nearby Data Nodes.
+* **Automatic Recovery**: When nodes reconnect, they automatically synchronize and resolve updates without manual file copying or configuration.
+
+---
+
+## 10. Troubleshooting & FAQs
 
 * **Port Already in Use**: If port `8000` or `8002` is in use by another instance, inspect active ports with `python Applications/start.py --status`.
-* **Database Reset**: To re-seed fresh demo data, delete `Applications/Web App/backend/data_store/data_node.db` and run `python Applications/start.py`.
+* **Database Reset**: To re-seed fresh clean data, delete `Applications/Web App/backend/database.db` and start the system cleanly with `python Applications/start.py`.
+

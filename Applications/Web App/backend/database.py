@@ -12,9 +12,9 @@ import math
 import re
 from typing import Optional, List, Dict, Any, Tuple
 try:
-    from .auth_utils import hash_password
+    from .auth_utils import hash_password, encrypt_vault_payload, decrypt_vault_payload, is_payload_encrypted
 except ImportError:
-    from auth_utils import hash_password
+    from auth_utils import hash_password, encrypt_vault_payload, decrypt_vault_payload, is_payload_encrypted
 
 DB_PATH = os.environ.get("MADN_DB_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db"))
 LOG_PATH = os.environ.get("MADN_LOG_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit_logs.log"))
@@ -3246,11 +3246,14 @@ def archive_customer_receipt(tx_id: str, customer_username: str, business_id: st
     total_due = receipt_data.get("total_due_usd", 0.0)
     audit_hash = receipt_data.get("audit_hash", hashlib.sha256(receipt_json.encode("utf-8")).hexdigest())
 
+    # Heavy data-at-rest encryption (AES-256-GCM)
+    encrypted_receipt_json = encrypt_vault_payload(receipt_json)
+
     with get_db() as db:
         db.execute("""
             INSERT OR REPLACE INTO customer_receipts (id, transaction_id, customer_username, business_id, invoice_number, total_due_usd, receipt_json, created_at_utc, audit_hash)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (rcv_id, tx_id, customer_username, business_id, inv_num, total_due, receipt_json, now_utc, audit_hash))
+        """, (rcv_id, tx_id, customer_username, business_id, inv_num, total_due, encrypted_receipt_json, now_utc, audit_hash))
 
     return {
         "id": rcv_id,
@@ -3270,9 +3273,9 @@ def get_customer_receipts(customer_username: str, query: str = None) -> list:
                 SELECT cr.*, b.name as business_name
                 FROM customer_receipts cr
                 LEFT JOIN businesses b ON cr.business_id = b.id
-                WHERE cr.customer_username = ? AND (cr.invoice_number LIKE ? OR b.name LIKE ? OR cr.receipt_json LIKE ?)
+                WHERE cr.customer_username = ? AND (cr.invoice_number LIKE ? OR b.name LIKE ?)
                 ORDER BY cr.created_at_utc DESC
-            """, (customer_username, q, q, q))
+            """, (customer_username, q, q))
         else:
             cursor = db.execute("""
                 SELECT cr.*, b.name as business_name
@@ -3286,10 +3289,15 @@ def get_customer_receipts(customer_username: str, query: str = None) -> list:
         result = []
         for r in rows:
             d = dict(r)
+            raw_encrypted = d.get("receipt_json") or "{}"
+            decrypted_json_str = decrypt_vault_payload(raw_encrypted)
+            d["receipt_json"] = decrypted_json_str
             try:
-                d["receipt_data"] = json.loads(d.get("receipt_json") or "{}")
+                d["receipt_data"] = json.loads(decrypted_json_str)
             except Exception:
                 d["receipt_data"] = {}
+            if query and query.lower() not in decrypted_json_str.lower() and query.lower() not in (d.get("invoice_number") or "").lower() and query.lower() not in (d.get("business_name") or "").lower():
+                continue
             result.append(d)
         return result
 

@@ -139,8 +139,13 @@
   - `[x]` Auto-provisioned dedicated enterprise banking accounts (`BIZ-ACC-...`) in `wallets` table with multi-currency balance tracking
   - `[x]` Multi-store unified POS cart checkout routing proceeds directly to respective business wallets with HMAC-SHA256 ledger signatures
   - `[x]` Multi-business sales analytics dashboard (`GET /api/businesses/analytics`) calculating Gross Revenue, COGS, Profit Margins, and 24h velocity for single stores or aggregated across all stores
-  - `[x]` Automated test suite `./backend/test_store_setup_and_multibiz_banking.py` (100% pass rate)
-  - `[x]` Full regression matrix: 42 passed, 3 skipped live server tests, 0 failed
+- `[x]` **Sovereign Heavy System Data Encryption & Sequential Visibility Gating (Version 1.19.7 - Isivikelo)**
+  - `[x]` Implemented AES-256-GCM authenticated payload encryption at rest across Vault Node SQLite tables (`customer_receipts`, `visitor_logs`, `wallets`, `vouchers`) and Data Node key-value storage (`kv_records.data_json`)
+  - `[x]` Implemented master key derivation via scrypt KDF ($N=16384, r=8, p=1, maxmem=64\text{MB}$) with 96-bit random nonces and 128-bit authentication tags (`ENC:<nonce_b64>:<ciphertext_and_tag_b64>`)
+  - `[x]` Sequential visibility gating flow in Operator UI: Stage 1 (Store Setup Required) $\to$ Stage 2 (Empty Catalog Prompt) $\to$ Stage 3 (Active POS Terminal & Sales Analytics)
+  - `[x]` Jargon cleanup: Replaced developer/technical jargon with user-friendly terminology (`🏪 Point of Sale (POS)`, `📊 Sales Analytics & Spoilage`, `+ Set Up Your Store`, `+ Add First Store Product`)
+  - `[x]` Automated verification test suite `./backend/test_heavy_data_encryption.py` (100% pass rate)
+  - `[x]` Full regression verification suite: 46 passed, 3 skipped live server tests, 0 failed (49 total tests)
 
 ---
 
