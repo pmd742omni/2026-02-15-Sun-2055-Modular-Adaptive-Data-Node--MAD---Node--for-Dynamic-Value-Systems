@@ -148,6 +148,11 @@
           ${item.label}
         </button>
       `).join('');
+
+      const firstBtn = bar.querySelector('.tab-pill-btn');
+      if (firstBtn && subItems.length > 0) {
+        handleSubNavClick(mainTarget, subItems[0].subId, firstBtn);
+      }
     }
 
     function switchDashboardSubView(subId) {
@@ -187,16 +192,40 @@
         btnEl.classList.add('active');
       }
 
-      // 4. Toggle subviews or scroll
+      // 4. Exclusively display active subview within this section
       if (mainTarget === 'dashboard') {
         switchDashboardSubView(subId);
       } else if (mainTarget === 'tutorials') {
         const trackId = subId.replace('tut-pane-', '');
         if (window.switchTutorialTrack) window.switchTutorialTrack(trackId, btnEl);
       } else {
-        const el = document.getElementById(subId);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const subItems = SUBNAV_CONFIG[mainTarget] || [];
+        subItems.forEach(item => {
+          const el = document.getElementById(item.subId);
+          if (el) {
+            if (item.subId === subId) {
+              if (mainTarget === 'vpa3' && window.state && window.state.businesses && window.state.businesses.length === 0) {
+                el.style.display = 'none';
+              } else {
+                el.style.display = 'block';
+              }
+            } else {
+              el.style.display = 'none';
+            }
+          }
+        });
+
+        // Trigger loaders
+        if (mainTarget === 'vpa3') {
+          if (subId === 'vpa3-catalog-box' && typeof window.loadBusinessCatalog === 'function') {
+            window.loadBusinessCatalog();
+          } else if (subId === 'vpa3-inventory-box' && typeof window.loadBusinessAnalytics === 'function') {
+            window.loadBusinessAnalytics(window.state ? window.state.selectedPosBusinessId || 'all' : 'all');
+          } else if (subId === 'vpa3-marketplace-box' && typeof window.loadMarketplaceCatalog === 'function') {
+            window.loadMarketplaceCatalog();
+          } else if (subId === 'vpa3-terminal-box' && typeof window.loadPosProducts === 'function') {
+            window.loadPosProducts();
+          }
         }
       }
 
@@ -2238,7 +2267,7 @@
         </div>
 
         <!-- Subview 4: Sales Analytics, KPIs & Spoilage Logs -->
-        <div class="glass-panel" id="vpa3-inventory-box" style="padding: 28px; position: relative;">
+        <div class="glass-panel" id="vpa3-inventory-box" style="padding: 28px; position: relative; display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
             <div>
               <h3 style="margin: 0;">📊 Sales Analytics & Spoilage Adjustments</h3>

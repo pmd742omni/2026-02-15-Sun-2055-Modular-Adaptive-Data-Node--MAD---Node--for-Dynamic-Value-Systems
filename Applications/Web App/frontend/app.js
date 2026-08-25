@@ -754,6 +754,11 @@ async function loadBusinesses() {
       if (noStoreGate) noStoreGate.style.display = 'block';
       if (emptyPosBox) emptyPosBox.style.display = 'none';
       if (activePosBox) activePosBox.style.display = 'none';
+      // Explicitly hide all 4 subview boxes in vpa3 so only the Gatekeeper setup banner is shown
+      ['vpa3-terminal-box', 'vpa3-catalog-box', 'vpa3-marketplace-box', 'vpa3-inventory-box'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
       if (select) select.innerHTML = `<option value="">➕ Register Business</option>`;
       state.activeBusinessId = null;
       if (adminBizName) adminBizName.innerText = "No Registered Business";
@@ -772,6 +777,18 @@ async function loadBusinesses() {
       const activeBiz = state.businesses.find(b => b.id === state.activeBusinessId);
       if (adminBizName && activeBiz) {
         adminBizName.innerText = activeBiz.name;
+      }
+
+      // If user is currently on vpa3 view, ensure only the active subview tab is displayed
+      if (state.activeView === 'vpa3') {
+        const bar = document.getElementById('subnav-pill-bar');
+        const activeBtn = bar ? bar.querySelector('.tab-pill-btn.active') : null;
+        if (activeBtn) {
+          activeBtn.click();
+        } else {
+          const terminalBox = document.getElementById('vpa3-terminal-box');
+          if (terminalBox) terminalBox.style.display = 'block';
+        }
       }
     }
 
