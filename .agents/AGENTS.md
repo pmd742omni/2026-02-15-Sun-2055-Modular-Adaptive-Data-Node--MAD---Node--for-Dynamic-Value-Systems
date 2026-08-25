@@ -10,7 +10,7 @@ Whenever the user states **"document now"**, **"document progress"**, or request
 ## System Internals Documentation Rule ("System Internals")
 Whenever the user states **"update system internals"**, **"generate internals doc"**, or requests deep technical reference documentation:
 1. Refer to and follow the instructions in the `system-internals-doc` skill ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/system-internals-doc/SKILL.md)).
-2. Audit the system architecture, database locks, scrypt/TOTP security parameters, Liang-Barsky ray-tracing, Log-distance path loss, A* mesh routing, multi-currency tri-ledger, and continuous exponential decay math.
+2. Audit the system architecture, database locks, scrypt/TOTP security parameters, mesh routing, multi-currency tri-ledger, and continuous exponential decay math.
 3. Update `Applications/Web App/SYSTEM_INTERNALS.md` with low-level technical reference details, Mermaid diagrams, and LaTeX equations.
 
 ## Chapter Development Rule ("Chapter Development" / "Develop Chapter")
@@ -23,9 +23,9 @@ Whenever the user states **"develop chapter"**, **"write chapter"**, **"create c
 ## Dynamic Value Milestone Release Rule ("Milestone Release" / "Sync Chapters and Document")
 Whenever the user states **"milestone release"**, **"sync chapters and document"**, or requests a new feature release milestone:
 1. Refer to and follow the instructions in the `dynamic-value-milestone` skill ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/dynamic-value-milestone/SKILL.md)).
-2. Execute the full 27-test verification suite (`pytest -v`).
+2. Execute the full automated verification suite (`pytest -v`).
 3. Automatically generate updated sub-section and compiled chapter files into a newly created versioned directory `01_Documentation_and_Thesis/Chapters/YYYY-MM-DD Day HHMM Version YYYY-MM-DD Day HHMM/`.
-4. Optimize `.agents` directory rules for Tri-Node Dynamic Value Systems.
+4. Optimize `.agents` directory rules for universal Modular Adaptive Data Node systems.
 5. Trigger the `document-now` progress tracking skill to synchronize `SYSTEM_INTERNALS.md`, `USER_MANUAL.md`, `PROJECT_CHECKLIST.md`, register the version codename, and execute the Git commit.
 
 ## Tri-Node Architecture & Composable Dynamic Value Systems Standard
@@ -38,7 +38,4 @@ Whenever the user states **"milestone release"**, **"sync chapters and document"
    - Real-time multi-tier collision validation (`OFFICIAL_ISO_FIAT`, `MAJOR_CRYPTO`, `EXISTING_ACTIVE_CURRENCY`, `UNIQUE_AVAILABLE`) to protect financial namespaces.
    - Zero-seed balances rule: All accounts initialize strictly with `0.00` balances.
 5. **Portable Bootstrapper (`Applications/start.py`)**: Zero-config launcher auto-resolving Python dependencies, supervising multi-node child processes, and providing an interactive terminal dashboard.
-6. **Automated Verification Matrix**: Always execute the full 27-test suite (`pytest test_portable_node_generation.py test_customer_banking.py test_business_operators.py test_multibiz_and_vouchers.py test_stage1_core.py -v`) before creating documentation or thesis updates.
-
-
-
+6. **Automated Verification Matrix**: Always execute the full test suite (`pytest -v`) before creating documentation or thesis updates.

@@ -1,15 +1,15 @@
 ---
 name: dynamic-value-milestone
-description: Automatically generates updated versioned thesis chapter documentation reflecting all newly implemented features, creates a new versioned chapters folder, optimizes the .agents directory for modular adaptive data node dynamic value systems, and triggers the document-now agentic progress tracking workflow.
+description: Universal milestone release and documentation synchronization workflow. Automatically discovers newly implemented features across all subsystems (hardware, backend, frontend, mesh, banking, agriculture, security), validates automated test suites, generates updated versioned thesis chapters into a timestamped directory, optimizes the .agents configuration, and triggers the document-now progress tracking workflow.
 ---
 
-# Dynamic Value Milestone & Chapter Release Workflow Skill
+# Universal Milestone Release & Thesis Chapter Synchronization Skill
 
-This skill provides a standardized, automated end-to-end milestone release pipeline for the **Modular Adaptive Data Node (MADN) for Dynamic Value Systems**. It unifies codebase verification, academic chapter publication, `.agents` developer optimization, and progress tracking into an integrated workflow.
+This skill provides a **universal, future-proof, multi-subsystem release pipeline** for the **Modular Adaptive Data Node (MADN)** project. It dynamically adapts to **any** newly added features, architectural changes, hardware components, or algorithm improvements across the entire project lifecycle.
 
 ---
 
-## 1. Trigger Conditions
+## 1. Universal Trigger Conditions
 
 Execute this workflow whenever the developer specifies:
 - `"execute release"` or `"milestone release"`
@@ -17,80 +17,79 @@ Execute this workflow whenever the developer specifies:
 - `"publish milestone"`
 - `"update chapters and document now"`
 - Requests:
-  1. Generating an updated version of chapter documentation.
-  2. Optimizing the `.agents` directory for the modular adaptive data node in dynamic value systems.
-  3. Creating a new versioned folder containing updated chapters that reflect newly implemented features.
-  4. Triggering the `document-now` agentic skill.
+  1. Generating an updated version of chapter documentation reflecting any new features.
+  2. Optimizing the `.agents` directory for modular adaptive data node systems.
+  3. Creating a new versioned folder containing updated thesis chapters that reflect all newly implemented features.
+  4. Triggering the `document-now` agentic progress tracking workflow.
 
 ---
 
-## 2. Standard 4-Phase Execution Pipeline
+## 2. Universal 4-Phase Architecture
 
 ```mermaid
 flowchart TD
-    A["Phase 1: Automated Verification (27-Test Pytest Suite)"] --> B["Phase 2: Generate Versioned Chapters & Folder"]
-    B --> C["Phase 3: Optimize .agents Directory & AGENTS.md"]
-    C --> D["Phase 4: Trigger & Finalize 'Document Now' Progress Workflow"]
+    A["Phase 1: Dynamic Test Matrix Discovery & Verification"] --> B["Phase 2: Universal Versioned Chapter Publishing"]
+    B --> C["Phase 3: Autonomous .agents Optimization & Indexing"]
+    C --> D["Phase 4: Document Now Progress Tracking & Git Commit"]
 ```
 
 ---
 
-### Phase 1: Automated Test Suite & Codebase Audit
+### Phase 1: Dynamic Test Matrix Discovery & Verification
 
-1. Execute the full 27-test automated verification matrix from `Applications/Web App/backend`:
+1. The test runner automatically discovers all active test suites in `Applications/Web App/backend` (e.g. `test_*.py`):
    ```bash
-   python -m pytest test_portable_node_generation.py test_customer_banking.py test_business_operators.py test_multibiz_and_vouchers.py test_stage1_core.py -v
+   python -m pytest -v
    ```
-2. Confirm **100% pass rate (27/27 tests passed)** before proceeding. If any test fails, resolve regressions before proceeding.
+2. Dynamic assertion: All discovered test cases must pass with **100% success rate**. If regressions occur, resolve them prior to release.
 
 ---
 
-### Phase 2: Create Versioned Folder & Publish Updated Chapters
+### Phase 2: Universal Versioned Chapter Publishing
 
-1. Acquire the authoritative runtime system timestamp:
-   - Format for folder name: `YYYY-MM-DD Day HHMM Version YYYY-MM-DD Day HHMM` (e.g. `2026-08-25 Tue 1301 Version 2026-08-25 Tue 1301`).
-   - Format for file prefix: `YYYY-MM-DD HHMM` (e.g. `2026-08-25 1301`).
-2. Run the chapter publisher script:
-   ```bash
-   python .agents/skills/dynamic-value-milestone/scripts/build_versioned_chapters.py <version> <codename>
-   ```
-3. Verify that the new folder is created under `01_Documentation_and_Thesis/Chapters/` containing all 43+ sub-section files and unified chapter files (Chapters 1 through 5+) reflecting:
-   - Dynamic Extensible Multi-Currency Engine & Custom Virtual Tokens.
-   - Zimbabwe Gold (`ZiG` / `ZWG`) gold-backed currency standard alignment.
-   - Global World Currency (ISO 4217) and Cryptocurrency Continuous Ingestion Catalog & Collision Prevention.
-   - Tri-Node distributed mesh topology (Operator Node, Data Node, Vault Node).
-   - Clean `0.00` balance account initialization.
-   - Full 27-test empirical benchmark matrix with 100% verification rate.
+1. **Authoritative Local Machine Timestamp**:
+   - Acquired dynamically at runtime (`YYYY-MM-DD Day HHMM` / `YYYY-MM-DD HHMM`).
+   - Example folder: `01_Documentation_and_Thesis/Chapters/YYYY-MM-DD Day HHMM Version YYYY-MM-DD Day HHMM/`.
+2. **Dynamic Change Propagation (`build_versioned_chapters.py`)**:
+   - Discovers the latest previous versioned chapter folder automatically.
+   - Extracts recent git commits, newly introduced endpoints, data models, and UI views.
+   - Updates date strings, version numbers, and Ndebele codenames dynamically.
+   - Dynamically updates empirical test counts and benchmark results in **Chapter 5 (Results, Testing & Analysis)**.
+   - Propagates feature implementations, component integrations, challenges, and solutions into **Chapter 3 (Methodology)**, **Chapter 4 (Design & Prototype)**, and **Chapters 1-2**.
+   - Compiles unified chapter markdown documents.
 
 ---
 
-### Phase 3: Optimize the `.agents` Directory
+### Phase 3: Autonomous `.agents` Directory Optimization
 
-1. Run the `.agents` optimization utility:
-   ```bash
-   python .agents/skills/dynamic-value-milestone/scripts/optimize_agents.py
-   ```
-2. Verify that [.agents/AGENTS.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/AGENTS.md) contains:
-   - **Progress Tracking Rule (`document-now`)**
-   - **System Internals Documentation Rule (`system-internals-doc`)**
-   - **Chapter Development Rule (`chapter-development`)**
-   - **Dynamic Value Milestone Release Rule (`dynamic-value-milestone`)**
-   - **Tri-Node Architecture & Composable Dynamic Value Systems Standard** (including ISO 4217, ZiG standard, 27-test verification matrix).
+1. **Dynamic Skill Discovery (`optimize_agents.py`)**:
+   - Scans `.agents/skills/` for all active skill manifests.
+   - Automatically maintains [.agents/AGENTS.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/AGENTS.md) with updated rule references and cross-links.
+2. Ensures all subsystem standards (Tri-Node architecture, dynamic multi-ledger, offline mesh, zero-seed balances, security locks) remain synchronized.
 
 ---
 
-### Phase 4: Trigger the `document-now` Skill
+### Phase 4: Document Now Progress Tracking & Git Commit
 
 Execute the standard `document-now` workflow ([SKILL.md](file:///c:/Users/ignaz/OneDrive/Documents/Projects/2026-02-15%20Sun%202055%20Modular%20Adaptive%20Data%20Node%20%28MAD%20-%20Node%29%20for%20Dynamic%20Value%20Systems/.agents/skills/document-now/SKILL.md)):
-1. **Synchronize Operational Manuals**:
+1. **Synchronize System Documents**:
    - `Applications/Web App/SYSTEM_INTERNALS.md`
    - `Applications/Web App/USER_MANUAL.md`
    - `Applications/Web App/PROJECT_CHECKLIST.md`
 2. **Version Registration**:
-   - Validate Ndebele version codename uniqueness using `.agents/skills/document-now/scripts/version_registry.py`.
-   - Update `progress tracking/version_registry.json` and `progress tracking/Version_Registry.md`.
-3. **Generate Progress Document**:
-   - Create `progress tracking/YYYY-MM-DD_HHMM_Description.md` following the required schema (including Ndebele version codename, 10-year-old child target explanations and next steps, and developer attributions).
+   - Register version number and unique Ndebele codename in `progress tracking/version_registry.json` and `progress tracking/Version_Registry.md`.
+3. **Progress Document Creation**:
+   - Generate `progress tracking/YYYY-MM-DD_HHMM_Description.md`.
 4. **Git Stage & Commit**:
-   - Stage all changes (`git add .`) and commit with the standardized message:
+   - Stage all changes (`git add .`) and commit with:
      `YYYY-MM-DD Day HHMM: [Title] ([Codename] [Version])`
+
+---
+
+## 3. Automation Scripts Reference
+
+| Script | Purpose |
+| :--- | :--- |
+| `scripts/run_milestone_release.py` | Master orchestrator coordinating all 4 phases end-to-end |
+| `scripts/build_versioned_chapters.py` | Universal chapter publisher discovering changes and updating all 43+ files |
+| `scripts/optimize_agents.py` | Scans `.agents/skills/` and synchronizes `AGENTS.md` |
