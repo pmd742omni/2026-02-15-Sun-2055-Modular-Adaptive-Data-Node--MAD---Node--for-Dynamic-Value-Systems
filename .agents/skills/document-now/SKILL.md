@@ -55,11 +55,13 @@ Review the conversation transcript, git diffs, modified files, and recent prompt
    ```bash
    python .agents/skills/document-now/scripts/version_registry.py next-version
    ```
-4. **Codename Uniqueness Check (Mandatory)**: Select a proposed Ndebele word as the version codename and run:
+4. **LLM Contextual Ndebele Codename Assignment & Uniqueness Check (Mandatory)**:
+   The LLM (Antigravity) creatively and contextually assigns an authentic, culturally rich Ndebele word with its meaning reflecting the core spirit of the milestone (e.g. *Ukukhanya* - Clarity/Illumination, *Ingxubevange* - Synergy/Mosaic, *Ukuhlakanipha* - Wisdom/Intelligence, *Isiphephelo* - Sovereign Haven, *Ingqalasizinda* - Infrastructure, *Ukuvumelana* - Consensus/Harmonization, *Imvuselelo* - Revival/Renaissance, *Inzuzo* - Value/Prosperity, *Ubunye* - Mesh Unity, etc.).
+   Then validate that it has not been previously used by running:
    ```bash
    python .agents/skills/document-now/scripts/version_registry.py check <proposed_codename>
    ```
-   If `"unique": false` is returned, a different Ndebele word **MUST** be chosen and checked until `"unique": true` is returned!
+   If `"unique": false` is returned, select another authentic Ndebele word and re-check until `"unique": true` is confirmed!
 5. **Child-Friendly Explanation**: Write an English explanation of the version codename targeted at a 10-year-old child.
 6. **Child-Friendly Next Steps**: Write bullet points of future actions targeted at a 10-year-old child.
 7. **Development Attribution**: Credit `Peter Dube` and `Antigravity (AI Coding Assistant)` with their respective role allocations.

@@ -5,7 +5,10 @@ description: Standard operating workflow and rules for developing thesis chapter
 
 # Chapter Development Workflow Skill
 
-This skill provides comprehensive instructions for planning, researching, writing, formatting, and publishing academic thesis chapters for the **Modular Adaptive Data Node (MADN)** project.
+This skill provides comprehensive instructions for planning, researching, authoring, formatting, and publishing academic thesis chapters for the **Modular Adaptive Data Node (MADN)** project.
+
+> [!IMPORTANT]
+> **LLM Academic Authorship Mandate**: All thesis chapters, theoretical formulations, literature analyses, system design explanations, and empirical benchmark discussions are authored and synthesized directly by the LLM (Antigravity) with genuine academic rigor, scholarly prose, KaTeX mathematics, and empirical evidence — never generated via simplistic text-copying algorithms. Scripts serve exclusively for runtime timestamping, directory scaffolding, and file management.
 
 ---
 
