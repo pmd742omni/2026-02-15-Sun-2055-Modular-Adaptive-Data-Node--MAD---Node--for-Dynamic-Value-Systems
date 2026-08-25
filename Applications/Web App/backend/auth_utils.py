@@ -71,14 +71,19 @@ def set_global_vault_key(key: bytes) -> None:
         raise ValueError("Master Vault Key must be strictly 256 bits (32 bytes)")
     _GLOBAL_VAULT_KEY = key
 
-def get_global_vault_key(fallback_password: str = "AdminPass123!") -> bytes:
+def get_global_vault_key(fallback_password: str = None) -> bytes:
     """
     Retrieves the in-memory master vault key.
-    If not explicitly unlocked, initializes with the verified root operator credential.
+    Prioritizes the operator's environment secret `VAULT_MASTER_PASSWORD` and custom salt `VAULT_ENCRYPTION_SALT`.
+    If not set in environment, falls back to the verified root operator credential for development.
     """
     global _GLOBAL_VAULT_KEY
     if _GLOBAL_VAULT_KEY is None:
-        k, _ = derive_vault_key_from_password(fallback_password, _DEFAULT_VAULT_SALT)
+        env_pass = os.environ.get("VAULT_MASTER_PASSWORD")
+        env_salt = os.environ.get("VAULT_ENCRYPTION_SALT")
+        salt_bytes = env_salt.encode('utf-8') if env_salt else _DEFAULT_VAULT_SALT
+        pwd = env_pass or fallback_password or "AdminPass123!"
+        k, _ = derive_vault_key_from_password(pwd, salt_bytes)
         _GLOBAL_VAULT_KEY = k
     return _GLOBAL_VAULT_KEY
 

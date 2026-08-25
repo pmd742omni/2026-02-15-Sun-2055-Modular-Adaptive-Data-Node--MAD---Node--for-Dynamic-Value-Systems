@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) — Operations Manual & User Guide
 
-**Document Version**: 1.19.9 (*Ukuvuleka — Dynamic Progressive Disclosure & Condition-Gated UX*)  
+**Document Version**: 1.19.10 (*Isiphephelo — Sovereign Zero-Data Exposure & Database Git Isolation*)  
 **Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Portable Launcher**: `../start.py` (Relative to `Applications/Web App/`)  
 **Target Environment**: Edge Nodes (Raspberry Pi 4 / CM4, Linux / Windows / macOS Laptops & Mobile Tablets)
@@ -204,6 +204,11 @@ All business accounts, personal wallets, customer digital receipts, visitor reco
 **Why is this important?**
 * **Never Lose Sales**: Even if the primary computer goes down or loses power, edge tablets and remote checkout registers keep working because they read locally replicated data from nearby Data Nodes.
 * **Automatic Recovery**: When nodes reconnect, they automatically synchronize and resolve updates without manual file copying or configuration.
+
+### 9.3 Zero-Data Exposure & GitHub Privacy
+When synchronizing your code with GitHub:
+* **All `.db` databases are excluded**: Your local transactions, store sales, customer receipts, and farm plantings are strictly kept on your machine and never uploaded to GitHub.
+* **Custom Environment Passphrase**: Create a `.env` file from `.env.example` to set your private `VAULT_MASTER_PASSWORD`. This key is never committed to Git.
 
 ---
 

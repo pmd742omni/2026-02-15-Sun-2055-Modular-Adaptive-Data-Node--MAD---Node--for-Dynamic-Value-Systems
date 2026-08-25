@@ -1,11 +1,47 @@
+# Operating System Artifacts
 .stfolder/
 Thumbs.db
 Desktop.ini
 .DS_Store
-*.log
-__pycache__/
-*.pyc
 ~$*.docx
 ~$*.tmp
 *.tmp
 ~WRL*.tmp
+
+# Python & Environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.venv/
+venv/
+env/
+ENV/
+
+# Local SQLite Databases & WAL Logs (ZERO-DATA EXPOSURE TO GIT)
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+data_store/
+**/data_store/
+test_database*.db*
+
+# Environment Secrets & Private Keys
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.key
+*.pem
+*.secret
+secrets/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.log

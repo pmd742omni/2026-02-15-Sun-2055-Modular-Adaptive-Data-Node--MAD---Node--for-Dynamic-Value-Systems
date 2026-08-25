@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) System Internals & Low-Level Subsystem Reference Manual
 
-**Document Edition**: 1.19.9 | **Codename Target**: Ukuvuleka (Dynamic Progressive Disclosure & Condition-Gated Subsystem Architecture)  
+**Document Edition**: 1.19.10 | **Codename Target**: Isiphephelo (Sovereign Zero-Data Exposure & Git Database Isolation)  
 **Host Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Workspace Root**: `../../` (Relative to project workspace base)  
 **Audience**: Systems Architects, Embedded Systems Engineers, Security Analysts, and Autonomous AI Coding Agents
@@ -30,6 +30,12 @@ $$C, T = \text{AES-256-GCM-Encrypt}\Big(K_{\text{vault}}, \; \text{IV}_{96}, \; 
 $$\text{Encrypted Storage Format: } \quad \text{"ENC:"} \parallel \text{Base64}(\text{IV}_{96}) \parallel \text{":"} \parallel \text{Base64}(C \parallel T)$$
 
 Any external file modification or byte tampering instantly causes tag mismatch verification failure, preventing offline database tampering.
+
+### 11.3 Sovereign Zero-Data Exposure & Git Isolation Standard
+To ensure complete data privacy when synchronizing codebase repositories with public/private version control systems (e.g. GitHub):
+1. **Strict Git Exclusion**: All active SQLite databases (`*.db`), Write-Ahead Logs (`*.db-wal`, `*.db-shm`), key-value stores (`data_store/`), and environment secrets (`.env`, `.env.local`) are permanently excluded via `.gitignore`.
+2. **Dynamic RAM-Only Key Derivation**: Master keys derived from `VAULT_MASTER_PASSWORD` live strictly in memory and are never persisted to disk or serialized in repository files.
+3. **Clean Code vs Data Separation**: Public clones receive only software logic, schemas, and tests, guaranteeing that zero operational, customer, or transaction data is ever exposed to third parties.
 
 ---
 
