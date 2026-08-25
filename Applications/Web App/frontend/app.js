@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ticker for continuous decay update every 10 seconds
   setInterval(() => {
-    if (state.activeView === 'vpa3' && state.user) {
+    if (state.activeView === 'business' && state.user) {
       loadPosProducts();
       loadMarketplaceCatalog();
     }
@@ -745,7 +745,7 @@ async function loadBusinesses() {
 
     const select = document.getElementById('header-business-select');
     const adminBizName = document.getElementById('admin-current-biz-name');
-    const noStoreGate = document.getElementById('vpa3-no-store-container');
+    const noStoreGate = document.getElementById('business-no-store-container');
     const emptyPosBox = document.getElementById('pos-empty-store-container');
     const activePosBox = document.getElementById('pos-active-terminal-container');
 
@@ -754,8 +754,8 @@ async function loadBusinesses() {
       if (noStoreGate) noStoreGate.style.display = 'block';
       if (emptyPosBox) emptyPosBox.style.display = 'none';
       if (activePosBox) activePosBox.style.display = 'none';
-      // Explicitly hide all 4 subview boxes in vpa3 so only the Gatekeeper setup banner is shown
-      ['vpa3-terminal-box', 'vpa3-catalog-box', 'vpa3-marketplace-box', 'vpa3-inventory-box'].forEach(id => {
+      // Explicitly hide all 4 subview boxes in business view so only the Gatekeeper setup banner is shown
+      ['pos-terminal-box', 'biz-catalog-box', 'biz-marketplace-box', 'biz-inventory-box'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
@@ -779,14 +779,14 @@ async function loadBusinesses() {
         adminBizName.innerText = activeBiz.name;
       }
 
-      // If user is currently on vpa3 view, ensure only the active subview tab is displayed
-      if (state.activeView === 'vpa3') {
+      // If user is currently on business view, ensure only the active subview tab is displayed
+      if (state.activeView === 'business') {
         const bar = document.getElementById('subnav-pill-bar');
         const activeBtn = bar ? bar.querySelector('.tab-pill-btn.active') : null;
         if (activeBtn) {
           activeBtn.click();
         } else {
-          const terminalBox = document.getElementById('vpa3-terminal-box');
+          const terminalBox = document.getElementById('pos-terminal-box');
           if (terminalBox) terminalBox.style.display = 'block';
         }
       }
@@ -1520,13 +1520,13 @@ function initNavigation() {
     if (typeof updateSubNav === 'function') {
       updateSubNav(target);
     }
-    if (target === 'vpa1') {
+    if (target === 'agriculture') {
       loadAgriFields();
       loadPlantings();
       loadHarvests();
       loadDispositions();
     }
-    if (target === 'vpa3') {
+    if (target === 'business') {
       loadPosProducts();
       loadMarketplaceCatalog();
     }
@@ -1554,12 +1554,12 @@ function initNavigation() {
 
 function handleQuickCTA() {
   if (state.currentRole === 'agronomist') {
-    switchView('vpa1');
+    switchView('agriculture');
     togglePlantingForm();
   } else if (state.currentRole === 'guard') {
-    switchView('vpa2');
+    switchView('security');
   } else if (state.currentRole === 'merchant') {
-    switchView('vpa3');
+    switchView('business');
   } else if (state.currentRole === 'customer') {
     switchView('banking');
     openTopupModal();
@@ -1956,8 +1956,8 @@ async function submitNewPlanting() {
 }
 
 function selectPlantingForCostCalc(plantingId, cropName, fieldName) {
-  switchView('vpa1');
-  const costBox = document.getElementById('vpa1-cost-calc-box');
+  switchView('agriculture');
+  const costBox = document.getElementById('agri-cost-calc-box');
   if (costBox) costBox.scrollIntoView({ behavior: 'smooth' });
   const select = document.getElementById('calc-planting-select');
   if (select) select.value = plantingId;
@@ -2020,8 +2020,8 @@ async function submitProductionCosts() {
 }
 
 function selectPlantingForHarvest(plantingId, cropName) {
-  switchView('vpa1');
-  const harvestBox = document.getElementById('vpa1-harvest-box');
+  switchView('agriculture');
+  const harvestBox = document.getElementById('agri-harvest-box');
   if (harvestBox) harvestBox.scrollIntoView({ behavior: 'smooth' });
   const select = document.getElementById('harvest-planting-select');
   if (select) select.value = plantingId;
@@ -3104,7 +3104,7 @@ function quickAddToCart(itemId) {
   if (existing) existing.qty += 1;
   else state.cart.push({ ...prod, qty: 1 });
   renderCart();
-  switchView('vpa3');
+  switchView('business');
 }
 
 function renderCart() {

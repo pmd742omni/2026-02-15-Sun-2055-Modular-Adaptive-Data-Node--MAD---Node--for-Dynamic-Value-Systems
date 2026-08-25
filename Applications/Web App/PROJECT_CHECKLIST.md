@@ -26,53 +26,53 @@
 ---
 
 ## [x] Cycle 1: Core Foundation & Initial Visualizers
-- `[x]` **VPA 1.1: Local Climate & Planting Scheduler** (Agriculture)
+- `[x]` **Precision Agriculture Subsystem 1.1: Local Climate & Planting Scheduler**
   - `[x]` Create layout card and calendar scheduler in frontend UI
   - `[x]` Seed local historical Bulawayo climate data in client database
   - `[x]` Write calculation engine and recommendations logic
-  - `[x]` Test VPA 1.1 functionality and layout ergonomics
-- `[x]` **VPA 2.1: Real-Time Node Status Map** (Security)
+  - `[x]` Test agricultural scheduler functionality and layout ergonomics
+- `[x]` **Security Gatekeeper Subsystem 2.1: Real-Time Node Status Map**
   - `[x]` Render Zone SVG map in frontend UI
   - `[x]` Add mock node connection toggle controls
   - `[x]` Integrate live signal strength (RSSI) visual status indicators
-- `[x]` **VPA 3.1: Multi-Currency Tri-Ledger (USD/ZAR/ZWG)** (POS)
+- `[x]` **Business & POS Subsystem 3.1: Multi-Currency Tri-Ledger (USD/ZAR/ZWG)**
   - `[x]` Create transaction terminal layout card
   - `[x]` Implement currency converter with customizable exchange rates
   - `[x]` Program change calculator accepting mixed currency payments
 
 ---
 
-## [x] Cycle 2: Diagnostics, QR Validation & Analytics (VPA 1.2, 2.2, 3.2)
-- `[x]` **VPA 1.2: Interactive Symptom Diagnostic Tree** (Agriculture)
+## [x] Cycle 2: Diagnostics, QR Validation & Analytics (Subsystems 1.2, 2.2, 3.2)
+- `[x]` **Precision Agriculture Subsystem 1.2: Interactive Symptom Diagnostic Tree**
   - `[x]` Create symptom diagnostic card/wizard UI in Agricultural tab
   - `[x]` Define branching tree logic for crops and livestock diseases
-- `[x]` **VPA 2.2: Local QR Code Credential Generator & Scanner** (Security)
+- `[x]` **Security Gatekeeper Subsystem 2.2: Local QR Code Credential Generator & Scanner**
   - `[x]` Implement QR code guest credential generator
   - `[x]` Build HTML5 Canvas scanner/mock reader panel to process QR check-ins
-- `[x]` **VPA 3.2: Interactive Sales Analytics & Visualizer** (POS)
+- `[x]` **Business & POS Subsystem 3.2: Interactive Sales Analytics & Visualizer**
   - `[x]` Design responsive analytics dashboard and visual metrics cards
   - `[x]` Write custom HTML5 Canvas drawing functions to render hourly sales graphs without internet dependencies
 
 ---
 
-## [x] Cycle 3: Calculators, Logs & Inventories (VPA 1.3, 2.3, 3.3)
+## [x] Cycle 3: Calculators, Logs & Inventories (Subsystems 1.3, 2.3, 3.3)
 - `[x]` **Database Schema & Configurations**
   - `[x]` Update `./backend/database.py` with tables: `inventory`, `inventory_wastage`, `transactions`, `transaction_tenders`, `transaction_items`, `calculator_config`, `estimator_runs`, `shift_handover_logs`, `processed_requests`
   - `[x]` Implement `BEGIN IMMEDIATE` write locks, HMAC handover logging, and configurations seed
 - `[x]` **Backend API Endpoints**
-  - `[x]` Create VPA 1.3 agricultural calculator and history endpoints
-  - `[x]` Create VPA 2.3 security handover logs with PIN checks and audit tracking
-  - `[x]` Create VPA 3.3 inventory directory, stock adjust, and spoilage logs
+  - `[x]` Create agricultural cost calculator and history endpoints
+  - `[x]` Create security handover logs with PIN checks and audit tracking
+  - `[x]` Create business inventory directory, stock adjust, and spoilage logs
   - `[x]` Update `/api/pos/checkout` to support multi-tender, transaction items, atomic stock reduction, and idempotency key replays
 
 ---
 
-## [x] Cycle 4: Physics-Based RF Mesh, Smart Rules & Continuous Decay POS (VPA 1.4, 2.4, 3.4)
+## [x] Cycle 4: Physics-Based RF Mesh, Smart Rules & Continuous Decay POS (Subsystems 1.4, 2.4, 3.4)
 - `[x]` **Database Schema & Math Engines**
   - `[x]` Update `./backend/database.py` with tables: `security_nodes`, `map_obstacles_rtree`, `map_obstacles_meta`, `harvest_orders`, `agricultural_rules`, `pricing_multipliers`
   - `[x]` Implement R*Tree ray-tracing attenuation math, A* multi-hop pathfinding, continuous exponential decay pricing, and field-level LWW sync helpers
 - `[x]` **Backend API Endpoints (`./backend/main.py`)**
-  - `[x]` Endpoints `GET/POST /api/agriculture/rules` & `POST /api/agriculture/rules/evaluate` (closed-loop & Cross-VPA harvest orders / spoilage flash sales)
+  - `[x]` Endpoints `GET/POST /api/agriculture/rules` & `POST /api/agriculture/rules/evaluate` (closed-loop & Cross-Subsystem harvest orders / spoilage flash sales)
   - `[x]` Endpoints `GET /api/security/nodes` & `PUT /api/security/nodes/{node_id}/position` (R*Tree obstacle attenuation, A* multi-hop routing, LWW sync)
   - `[x]` Endpoint `GET /api/pos/promotions` (continuous exponential decay pricing calculation)
 

@@ -1,5 +1,5 @@
 """
-MADN Portable Node Server (Khumalo_Millers_Node - data-node-khumalo_millers_node-e7cfe0)
+MADN Portable Node Server (Khumalo_Millers_Node - data-node-khumalo_millers_node-859212)
 Role: DATA_NODE | Port: 8011
 """
 
@@ -30,14 +30,14 @@ def load_node_config() -> dict:
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    return {"node_id": "data-node-khumalo_millers_node-e7cfe0", "node_name": "Khumalo_Millers_Node", "node_type": "data_node", "port": 8011, "is_active": True}
+    return {"node_id": "data-node-khumalo_millers_node-859212", "node_name": "Khumalo_Millers_Node", "node_type": "data_node", "port": 8011, "is_active": True}
 
 def save_node_config(cfg: dict):
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
 
 cfg = load_node_config()
-NODE_ID = cfg.get("node_id", "data-node-khumalo_millers_node-e7cfe0")
+NODE_ID = cfg.get("node_id", "data-node-khumalo_millers_node-859212")
 NODE_NAME = cfg.get("node_name", "Khumalo_Millers_Node")
 NODE_TYPE = cfg.get("node_type", "data_node")
 NODE_PORT = int(cfg.get("port", 8011))

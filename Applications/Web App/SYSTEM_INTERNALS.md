@@ -50,7 +50,7 @@ In a decentralized edge environment, individual hardware nodes (Raspberry Pis, f
 ### 10.1 Store Setup Prerequisite Enforcement
 The system mandates that an operator must establish at least one active Business Enterprise Profile prior to creating inventory items or recording harvests:
 - **Backend Gatekeeper**: `POST /api/inventory` inspects `COUNT(id) FROM businesses WHERE is_active = 1`. If zero stores exist, the endpoint returns `HTTP 400 Bad Request` with `detail: "Store setup required"`.
-- **Frontend Gatekeeper**: The operator UI renders `#vpa3-no-store-container`, shielding catalog tables and POS registers behind a prominent setup banner.
+- **Frontend Gatekeeper**: The operator UI renders `#business-no-store-container`, shielding catalog tables and POS registers behind a prominent setup banner.
 
 ### 10.2 Modular Dynamic Field Store Intake
 Operators dynamically compose store profiles by activating modular attribute pills:
@@ -245,7 +245,7 @@ The system implements hierarchical multi-business tenancy:
 
 ---
 
-## 8. Physical Mesh & Signal Ray-Tracing Engine (VPA 2.x)
+## 8. Physical Mesh & Signal Ray-Tracing Engine (Security & Connectivity)
 
 * **Spatial Bounding Index**: SQLite R\*Tree virtual index (`map_obstacles_rtree`).
 * **Liang-Barsky 2D Ray-Tracing**: Computes obstacle intersections using parametric clipping:
@@ -256,7 +256,7 @@ The system implements hierarchical multi-business tenancy:
 
 ---
 
-## 9. Dynamic Value Systems: Continuous Decay POS (VPA 3.x)
+## 9. Dynamic Value Systems: Continuous Decay POS (Business & Retail)
 
 * **Continuous Exponential Price Decay**: Perishable products dynamically adjust price based on time-to-spoilage while protecting margin floors:
   $$P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}}) \cdot e^{-\lambda t}, \quad \lambda = \frac{\ln(2)}{T_{\text{half\_life}}}$$

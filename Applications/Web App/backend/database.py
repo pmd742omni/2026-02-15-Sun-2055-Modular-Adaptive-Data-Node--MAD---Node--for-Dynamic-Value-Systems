@@ -1749,7 +1749,7 @@ def evaluate_agricultural_rules(sensor_inputs: dict):
             }
             triggered_actions.append(action_info)
             
-            # If Advisory & Spoilage warning, spawn Harvest Work Order + Cross-VPA Spoilage Flash Sale
+            # If Advisory & Spoilage warning, spawn Harvest Work Order + Cross-Subsystem Spoilage Flash Sale
             if rule["action_type"] == "advisory":
                 c = db.execute("SELECT id FROM harvest_orders WHERE rule_id = ? AND status != 'pos_listed'", (rule["id"],))
                 if not c.fetchone():
@@ -1760,7 +1760,7 @@ def evaluate_agricultural_rules(sensor_inputs: dict):
                         VALUES (?, ?, ?, 'triggered', 'CABBAGE-CASE', ?, ?)
                     """, (h_id, rule["id"], rule["crop_type"], spoilage_cutoff, now_utc))
                     
-                    # Auto-spawn Cross-VPA Spoilage Flash Sale multiplier in POS!
+                    # Auto-spawn Cross-Subsystem Spoilage Flash Sale multiplier in POS!
                     p_id = str(uuid.uuid4())
                     db.execute("""
                         INSERT INTO pricing_multipliers (

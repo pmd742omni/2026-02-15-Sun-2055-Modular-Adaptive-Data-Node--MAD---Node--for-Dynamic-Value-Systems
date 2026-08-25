@@ -91,8 +91,8 @@ def test_cycle4_endpoints():
     assert res_stale.json()["status"] == "ignored"
     print("[OK] Stale timestamp update correctly rejected by LWW sync.")
 
-    # 4. Test Agronomy Compound Rules Evaluation & Cross-VPA Spoilage Flash Sale Spawning
-    print("\n[Step 4] Evaluating Agronomy Compound Rules & Spawning Cross-VPA Flash Sale...")
+    # 4. Test Agronomy Compound Rules Evaluation & Cross-Subsystem Spoilage Flash Sale Spawning
+    print("\n[Step 4] Evaluating Agronomy Compound Rules & Spawning Cross-Subsystem Flash Sale...")
     res = session.post(
         f"{BASE_URL}/api/agriculture/rules/evaluate",
         headers=headers,

@@ -125,9 +125,9 @@ The system is pre-seeded with six standard role accounts:
 | Role | Username | Password | Default PIN | Granted Access |
 | :--- | :--- | :--- | :---: | :--- |
 | 👑 **Administrator** | `admin` | `Password123!` | `1234` | Full access across all systems, cluster management, and user rosters |
-| 🌾 **Agronomist** | `agronomist` | `Password123!` | `1234` | VPA 1 (Planting cycles, itemized crop costs, harvest work orders) |
-| 🏪 **Merchant** | `merchant` | `Password123!` | `1234` | VPA 3 (POS touch register, dynamic decay pricing, inventory, vouchers) |
-| 🛡️ **Security Guard** | `guard` | `Password123!` | `1234` | VPA 2 (Visitor gatekeeper, RF signal map, guard shift handovers) |
+| 🌾 **Agronomist** | `agronomist` | `Password123!` | `1234` | Precision Agriculture (Planting cycles, itemized crop costs, harvest work orders) |
+| 🏪 **Merchant** | `merchant` | `Password123!` | `1234` | Business & Retail (POS touch register, dynamic decay pricing, inventory, vouchers) |
+| 🛡️ **Security Guard** | `guard` | `Password123!` | `1234` | Security Gatekeeper (Visitor gatekeeper, RF signal map, guard shift handovers) |
 | 🛒 **Customer** | `customer` | `Password123!` | `1234` | Digital banking wallet, P2P fund transfers, personal receipt vault |
 | 👤 **Guest** | `guest` | `Password123!` | `1234` | Public social feed, stories, and catalog exploration |
 
