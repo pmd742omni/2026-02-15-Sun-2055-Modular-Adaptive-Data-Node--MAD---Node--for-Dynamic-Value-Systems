@@ -23,10 +23,14 @@ FORENSIC_MODE = False
 VAULT_SECRET_KEY = b"madn-offline-vault-key-secret-2026"
 
 def get_db():
-    """Get SQLite database connection with WAL mode, busy_timeout, and Foreign Keys active."""
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    """Get SQLite database connection with WAL mode, busy_timeout, RAM cache, and Foreign Keys active."""
+    conn = sqlite3.connect(DB_PATH, timeout=10.0, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA synchronous=NORMAL;")
+    conn.execute("PRAGMA cache_size=-64000;")  # 64MB memory page cache
+    conn.execute("PRAGMA temp_store=MEMORY;")  # Temp tables in RAM
+    conn.execute("PRAGMA mmap_size=268435456;") # 256MB Memory-Mapped I/O
     conn.execute("PRAGMA busy_timeout=5000;")
     conn.execute("PRAGMA foreign_keys=ON;")
     return conn
@@ -709,6 +713,28 @@ def init_db():
         FOREIGN KEY (currency) REFERENCES currencies(code)
     );
     """)
+
+    # 2. Performance-Critical B-Tree Indexes for Instant Sub-Millisecond Lookups
+    db.execute("CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_inventory_biz_sku ON inventory(business_id, sku);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_transactions_time_op ON transactions(timestamp, operator_username);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_transaction_items_tx ON transaction_items(transaction_id);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_transaction_tenders_tx ON transaction_tenders(transaction_id);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_wallets_user ON wallets(username);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_wallets_biz ON wallets(business_id);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_wallet_ledger_acc_time ON wallet_ledger(account_number, timestamp_utc);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_customer_receipts_user ON customer_receipts(customer_username, created_at_utc);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_wallet_balances_acc ON wallet_balances(account_number);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_vouchers_biz_status ON vouchers(business_id, status);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_fields_op ON agri_fields(created_by);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_plantings_field ON agri_plantings(field_id);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_harvests_planting ON agri_harvests(planting_id);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_visitors_status ON security_visitor_logs(status);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_tracked_devices_ip ON tracked_devices(ip_address);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_currencies_code ON currencies(code);")
 
     db.commit()
 
