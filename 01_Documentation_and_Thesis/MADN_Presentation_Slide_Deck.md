@@ -46,7 +46,7 @@
 * **Specific Technical Objectives**:
   * **RO-1 (Tri-Node Mesh Architecture)**: Engineer zero-cloud decoupling, UDP multicast beacon discovery ($224.0.0.251:8001$), and sub-millisecond SQLite WAL ACID transaction concurrency.
   * **RO-2 (Dynamic Value Systems)**: Implement continuous exponential decay pricing $P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}})e^{-\lambda t}$, tri-currency split tenders, and HMAC-SHA256 offline QR change vouchers.
-  * **RO-3 (Closed-Loop Precision Agriculture)**: Integrate geospatial plots, planting input ledgers, automated cost-plus pricing, and harvest-to-POS stock synchronization.
+  * **RO-3 (Closed-Loop Precision Agriculture)**: Provision physical farm plots with soil classifications and irrigation setups, track input cost ledgers, compute automated cost-plus pricing, and synchronize harvests directly to POS catalogs.
   * **RO-4 (Zero-Exposure Security & Portability)**: Enforce ephemeral RAM-derived AES-256-GCM keys, chained audit trails, and one-click self-replicating node generation (`node_generator.py`).
 
 ---
@@ -88,10 +88,10 @@
 ### Slide 8: Precision Agriculture & Autonomous Farm-to-Fork
 * **Header**: Precision Agriculture: Autonomous Farm-to-Fork Value Chains
 * **Lifecycle Flow**:
-  * **Step 1**: Farm Fields & Plots (soil mapping & Bulawayo climate sync)
-  * **Step 2**: Crop Plantings (input ledgers & growth stages)
-  * **Step 3**: Dynamic Cost & Price Calculator (automated base price derivation)
-  * **Step 4**: Harvest Yields & Direct POS Sync (immediate inventory replenishment)
+  * **Step 1**: Farm Fields & Plots (plot provisioning, acreage/hectares, soil classifications, and irrigation setups)
+  * **Step 2**: Crop Plantings (input ledgers for seeds, fertilizer, water, labor, and fuel)
+  * **Step 3**: Dynamic Cost & Price Calculator (automated base price derivation based on total input costs + target margin)
+  * **Step 4**: Harvest Yields & Direct POS Sync (immediate inventory replenishment with automated SKUs)
 
 ---
 
