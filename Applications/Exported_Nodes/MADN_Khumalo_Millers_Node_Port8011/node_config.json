@@ -1,5 +1,5 @@
 {
-  "node_id": "data-node-khumalo_millers_node-a3cd7c",
+  "node_id": "data-node-khumalo_millers_node-3475c4",
   "node_name": "Khumalo_Millers_Node",
   "node_type": "data_node",
   "port": 8011,
@@ -8,6 +8,6 @@
   "storage_engine": "sqlite_wal",
   "storage_quota_mb": 1024,
   "parent_vault_url": "http://127.0.0.1:8000",
-  "created_at_utc": "2026-08-26T04:35:37.089550+00:00",
+  "created_at_utc": "2026-08-26T04:53:51.741870+00:00",
   "version": "1.19.1"
 }

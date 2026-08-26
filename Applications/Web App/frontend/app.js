@@ -45,7 +45,7 @@ const climateData = [
 
 // --- UNIVERSAL LATEX & MATHEMATICAL EQUATION RENDERER ---
 function renderLatexInUI(rootEl) {
-  const container = rootEl || document.body;
+  const container = rootEl || document.querySelector('.view-section.active') || document.body;
   if (!container) return;
 
   // 1. If KaTeX Auto-Renderer is available, run it
@@ -68,17 +68,17 @@ function renderLatexInUI(rootEl) {
   }
 
   // 2. High-Fidelity Standalone Fallback Parser for offline/instant rendering
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+  const mathTargets = container.querySelectorAll ? container.querySelectorAll('p, span, h1, h2, h3, h4, li, td, th, div') : [container];
   const textNodes = [];
-  let node;
-  while ((node = walker.nextNode())) {
-    const p = node.parentElement;
-    if (p && !['SCRIPT', 'STYLE', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'OPTION'].includes(p.tagName)) {
-      if (node.nodeValue && (/\\\(|\$\$|\$|\\\[|\\frac|\\ge|\\le|\\lambda|\\mu|\\cdot|\\text\{/.test(node.nodeValue))) {
+  mathTargets.forEach(el => {
+    if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'OPTION'].includes(el.tagName)) return;
+    if (el.dataset.latexRendered) return;
+    for (let node of el.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE && node.nodeValue && (/\\\(|\$\$|\$|\\\[|\\frac|\\ge|\\le|\\lambda|\\mu|\\cdot|\\text\{/.test(node.nodeValue))) {
         textNodes.push(node);
       }
     }
-  }
+  });
 
   textNodes.forEach(textNode => {
     let raw = textNode.nodeValue;
@@ -126,6 +126,10 @@ function formatLatexToHtml(latex) {
 }
 
 window.renderLatexInUI = renderLatexInUI;
+window.openAvatarStudioModal = openAvatarStudioModal;
+window.handleStudioAvatarFileSelected = handleStudioAvatarFileSelected;
+window.submitStudioAvatarSave = submitStudioAvatarSave;
+window.openAvatarLightbox = openAvatarLightbox;
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -668,8 +672,9 @@ function renderProfileModalAvatarPreview(avatarUrl, fallbackName) {
   if (!avatarEl) return;
   const name = fallbackName || document.getElementById('profile-input-fullname')?.value || document.getElementById('profile-input-username')?.value || 'A';
   
-  if (avatarUrl && avatarUrl.trim()) {
-    avatarEl.style.backgroundImage = `url("${avatarUrl}")`;
+  const targetAvatar = avatarUrl !== undefined ? avatarUrl : (state.pendingProfileAvatar || state.user?.avatar_url || '');
+  if (targetAvatar && targetAvatar.trim()) {
+    avatarEl.style.backgroundImage = `url("${targetAvatar}")`;
     avatarEl.style.backgroundSize = 'cover';
     avatarEl.style.backgroundPosition = 'center';
     avatarEl.innerHTML = '';
@@ -688,7 +693,7 @@ function handleProfileModalAvatarClick() {
   if (activeAvatar && activeAvatar.trim()) {
     openAvatarLightbox(activeAvatar);
   } else {
-    document.getElementById('profile-avatar-file-input')?.click();
+    openAvatarStudioModal();
   }
 }
 
@@ -723,71 +728,280 @@ function openAvatarLightbox(avatarUrl) {
   if (modal) modal.style.display = 'block';
 }
 
-function handleProfileAvatarUpload(event) {
-  const inputEl = event.target;
-  const file = inputEl.files && inputEl.files[0];
+// --- DEDICATED AVATAR INGESTION & PROCESSING STUDIO ---
+function openAvatarStudioModal() {
+  hideModals();
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal-avatar-uploader');
+  const previewCore = document.getElementById('studio-avatar-preview-core');
+  const progressContainer = document.getElementById('studio-progress-container');
+  const metricsCard = document.getElementById('studio-metrics-card');
+  const saveBtn = document.getElementById('studio-btn-save-avatar');
+  const fileInput = document.getElementById('studio-avatar-file-input');
+
+  if (fileInput) fileInput.value = '';
+  if (progressContainer) progressContainer.style.display = 'none';
+  if (metricsCard) metricsCard.style.display = 'none';
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = "Save & Set Profile Photo 💾";
+  }
+
+  // Reset steps
+  ['studio-step-1', 'studio-step-2', 'studio-step-3', 'studio-step-4'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'step-badge';
+  });
+
+  const currentAvatar = state.pendingStudioAvatar || state.pendingProfileAvatar || state.user?.avatar_url;
+  const displayName = state.user?.full_name || state.user?.username || 'Operator';
+  if (previewCore) {
+    if (currentAvatar && currentAvatar.trim()) {
+      previewCore.style.backgroundImage = `url("${currentAvatar}")`;
+      previewCore.style.backgroundSize = 'cover';
+      previewCore.style.backgroundPosition = 'center';
+      previewCore.innerHTML = '';
+    } else {
+      previewCore.style.backgroundImage = 'none';
+      previewCore.innerHTML = displayName.charAt(0).toUpperCase();
+    }
+  }
+
+  if (overlay) overlay.style.display = 'flex';
+  if (modal) modal.style.display = 'block';
+
+  initStudioDragAndDrop();
+}
+
+let studioDragDropInitialized = false;
+function initStudioDragAndDrop() {
+  if (studioDragDropInitialized) return;
+  const dropzone = document.getElementById('avatar-studio-dropzone');
+  if (!dropzone) return;
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.add('dragover');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove('dragover');
+    }, false);
+  });
+
+  dropzone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files.length > 0) {
+      processStudioAvatarFile(files[0]);
+    }
+  }, false);
+
+  studioDragDropInitialized = true;
+}
+
+function handleStudioAvatarFileSelected(event) {
+  const input = event.target;
+  if (input.files && input.files[0]) {
+    processStudioAvatarFile(input.files[0]);
+  }
+}
+
+async function processStudioAvatarFile(file) {
   if (!file) return;
   if (!file.type.startsWith('image/')) {
-    showErrorToast("Please select a valid image file (PNG, JPG, WebP, GIF).");
-    inputEl.value = '';
+    showErrorToast("Please select a valid image format (PNG, JPG, WebP, GIF).");
     return;
   }
-  const reader = new FileReader();
-  reader.onerror = function() {
-    showErrorToast("Failed to read image file from disk.");
-    inputEl.value = '';
+
+  const progressContainer = document.getElementById('studio-progress-container');
+  const progressBar = document.getElementById('studio-progress-bar');
+  const progressStatus = document.getElementById('studio-progress-status');
+  const progressPercent = document.getElementById('studio-progress-percent');
+  const metricsCard = document.getElementById('studio-metrics-card');
+  const origMetric = document.getElementById('studio-metric-orig-size');
+  const optMetric = document.getElementById('studio-metric-opt-size');
+  const saveBtn = document.getElementById('studio-btn-save-avatar');
+  const previewCore = document.getElementById('studio-avatar-preview-core');
+
+  if (progressContainer) progressContainer.style.display = 'block';
+  if (saveBtn) saveBtn.disabled = true;
+
+  const origSizeKB = (file.size / 1024).toFixed(1);
+  if (origMetric) origMetric.innerText = `${origSizeKB} KB (${file.name})`;
+
+  const setProgress = (percent, statusText, activeStepIdx) => {
+    if (progressBar) progressBar.style.width = `${percent}%`;
+    if (progressPercent) progressPercent.innerText = `${percent}%`;
+    if (progressStatus) progressStatus.innerText = statusText;
+
+    const stepIds = ['studio-step-1', 'studio-step-2', 'studio-step-3', 'studio-step-4'];
+    stepIds.forEach((id, idx) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (idx < activeStepIdx) el.className = 'step-badge completed';
+      else if (idx === activeStepIdx) el.className = 'step-badge active';
+      else el.className = 'step-badge';
+    });
   };
-  reader.onload = function(e) {
+
+  // Step 1: Read File Buffer
+  setProgress(20, `Reading raw image buffer (${origSizeKB} KB)...`, 0);
+  await new Promise(r => setTimeout(r, 60));
+
+  const reader = new FileReader();
+  reader.onerror = () => {
+    showErrorToast("Failed to read image file from disk.");
+    setProgress(0, "Error reading image file", -1);
+  };
+
+  reader.onload = async (e) => {
     const rawDataUrl = e.target.result;
-    // Immediately set pending avatar & preview with rawDataUrl so it never fails
-    state.pendingProfileAvatar = rawDataUrl;
-    renderProfileModalAvatarPreview(rawDataUrl);
+    setProgress(50, "Hardware canvas scaling to 256x256...", 1);
+    await new Promise(r => setTimeout(r, 50));
 
     const img = new Image();
-    img.onload = function() {
+    img.onerror = () => {
+      showErrorToast("Failed to decode image pixels.");
+      setProgress(0, "Decode error", -1);
+    };
+
+    img.onload = async () => {
       try {
         const canvas = document.createElement('canvas');
         const maxDim = 256;
         let w = img.naturalWidth || img.width || 256;
         let h = img.naturalHeight || img.height || 256;
-        if (w > maxDim || h > maxDim) {
-          if (w > h) {
-            h = Math.round((h * maxDim) / w);
-            w = maxDim;
-          } else {
-            w = Math.round((w * maxDim) / h);
-            h = maxDim;
-          }
-        }
-        canvas.width = w;
-        canvas.height = h;
+
+        // Smart Center-Crop to perfect square
+        const minEdge = Math.min(w, h);
+        const sx = (w - minEdge) / 2;
+        const sy = (h - minEdge) / 2;
+
+        canvas.width = maxDim;
+        canvas.height = maxDim;
         const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-        
-        const format = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-        const compressedDataUrl = canvas.toDataURL(format, 0.88);
-        if (compressedDataUrl && compressedDataUrl.length > 50) {
-          state.pendingProfileAvatar = compressedDataUrl;
-          renderProfileModalAvatarPreview(compressedDataUrl);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.clearRect(0, 0, maxDim, maxDim);
+        ctx.drawImage(img, sx, sy, minEdge, minEdge, 0, 0, maxDim, maxDim);
+
+        setProgress(80, "VisionPro color grading & compression...", 2);
+        await new Promise(r => setTimeout(r, 50));
+
+        let compressedDataUrl = canvas.toDataURL('image/webp', 0.88);
+        if (!compressedDataUrl || compressedDataUrl.length < 50) {
+          compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+        }
+
+        const optBytes = Math.round((compressedDataUrl.length * 3) / 4);
+        const optKB = (optBytes / 1024).toFixed(1);
+        const reduction = Math.max(0, Math.round(((file.size - optBytes) / file.size) * 100));
+
+        if (optMetric) optMetric.innerText = `${optKB} KB (${reduction}% reduction)`;
+        if (metricsCard) metricsCard.style.display = 'block';
+
+        // Update live preview
+        state.pendingStudioAvatar = compressedDataUrl;
+        if (previewCore) {
+          previewCore.style.backgroundImage = `url("${compressedDataUrl}")`;
+          previewCore.style.backgroundSize = 'cover';
+          previewCore.style.backgroundPosition = 'center';
+          previewCore.innerHTML = '';
+        }
+
+        setProgress(100, "Image optimized & ready to synchronize! ✨", 3);
+        const step4 = document.getElementById('studio-step-4');
+        if (step4) step4.className = 'step-badge completed';
+
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = "Save & Set Profile Photo 💾";
         }
       } catch (err) {
-        console.warn("Canvas compression skipped, using raw data URL:", err);
+        console.warn("Canvas processing fallback:", err);
+        state.pendingStudioAvatar = rawDataUrl;
+        if (previewCore) {
+          previewCore.style.backgroundImage = `url("${rawDataUrl}")`;
+          previewCore.style.backgroundSize = 'cover';
+          previewCore.style.backgroundPosition = 'center';
+          previewCore.innerHTML = '';
+        }
+        setProgress(100, "Image ready to save! 📸", 3);
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerText = "Save & Set Profile Photo 💾";
+        }
       }
-      showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
-      inputEl.value = '';
-    };
-    img.onerror = function() {
-      showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
-      inputEl.value = '';
     };
     img.src = rawDataUrl;
   };
   reader.readAsDataURL(file);
 }
 
+async function submitStudioAvatarSave() {
+  if (!state.pendingStudioAvatar) {
+    showErrorToast("Please select an image first.");
+    return;
+  }
+
+  const saveBtn = document.getElementById('studio-btn-save-avatar');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = "Saving to Sovereign Vault... ⏳";
+  }
+
+  try {
+    const payload = {
+      username: state.user?.username || "",
+      full_name: state.user?.full_name || "",
+      phone: state.user?.phone || "",
+      email: state.user?.email || "",
+      avatar_url: state.pendingStudioAvatar
+    };
+
+    const res = await secureFetch("/api/user/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      showErrorToast(data.detail || "Failed to save avatar to vault.");
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save & Set Profile Photo 💾";
+      }
+      return;
+    }
+
+    // Successfully saved!
+    state.user.avatar_url = state.pendingStudioAvatar;
+    state.pendingProfileAvatar = state.pendingStudioAvatar;
+    updateUserUI(state.user);
+    renderProfileModalAvatarPreview(state.pendingStudioAvatar);
+
+    showSuccessToast("Profile picture saved and synchronized across all nodes! 📸✨");
+    hideModals();
+  } catch (err) {
+    showErrorToast(err.message || "Network error saving avatar.");
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerText = "Save & Set Profile Photo 💾";
+    }
+  }
+}
+
 function removeProfileAvatar() {
   state.pendingProfileAvatar = "";
+  state.pendingStudioAvatar = "";
   renderProfileModalAvatarPreview("");
   showSuccessToast("Profile photo removed. Click 'Save Profile Settings' to save.");
 }
@@ -811,13 +1025,17 @@ async function submitSaveProfile() {
     return;
   }
 
+  const activeAvatar = state.pendingProfileAvatar !== undefined 
+    ? state.pendingProfileAvatar 
+    : (state.user?.avatar_url || "");
+
   const payload = {
     full_name: fnInput ? fnInput.value.trim() : "",
     username: username,
     phone: phInput ? phInput.value.trim() : "",
     email: emInput ? emInput.value.trim() : "",
     pin: pin,
-    avatar_url: state.pendingProfileAvatar || ""
+    avatar_url: activeAvatar
   };
 
   try {
@@ -1742,31 +1960,31 @@ function handleQuickCTA() {
 function loadAllSubsystemData() {
   loadCurrencies();
   loadBusinesses();
-  loadBusinessOperators();
-  loadAdminUsers();
-  updateUIPermissions();
   loadCustomerWallet();
-  loadCustomerReceipts();
-  loadWalletLedger();
-  loadAgriFields();
-  loadPlantings();
-  loadHarvests();
-  loadDispositions();
-  loadActiveVisitors();
-  loadVisitorHistory();
-  loadSocialStories();
-  loadSocialPosts();
-  loadPosProducts();
-  loadBusinessCatalog();
-  loadMarketplaceCatalog();
   loadDiscoveredClusterNodes();
-  loadExportedNodePackages();
-  if (state.currentRole === 'admin') {
+  updateDashboardLiveFeeds();
+
+  // On-demand load for current active view
+  if (state.activeView === 'business') {
+    loadPosProducts();
+    loadMarketplaceCatalog();
+  } else if (state.activeView === 'agriculture') {
+    loadAgriFields();
+    loadPlantings();
+  } else if (state.activeView === 'banking') {
+    loadCustomerReceipts();
+    loadWalletLedger();
+  } else if (state.activeView === 'security') {
+    loadActiveVisitors();
+  } else if (state.activeView === 'social') {
+    loadSocialStories();
+    loadSocialPosts();
+  } else if (state.activeView === 'cluster') {
+    loadExportedNodePackages();
+  } else if (state.activeView === 'admin' && state.currentRole === 'admin') {
     loadAdminUsers();
     loadAdminDevices();
-    loadAdminAuditLogs();
   }
-  updateDashboardLiveFeeds();
 }
 
 function updateDashboardLiveFeeds() {

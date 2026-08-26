@@ -1324,15 +1324,13 @@
               A
             </div>
             <!-- Floating Camera Upload Badge -->
-            <div style="position: absolute; bottom: 0px; right: 0px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #7c4dff); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.7); border: 2px solid #06080d; font-size: 0.85rem; color: #fff; cursor: pointer; z-index: 5;" onclick="event.stopPropagation(); document.getElementById('profile-avatar-file-input').click()" title="Upload new photo">
+            <div style="position: absolute; bottom: 0px; right: 0px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #7c4dff); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.7); border: 2px solid #06080d; font-size: 0.85rem; color: #fff; cursor: pointer; z-index: 5;" onclick="event.stopPropagation(); openAvatarStudioModal()" title="Upload new photo in Avatar Studio">
               📷
             </div>
           </div>
           
-          <input type="file" id="profile-avatar-file-input" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display: none;" onchange="handleProfileAvatarUpload(event)">
-          
           <div style="display: flex; align-items: center; gap: 14px; margin-top: 6px;">
-            <span style="font-size: 0.74rem; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="document.getElementById('profile-avatar-file-input').click()">Upload / Change</span>
+            <span style="font-size: 0.74rem; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="openAvatarStudioModal()">Upload / Change</span>
             <span id="profile-avatar-view-btn" style="font-size: 0.74rem; color: #a78bfa; cursor: pointer; text-decoration: underline; font-weight: 600; display: none;" onclick="openAvatarLightbox(state.pendingProfileAvatar || state.user?.avatar_url)">View Photo 👁️</span>
             <span id="profile-avatar-remove-btn" style="font-size: 0.74rem; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: 600; display: none;" onclick="removeProfileAvatar()">Remove</span>
           </div>
@@ -1419,9 +1417,71 @@
       <p style="font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 18px;" id="lightbox-avatar-role">AUTHENTICATED OPERATOR</p>
       
       <div style="display: flex; gap: 8px; justify-content: center;">
-        <button type="button" class="btn-pill-primary" onclick="hideModals(); openProfileModal(); document.getElementById('profile-avatar-file-input').click();" style="margin: 0; padding: 8px 16px; font-size: 0.82rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;">📷 Change Photo</button>
+        <button type="button" class="btn-pill-primary" onclick="openAvatarStudioModal();" style="margin: 0; padding: 8px 16px; font-size: 0.82rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;">📷 Change Photo</button>
         <button type="button" class="btn-pill-secondary" onclick="hideModals(); openProfileModal();" style="margin: 0; padding: 8px 14px; font-size: 0.82rem; border-color: rgba(255,255,255,0.2);">⚙️ Settings</button>
         <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="margin: 0; padding: 8px 14px; font-size: 0.82rem;">Close ✕</button>
+      </div>
+    </div>
+
+    <!-- Modal 17: Operator Profile Picture Ingestion & Processing Studio Modal -->
+    <div class="auth-card glass-panel" id="modal-avatar-uploader" style="padding: 24px; width: 480px; max-width: 95%; text-align: center; display: none;">
+      <div class="auth-header" style="margin-bottom: 12px;">
+        <h3 style="font-size: 1.25rem; margin-bottom: 2px; color: #fff;">Profile Picture Studio</h3>
+        <p class="auth-subtitle" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Hardware-Accelerated Ingestion & Sovereign Sync</p>
+      </div>
+
+      <!-- Dropzone / File Picker Trigger -->
+      <div class="avatar-upload-dropzone" id="avatar-studio-dropzone" onclick="document.getElementById('studio-avatar-file-input').click()">
+        <input type="file" id="studio-avatar-file-input" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display: none;" onchange="handleStudioAvatarFileSelected(event)">
+        
+        <!-- Live Circular Organic Preview Viewport -->
+        <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+          <div class="organic-avatar-container" style="padding: 8px;">
+            <div id="studio-avatar-preview-core" class="organic-avatar-core" style="width: 100px; height: 100px; font-size: 2.5rem;">
+              👤
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size: 0.85rem; color: #fff; font-weight: 600; margin-bottom: 4px;" id="studio-dropzone-prompt">Drag & Drop Your Photo Here or <span style="color: var(--accent-cyan); text-decoration: underline;">Browse</span></p>
+        <p style="font-size: 0.72rem; color: var(--text-muted); margin: 0;">Supports PNG, JPG, WebP, GIF (Auto-scaled to 256x256)</p>
+      </div>
+
+      <!-- Progress Tracking Container (Hidden by default, shown during ingestion) -->
+      <div id="studio-progress-container" style="display: none; margin-top: 14px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-cyan);" id="studio-progress-status">Reading image data...</span>
+          <span style="font-size: 0.78rem; font-weight: 700; color: #fff;" id="studio-progress-percent">0%</span>
+        </div>
+        <div class="avatar-progress-track">
+          <div class="avatar-progress-bar" id="studio-progress-bar"></div>
+        </div>
+
+        <!-- 4 Multi-Step Visual Badges -->
+        <div class="step-indicator-row">
+          <div class="step-badge" id="studio-step-1">1. Read Buffer</div>
+          <div class="step-badge" id="studio-step-2">2. Downscale</div>
+          <div class="step-badge" id="studio-step-3">3. Compress</div>
+          <div class="step-badge" id="studio-step-4">4. Ready</div>
+        </div>
+
+        <!-- Optimization Metrics Card -->
+        <div id="studio-metrics-card" style="display: none; background: rgba(255,255,255,0.04); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 10px; padding: 8px 12px; margin-top: 12px; font-size: 0.74rem;">
+          <div style="display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 2px;">
+            <span>Original File:</span>
+            <strong style="color: #fff;" id="studio-metric-orig-size">0 KB</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; color: var(--text-muted);">
+            <span>Optimized Matrix:</span>
+            <strong style="color: #10b981;" id="studio-metric-opt-size">0 KB (0% smaller)</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 8px; margin-top: 18px;">
+        <button type="button" class="btn-pill-primary" id="studio-btn-save-avatar" onclick="submitStudioAvatarSave()" style="flex-grow: 1; margin: 0; padding: 10px 16px; font-size: 0.85rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;" disabled>Save & Set Profile Photo 💾</button>
+        <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="margin: 0; padding: 10px 14px; font-size: 0.82rem;">Cancel</button>
       </div>
     </div>
   </div>
