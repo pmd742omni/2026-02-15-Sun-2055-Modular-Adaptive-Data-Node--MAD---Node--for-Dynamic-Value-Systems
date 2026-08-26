@@ -982,9 +982,14 @@ async function submitStudioAvatarSave() {
   }
 
   const saveBtn = document.getElementById('studio-btn-save-avatar');
+  const progressStatus = document.getElementById('studio-progress-status');
   if (saveBtn) {
     saveBtn.disabled = true;
-    saveBtn.innerText = "Saving to Sovereign Vault... ⏳";
+    saveBtn.innerText = "Synchronizing Vault... ⏳";
+    saveBtn.style.animation = "none";
+  }
+  if (progressStatus) {
+    progressStatus.innerText = "Persisting avatar to local SQLite Vault...";
   }
 
   try {
@@ -1018,8 +1023,27 @@ async function submitStudioAvatarSave() {
     updateUserUI(state.user);
     renderProfileModalAvatarPreview(state.pendingStudioAvatar);
 
+    // Visual Success Indication inside the Studio
+    if (saveBtn) {
+      saveBtn.innerText = "Saved & Synchronized! ✅";
+      saveBtn.style.background = "#10b981";
+      saveBtn.style.borderColor = "#10b981";
+    }
+    if (progressStatus) {
+      progressStatus.innerText = "Profile picture active on Operator & Vault Nodes! ✨";
+      progressStatus.style.color = "#10b981";
+    }
+
     showSuccessToast("Profile picture saved and synchronized across all nodes! 📸✨");
-    hideModals();
+
+    // Auto-close modal smoothly after brief confirmation
+    setTimeout(() => {
+      hideModals();
+      if (saveBtn) {
+        saveBtn.style.background = "";
+        saveBtn.style.borderColor = "";
+      }
+    }, 600);
   } catch (err) {
     showErrorToast(err.message || "Network error saving avatar.");
     if (saveBtn) {

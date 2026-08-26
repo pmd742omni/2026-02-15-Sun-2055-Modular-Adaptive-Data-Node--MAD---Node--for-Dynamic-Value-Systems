@@ -3445,7 +3445,8 @@ def get_user_profile(user_id_or_username) -> Optional[dict]:
 def update_user_profile(user_id: int, full_name: str = None, phone: str = None, email: str = None, new_username: str = None, pin: str = None, avatar_url: str = None) -> dict:
     """Updates operator profile fields, profile picture, and safely cascades username modifications."""
     now = int(time.time())
-    with get_db() as db:
+    db = get_db()
+    try:
         cursor = db.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         current_user = cursor.fetchone()
         if not current_user:
@@ -3505,6 +3506,8 @@ def update_user_profile(user_id: int, full_name: str = None, phone: str = None, 
             db.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", tuple(params))
         
         db.commit()
+    finally:
+        db.close()
 
     write_audit_log(target_username, "PROFILE_UPDATE", f"Operator profile updated for user ID #{user_id} (username: {target_username})")
     return get_user_profile(user_id)
