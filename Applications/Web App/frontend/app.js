@@ -854,6 +854,19 @@ async function processStudioAvatarFile(file) {
     });
   };
 
+  // Instant 0ms Visual Preview using Blob Object URL
+  if (previewCore) {
+    try {
+      const tempUrl = URL.createObjectURL(file);
+      previewCore.style.backgroundImage = `url("${tempUrl}")`;
+      previewCore.style.backgroundSize = 'cover';
+      previewCore.style.backgroundPosition = 'center';
+      previewCore.innerHTML = '';
+    } catch (objUrlErr) {
+      console.warn("createObjectURL notice:", objUrlErr);
+    }
+  }
+
   const finalizeImage = (dataUrl) => {
     state.pendingStudioAvatar = dataUrl;
     if (previewCore) {
@@ -870,20 +883,21 @@ async function processStudioAvatarFile(file) {
     if (optMetric) optMetric.innerText = `${optKB} KB (${reduction}% reduction)`;
     if (metricsCard) metricsCard.style.display = 'block';
 
-    setProgress(100, "Image optimized & ready to save! ✨", 3);
+    setProgress(100, "Image ready to save! ✨ Click 'Save & Set Profile Photo' below", 3);
     const step4 = document.getElementById('studio-step-4');
     if (step4) step4.className = 'step-badge completed';
 
     if (saveBtn) {
       saveBtn.disabled = false;
       saveBtn.innerText = "Save & Set Profile Photo 💾";
+      saveBtn.style.animation = "pulse 1.2s infinite";
     }
   };
 
   try {
     // Step 1: Read Buffer (Instant)
     setProgress(25, `Reading raw image buffer (${origSizeKB} KB)...`, 0);
-    await new Promise(r => setTimeout(r, 20));
+    await new Promise(r => setTimeout(r, 10));
 
     // Step 2: Downscale using createImageBitmap (Hardware Accelerated)
     setProgress(55, "Hardware canvas scaling to 256x256...", 1);
@@ -940,7 +954,7 @@ async function processStudioAvatarFile(file) {
 
     // Step 3: Compress
     setProgress(85, "VisionPro color grading & compression...", 2);
-    await new Promise(r => setTimeout(r, 20));
+    await new Promise(r => setTimeout(r, 10));
 
     let finalDataUrl = canvas.toDataURL('image/webp', 0.88);
     if (!finalDataUrl || finalDataUrl.length < 50) {
