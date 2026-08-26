@@ -815,7 +815,7 @@ function handleStudioAvatarFileSelected(event) {
 
 async function processStudioAvatarFile(file) {
   if (!file) return;
-  if (!file.type.startsWith('image/')) {
+  if (!file.type || !file.type.startsWith('image/')) {
     showErrorToast("Please select a valid image format (PNG, JPG, WebP, GIF).");
     return;
   }
@@ -831,7 +831,10 @@ async function processStudioAvatarFile(file) {
   const previewCore = document.getElementById('studio-avatar-preview-core');
 
   if (progressContainer) progressContainer.style.display = 'block';
-  if (saveBtn) saveBtn.disabled = true;
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = "Optimizing Image...";
+  }
 
   const origSizeKB = (file.size / 1024).toFixed(1);
   if (origMetric) origMetric.innerText = `${origSizeKB} KB (${file.name})`;
@@ -851,98 +854,111 @@ async function processStudioAvatarFile(file) {
     });
   };
 
-  // Step 1: Read File Buffer
-  setProgress(20, `Reading raw image buffer (${origSizeKB} KB)...`, 0);
-  await new Promise(r => setTimeout(r, 60));
+  const finalizeImage = (dataUrl) => {
+    state.pendingStudioAvatar = dataUrl;
+    if (previewCore) {
+      previewCore.style.backgroundImage = `url("${dataUrl}")`;
+      previewCore.style.backgroundSize = 'cover';
+      previewCore.style.backgroundPosition = 'center';
+      previewCore.innerHTML = '';
+    }
 
-  const reader = new FileReader();
-  reader.onerror = () => {
-    showErrorToast("Failed to read image file from disk.");
-    setProgress(0, "Error reading image file", -1);
+    const optBytes = Math.round((dataUrl.length * 3) / 4);
+    const optKB = (optBytes / 1024).toFixed(1);
+    const reduction = Math.max(0, Math.round(((file.size - optBytes) / file.size) * 100));
+
+    if (optMetric) optMetric.innerText = `${optKB} KB (${reduction}% reduction)`;
+    if (metricsCard) metricsCard.style.display = 'block';
+
+    setProgress(100, "Image optimized & ready to save! ✨", 3);
+    const step4 = document.getElementById('studio-step-4');
+    if (step4) step4.className = 'step-badge completed';
+
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerText = "Save & Set Profile Photo 💾";
+    }
   };
 
-  reader.onload = async (e) => {
-    const rawDataUrl = e.target.result;
-    setProgress(50, "Hardware canvas scaling to 256x256...", 1);
-    await new Promise(r => setTimeout(r, 50));
+  try {
+    // Step 1: Read Buffer (Instant)
+    setProgress(25, `Reading raw image buffer (${origSizeKB} KB)...`, 0);
+    await new Promise(r => setTimeout(r, 20));
 
-    const img = new Image();
-    img.onerror = () => {
-      showErrorToast("Failed to decode image pixels.");
-      setProgress(0, "Decode error", -1);
-    };
-
-    img.onload = async () => {
+    // Step 2: Downscale using createImageBitmap (Hardware Accelerated)
+    setProgress(55, "Hardware canvas scaling to 256x256...", 1);
+    
+    let sourceWidth, sourceHeight, drawSource;
+    if (typeof window.createImageBitmap === 'function') {
       try {
-        const canvas = document.createElement('canvas');
-        const maxDim = 256;
-        let w = img.naturalWidth || img.width || 256;
-        let h = img.naturalHeight || img.height || 256;
-
-        // Smart Center-Crop to perfect square
-        const minEdge = Math.min(w, h);
-        const sx = (w - minEdge) / 2;
-        const sy = (h - minEdge) / 2;
-
-        canvas.width = maxDim;
-        canvas.height = maxDim;
-        const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.clearRect(0, 0, maxDim, maxDim);
-        ctx.drawImage(img, sx, sy, minEdge, minEdge, 0, 0, maxDim, maxDim);
-
-        setProgress(80, "VisionPro color grading & compression...", 2);
-        await new Promise(r => setTimeout(r, 50));
-
-        let compressedDataUrl = canvas.toDataURL('image/webp', 0.88);
-        if (!compressedDataUrl || compressedDataUrl.length < 50) {
-          compressedDataUrl = canvas.toDataURL('image/jpeg', 0.88);
-        }
-
-        const optBytes = Math.round((compressedDataUrl.length * 3) / 4);
-        const optKB = (optBytes / 1024).toFixed(1);
-        const reduction = Math.max(0, Math.round(((file.size - optBytes) / file.size) * 100));
-
-        if (optMetric) optMetric.innerText = `${optKB} KB (${reduction}% reduction)`;
-        if (metricsCard) metricsCard.style.display = 'block';
-
-        // Update live preview
-        state.pendingStudioAvatar = compressedDataUrl;
-        if (previewCore) {
-          previewCore.style.backgroundImage = `url("${compressedDataUrl}")`;
-          previewCore.style.backgroundSize = 'cover';
-          previewCore.style.backgroundPosition = 'center';
-          previewCore.innerHTML = '';
-        }
-
-        setProgress(100, "Image optimized & ready to synchronize! ✨", 3);
-        const step4 = document.getElementById('studio-step-4');
-        if (step4) step4.className = 'step-badge completed';
-
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.innerText = "Save & Set Profile Photo 💾";
-        }
-      } catch (err) {
-        console.warn("Canvas processing fallback:", err);
-        state.pendingStudioAvatar = rawDataUrl;
-        if (previewCore) {
-          previewCore.style.backgroundImage = `url("${rawDataUrl}")`;
-          previewCore.style.backgroundSize = 'cover';
-          previewCore.style.backgroundPosition = 'center';
-          previewCore.innerHTML = '';
-        }
-        setProgress(100, "Image ready to save! 📸", 3);
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.innerText = "Save & Set Profile Photo 💾";
-        }
+        const bmp = await window.createImageBitmap(file);
+        sourceWidth = bmp.width;
+        sourceHeight = bmp.height;
+        drawSource = bmp;
+      } catch (bmpErr) {
+        console.warn("createImageBitmap decode notice:", bmpErr);
       }
+    }
+
+    const canvas = document.createElement('canvas');
+    const maxDim = 256;
+    canvas.width = maxDim;
+    canvas.height = maxDim;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    if (drawSource) {
+      const minEdge = Math.min(sourceWidth, sourceHeight);
+      const sx = (sourceWidth - minEdge) / 2;
+      const sy = (sourceHeight - minEdge) / 2;
+      ctx.drawImage(drawSource, sx, sy, minEdge, minEdge, 0, 0, maxDim, maxDim);
+      if (typeof drawSource.close === 'function') drawSource.close();
+    } else {
+      // Fallback via FileReader & Image
+      const rawData = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error("File read error"));
+        reader.readAsDataURL(file);
+      });
+
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = () => reject(new Error("Image decode error"));
+        i.src = rawData;
+      });
+
+      const w = img.naturalWidth || img.width || 256;
+      const h = img.naturalHeight || img.height || 256;
+      const minEdge = Math.min(w, h);
+      const sx = (w - minEdge) / 2;
+      const sy = (h - minEdge) / 2;
+      ctx.drawImage(img, sx, sy, minEdge, minEdge, 0, 0, maxDim, maxDim);
+    }
+
+    // Step 3: Compress
+    setProgress(85, "VisionPro color grading & compression...", 2);
+    await new Promise(r => setTimeout(r, 20));
+
+    let finalDataUrl = canvas.toDataURL('image/webp', 0.88);
+    if (!finalDataUrl || finalDataUrl.length < 50) {
+      finalDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+    }
+
+    finalizeImage(finalDataUrl);
+  } catch (err) {
+    console.warn("Avatar pipeline fallback:", err);
+    // Instant safety fallback: read raw as data URL
+    const reader = new FileReader();
+    reader.onload = (e) => finalizeImage(e.target.result);
+    reader.onerror = () => {
+      showErrorToast("Could not process image file.");
+      setProgress(0, "Processing error", -1);
     };
-    img.src = rawDataUrl;
-  };
-  reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
+  }
 }
 
 async function submitStudioAvatarSave() {
