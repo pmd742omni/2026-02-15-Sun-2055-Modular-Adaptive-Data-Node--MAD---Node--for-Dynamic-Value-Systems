@@ -577,7 +577,12 @@ function showStepUpModal() {
 
 function hideModals() {
   const overlay = document.getElementById('modal-overlay');
-  if (overlay) overlay.style.display = 'none';
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.querySelectorAll('.auth-card').forEach(el => {
+      el.style.display = 'none';
+    });
+  }
 
   const modalIds = [
     'modal-step-up',
@@ -594,7 +599,9 @@ function hideModals() {
     'modal-new-planting',
     'modal-checkin-visitor',
     'modal-create-business',
-    'modal-operator-profile'
+    'modal-operator-profile',
+    'modal-avatar-lightbox',
+    'modal-avatar-uploader'
   ];
 
   modalIds.forEach(id => {
