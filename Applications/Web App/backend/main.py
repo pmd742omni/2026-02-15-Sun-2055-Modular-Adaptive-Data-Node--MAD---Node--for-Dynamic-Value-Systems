@@ -183,7 +183,7 @@ async def get_current_user(request: Request):
     # Query session details
     cursor = db.execute("""
         SELECT s.token_hash, s.user_id, s.user_agent, s.ip_subnet, s.stepped_up_until,
-               u.username, u.role, u.status, u.must_change_password
+               u.username, u.full_name, u.avatar_url, u.role, u.status, u.must_change_password
         FROM sessions s
         JOIN users u ON s.user_id = u.id
         WHERE s.token_hash = ?
@@ -408,6 +408,8 @@ async def login(payload: LoginPayload, request: Request, response: Response):
     write_audit_log(username, "LOGIN", "Successful login session created.")
     return {
         "username": user["username"],
+        "full_name": user["full_name"] or user["username"],
+        "avatar_url": user["avatar_url"] or "",
         "role": user["role"],
         "must_change_password": user["must_change_password"],
         "mfa_enrolled": bool(user["mfa_secret"])
@@ -577,6 +579,8 @@ async def change_password(request: Request, current_user = Depends(get_current_u
 async def check_session(current_user = Depends(get_current_user)):
     return {
         "username": current_user["username"],
+        "full_name": current_user.get("full_name") or current_user["username"],
+        "avatar_url": current_user.get("avatar_url") or "",
         "role": current_user["role"],
         "must_change_password": current_user["must_change_password"]
     }

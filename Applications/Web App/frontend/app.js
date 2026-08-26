@@ -491,19 +491,43 @@ function hideLoginOverlay() {
 }
 
 function updateUserUI(user) {
+  if (!user) return;
   const profileUser = document.getElementById('profile-username');
   const profileRole = document.getElementById('profile-role');
   const avatarPic = document.getElementById('user-avatar-pic');
+  const heroAvatar = document.getElementById('hero-operator-avatar');
+  const heroName = document.getElementById('hero-header-operator-name');
+  const heroRole = document.getElementById('hero-header-operator-role');
   const roleSelect = document.getElementById('role-switcher-select');
 
   const displayName = user.full_name || user.username || 'Operator';
   if (profileUser) profileUser.innerText = displayName;
-  
+  if (heroName) heroName.innerText = `MAD Node Hub • ${displayName}`;
+  if (heroRole) heroRole.innerText = `Modular Adaptive Data Node • Primary Autonomous Mesh Vault #1 Active (${(user.role || 'operator').toUpperCase()})`;
+
+  // Sidebar Avatar
   if (avatarPic) {
-    if (user.avatar_url) {
-      avatarPic.innerHTML = `<img src="${user.avatar_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    if (user.avatar_url && user.avatar_url.trim()) {
+      avatarPic.style.backgroundImage = `url("${user.avatar_url}")`;
+      avatarPic.style.backgroundSize = 'cover';
+      avatarPic.style.backgroundPosition = 'center';
+      avatarPic.innerHTML = '';
     } else {
+      avatarPic.style.backgroundImage = 'none';
       avatarPic.innerHTML = displayName.charAt(0).toUpperCase();
+    }
+  }
+
+  // Hero Header Avatar
+  if (heroAvatar) {
+    if (user.avatar_url && user.avatar_url.trim()) {
+      heroAvatar.style.backgroundImage = `url("${user.avatar_url}")`;
+      heroAvatar.style.backgroundSize = 'cover';
+      heroAvatar.style.backgroundPosition = 'center';
+      heroAvatar.innerHTML = '';
+    } else {
+      heroAvatar.style.backgroundImage = 'none';
+      heroAvatar.innerHTML = displayName.charAt(0).toUpperCase();
     }
   }
 
@@ -518,7 +542,7 @@ function updateUserUI(user) {
 
   if (profileRole) {
     profileRole.className = `role-pill-badge ${roleClassMap[user.role] || 'role-badge-guest'}`;
-    profileRole.innerText = user.role.toUpperCase();
+    profileRole.innerText = (user.role || 'admin').toUpperCase();
   }
 
   if (roleSelect) {
@@ -639,16 +663,64 @@ async function openProfileModal() {
 
 function renderProfileModalAvatarPreview(avatarUrl, fallbackName) {
   const avatarEl = document.getElementById('profile-modal-avatar');
+  const viewBtn = document.getElementById('profile-avatar-view-btn');
   const removeBtn = document.getElementById('profile-avatar-remove-btn');
   if (!avatarEl) return;
   const name = fallbackName || document.getElementById('profile-input-fullname')?.value || document.getElementById('profile-input-username')?.value || 'A';
+  
   if (avatarUrl && avatarUrl.trim()) {
-    avatarEl.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">`;
+    avatarEl.style.backgroundImage = `url("${avatarUrl}")`;
+    avatarEl.style.backgroundSize = 'cover';
+    avatarEl.style.backgroundPosition = 'center';
+    avatarEl.innerHTML = '';
+    if (viewBtn) viewBtn.style.display = 'inline';
     if (removeBtn) removeBtn.style.display = 'inline';
   } else {
+    avatarEl.style.backgroundImage = 'none';
     avatarEl.innerHTML = name.trim().charAt(0).toUpperCase() || 'A';
+    if (viewBtn) viewBtn.style.display = 'none';
     if (removeBtn) removeBtn.style.display = 'none';
   }
+}
+
+function handleProfileModalAvatarClick() {
+  const activeAvatar = state.pendingProfileAvatar || state.user?.avatar_url;
+  if (activeAvatar && activeAvatar.trim()) {
+    openAvatarLightbox(activeAvatar);
+  } else {
+    document.getElementById('profile-avatar-file-input')?.click();
+  }
+}
+
+function openAvatarLightbox(avatarUrl) {
+  const targetUrl = avatarUrl || state.user?.avatar_url;
+  const displayName = state.user?.full_name || state.user?.username || 'Operator';
+  const roleName = (state.user?.role || 'OPERATOR').toUpperCase();
+
+  const imgContainer = document.getElementById('lightbox-avatar-img-container');
+  const nameEl = document.getElementById('lightbox-avatar-name');
+  const roleEl = document.getElementById('lightbox-avatar-role');
+
+  if (nameEl) nameEl.innerText = displayName;
+  if (roleEl) roleEl.innerText = `${roleName} • SOVEREIGN IDENTITY`;
+
+  if (imgContainer) {
+    if (targetUrl && targetUrl.trim()) {
+      imgContainer.style.backgroundImage = `url("${targetUrl}")`;
+      imgContainer.style.backgroundSize = 'cover';
+      imgContainer.style.backgroundPosition = 'center';
+      imgContainer.innerHTML = '';
+    } else {
+      imgContainer.style.backgroundImage = 'none';
+      imgContainer.innerHTML = displayName.charAt(0).toUpperCase();
+    }
+  }
+
+  hideModals();
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal-avatar-lightbox');
+  if (overlay) overlay.style.display = 'flex';
+  if (modal) modal.style.display = 'block';
 }
 
 function handleProfileAvatarUpload(event) {
@@ -666,15 +738,12 @@ function handleProfileAvatarUpload(event) {
     inputEl.value = '';
   };
   reader.onload = function(e) {
-    const dataUrl = e.target.result;
+    const rawDataUrl = e.target.result;
+    // Immediately set pending avatar & preview with rawDataUrl so it never fails
+    state.pendingProfileAvatar = rawDataUrl;
+    renderProfileModalAvatarPreview(rawDataUrl);
+
     const img = new Image();
-    img.onerror = function() {
-      // Fallback: direct dataUrl if browser canvas decoding is restricted
-      state.pendingProfileAvatar = dataUrl;
-      renderProfileModalAvatarPreview(dataUrl);
-      showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
-      inputEl.value = '';
-    };
     img.onload = function() {
       try {
         const canvas = document.createElement('canvas');
@@ -696,20 +765,23 @@ function handleProfileAvatarUpload(event) {
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
         
-        // Preserve PNG transparency if png, otherwise use high-quality JPEG
         const format = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
         const compressedDataUrl = canvas.toDataURL(format, 0.88);
-        state.pendingProfileAvatar = compressedDataUrl;
-        renderProfileModalAvatarPreview(compressedDataUrl);
-        showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
+        if (compressedDataUrl && compressedDataUrl.length > 50) {
+          state.pendingProfileAvatar = compressedDataUrl;
+          renderProfileModalAvatarPreview(compressedDataUrl);
+        }
       } catch (err) {
-        state.pendingProfileAvatar = dataUrl;
-        renderProfileModalAvatarPreview(dataUrl);
-        showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
+        console.warn("Canvas compression skipped, using raw data URL:", err);
       }
+      showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
       inputEl.value = '';
     };
-    img.src = dataUrl;
+    img.onerror = function() {
+      showSuccessToast("Profile photo loaded! Click 'Save Profile Settings' to save. 📸");
+      inputEl.value = '';
+    };
+    img.src = rawDataUrl;
   };
   reader.readAsDataURL(file);
 }

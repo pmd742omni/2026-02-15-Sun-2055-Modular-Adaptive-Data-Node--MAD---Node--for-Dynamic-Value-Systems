@@ -1317,22 +1317,23 @@
     <!-- Modal 15: Operator Profile & Account Settings Modal -->
     <div class="auth-card glass-panel" id="modal-operator-profile" style="padding: 22px 26px; width: 520px; max-width: 95%; text-align: left; display: none; max-height: 94vh; overflow-y: auto;">
       <div class="auth-header" style="text-align: center; margin-bottom: 12px; position: relative;">
-        <!-- Avatar Photo / Initials Container with Floating Camera Badge -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 8px;">
-          <div style="position: relative; cursor: pointer; display: inline-block;" onclick="document.getElementById('profile-avatar-file-input').click()" title="Click to upload/change profile photo">
-            <div style="width: 76px; height: 76px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff; font-size: 2rem; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--accent-glow); border: 2px solid rgba(0, 229, 255, 0.5); transition: transform 0.2s, box-shadow 0.2s;" id="profile-modal-avatar">
+        <!-- Avatar Photo / Initials Container with Organic Circular Geometric Halo Pattern -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px;">
+          <div class="organic-avatar-container" title="Click to view full photo / change picture">
+            <div class="organic-avatar-core" id="profile-modal-avatar" onclick="handleProfileModalAvatarClick()">
               A
             </div>
-            <!-- Floating Camera Badge -->
-            <div style="position: absolute; bottom: -2px; right: -2px; width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #7c4dff); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.6); border: 2px solid #0f172a; font-size: 0.8rem; color: #fff;">
+            <!-- Floating Camera Upload Badge -->
+            <div style="position: absolute; bottom: 0px; right: 0px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #00e5ff, #7c4dff); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.7); border: 2px solid #06080d; font-size: 0.85rem; color: #fff; cursor: pointer; z-index: 5;" onclick="event.stopPropagation(); document.getElementById('profile-avatar-file-input').click()" title="Upload new photo">
               📷
             </div>
           </div>
           
           <input type="file" id="profile-avatar-file-input" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display: none;" onchange="handleProfileAvatarUpload(event)">
           
-          <div style="display: flex; align-items: center; gap: 12px; margin-top: 5px;">
-            <span style="font-size: 0.74rem; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="document.getElementById('profile-avatar-file-input').click()">Change Photo</span>
+          <div style="display: flex; align-items: center; gap: 14px; margin-top: 6px;">
+            <span style="font-size: 0.74rem; color: var(--accent-cyan); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="document.getElementById('profile-avatar-file-input').click()">Upload / Change</span>
+            <span id="profile-avatar-view-btn" style="font-size: 0.74rem; color: #a78bfa; cursor: pointer; text-decoration: underline; font-weight: 600; display: none;" onclick="openAvatarLightbox(state.pendingProfileAvatar || state.user?.avatar_url)">View Photo 👁️</span>
             <span id="profile-avatar-remove-btn" style="font-size: 0.74rem; color: #ef4444; cursor: pointer; text-decoration: underline; font-weight: 600; display: none;" onclick="removeProfileAvatar()">Remove</span>
           </div>
         </div>
@@ -1402,6 +1403,24 @@
           <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="margin: 0; padding: 8px 14px; font-size: 0.82rem;">Close ✕</button>
         </div>
       </form>
+    <!-- Modal 16: Operator Profile Avatar Fullscreen Lightbox Modal -->
+    <div class="auth-card glass-panel" id="modal-avatar-lightbox" style="padding: 24px; width: 440px; max-width: 95%; text-align: center; display: none;">
+      <div style="position: relative; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+        <div class="organic-avatar-container" style="padding: 10px;">
+          <div id="lightbox-avatar-img-container" style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; border: 2.5px solid rgba(0, 229, 255, 0.8); box-shadow: 0 0 35px var(--accent-glow); background: linear-gradient(135deg, rgba(0, 229, 255, 0.8), rgba(124, 77, 255, 0.9)); display: flex; align-items: center; justify-content: center; font-size: 5rem; font-weight: 700; color: #fff;">
+            A
+          </div>
+        </div>
+      </div>
+      
+      <h3 style="font-size: 1.3rem; margin-bottom: 2px; color: #fff;" id="lightbox-avatar-name">Operator</h3>
+      <p style="font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 18px;" id="lightbox-avatar-role">AUTHENTICATED OPERATOR</p>
+      
+      <div style="display: flex; gap: 8px; justify-content: center;">
+        <button type="button" class="btn-pill-primary" onclick="hideModals(); openProfileModal(); document.getElementById('profile-avatar-file-input').click();" style="margin: 0; padding: 8px 16px; font-size: 0.82rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;">📷 Change Photo</button>
+        <button type="button" class="btn-pill-secondary" onclick="hideModals(); openProfileModal();" style="margin: 0; padding: 8px 14px; font-size: 0.82rem; border-color: rgba(255,255,255,0.2);">⚙️ Settings</button>
+        <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="margin: 0; padding: 8px 14px; font-size: 0.82rem;">Close ✕</button>
+      </div>
     </div>
   </div>
 
@@ -1478,11 +1497,15 @@
     <main class="layout-col-center">
       <!-- Single Unified Dark Glass Hero Cover Banner Card -->
       <div class="glass-panel hero-banner-card">
-        <div class="hero-content-row">
-          <div class="hero-avatar-circle">▲</div>
+        <div class="hero-content-row" style="cursor: pointer;" onclick="openAvatarLightbox(state.user?.avatar_url)" title="Click to view Operator Profile Photo / Settings">
+          <div class="organic-avatar-container" style="padding: 4px;">
+            <div class="organic-avatar-core" id="hero-operator-avatar" style="width: 48px; height: 48px; font-size: 1.2rem; border-width: 1.5px;">
+              ▲
+            </div>
+          </div>
           <div class="hero-text-details">
-            <h2 class="hero-title-name">MAD Node Hub — Vault 1</h2>
-            <p class="hero-subtitle-desc">Modular Adaptive Data Node • Primary Autonomous Mesh Vault #1 Active</p>
+            <h2 class="hero-title-name" id="hero-header-operator-name">MAD Node Hub — Vault 1</h2>
+            <p class="hero-subtitle-desc" id="hero-header-operator-role">Modular Adaptive Data Node • Primary Autonomous Mesh Vault #1 Active</p>
           </div>
         </div>
 
