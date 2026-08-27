@@ -136,12 +136,27 @@ def init_db():
         must_change_password INTEGER DEFAULT 1,
         mfa_secret TEXT,
         mfa_last_used_code TEXT,
-        pin TEXT DEFAULT '1234'
+        pin TEXT DEFAULT '1234',
+        is_deleted INTEGER DEFAULT 0,
+        deleted_at INTEGER,
+        deleted_by TEXT DEFAULT ''
     );
     """)
     
     try:
         db.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT '';")
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN is_deleted INTEGER DEFAULT 0;")
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN deleted_at INTEGER;")
+    except Exception:
+        pass
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN deleted_by TEXT DEFAULT '';")
     except Exception:
         pass
     

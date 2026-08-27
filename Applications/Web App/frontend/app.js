@@ -2305,35 +2305,71 @@ async function revokeOperator(username) {
 }
 
 // --- ADMIN USER & GLOBAL PRIVILEGE MANAGEMENT ---
+let currentAdminUsersTab = 'active';
+
+function switchAdminUsersTab(tab) {
+  currentAdminUsersTab = tab;
+  const activeView = document.getElementById('admin-users-active-view');
+  const recycleView = document.getElementById('admin-users-recycle-view');
+  const tabBtnActive = document.getElementById('tab-btn-users-active');
+  const tabBtnRecycle = document.getElementById('tab-btn-users-recycle');
+
+  if (tab === 'active') {
+    if (activeView) activeView.style.display = 'grid';
+    if (recycleView) recycleView.style.display = 'none';
+    if (tabBtnActive) {
+      tabBtnActive.style.background = 'linear-gradient(135deg, var(--accent-cyan), #0284c7)';
+      tabBtnActive.style.color = '#000';
+    }
+    if (tabBtnRecycle) {
+      tabBtnRecycle.style.background = 'rgba(255,255,255,0.06)';
+      tabBtnRecycle.style.color = 'var(--text-muted)';
+    }
+    loadAdminUsers();
+  } else {
+    if (activeView) activeView.style.display = 'none';
+    if (recycleView) recycleView.style.display = 'block';
+    if (tabBtnRecycle) {
+      tabBtnRecycle.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+      tabBtnRecycle.style.color = '#fff';
+    }
+    if (tabBtnActive) {
+      tabBtnActive.style.background = 'rgba(255,255,255,0.06)';
+      tabBtnActive.style.color = 'var(--text-muted)';
+    }
+    loadAdminRecycleBin();
+  }
+}
+
 async function loadAdminUsers() {
   const tbody = document.getElementById('admin-users-table-body');
+  const countBadge = document.getElementById('count-active-users');
   if (!tbody) return;
 
   try {
     const res = await secureFetch("/api/admin/users");
     if (!res.ok) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">User directory restricted to Administrators.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 16px;">User directory restricted to Administrators.</td></tr>`;
       return;
     }
 
-    const data = await res.json();
-    const users = Array.isArray(data) ? data : (data.users || []);
+    const users = await res.json();
+    const userList = Array.isArray(users) ? users : [];
+    if (countBadge) countBadge.innerText = userList.length;
 
-    if (users.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">No registered users found.</td></tr>`;
+    if (userList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 16px;">No active operators found.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = users.map(u => {
+    tbody.innerHTML = userList.map(u => {
       const isSelf = (state.user && state.user.username === u.username);
       const isStatusActive = (u.status === 'active');
-      const createdStr = u.created_at ? new Date(u.created_at * 1000).toISOString().substring(0, 10) : 'Genesis';
       const hasAvatar = u.avatar_url && u.avatar_url.trim();
       const displayName = u.full_name ? u.full_name : u.username;
 
       return `
         <tr>
-          <td><code style="color: var(--accent-cyan); font-weight: 700;">#${u.id}</code></td>
           <td>
             <div style="display: flex; align-items: center; gap: 8px;">
               <div style="width: 28px; height: 28px; border-radius: 50%; ${hasAvatar ? `background-image: url('${u.avatar_url}'); background-size: cover; background-position: center; border: 1.5px solid var(--accent-cyan);` : 'background: rgba(255,255,255,0.08); font-size: 0.75rem; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;'} flex-shrink: 0;">
@@ -2346,33 +2382,242 @@ async function loadAdminUsers() {
               </div>
             </div>
           </td>
-          <td>
-            <select id="user-role-select-${u.id}" class="role-switcher-select" style="padding: 4px 8px; font-size: 0.78rem;" ${isSelf ? 'disabled title="Cannot demote yourself"' : ''}>
-              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>👑 Admin</option>
-              <option value="agronomist" ${u.role === 'agronomist' ? 'selected' : ''}>🌾 Agronomist</option>
-              <option value="guard" ${u.role === 'guard' ? 'selected' : ''}>🛡️ Guard</option>
-              <option value="merchant" ${u.role === 'merchant' ? 'selected' : ''}>🏪 Merchant</option>
-              <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>🛒 Customer</option>
-              <option value="guest" ${u.role === 'guest' ? 'selected' : ''}>👤 Guest</option>
-            </select>
-          </td>
+          <td><span class="role-pill-badge">${u.role.toUpperCase()}</span></td>
           <td>
             <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; background: ${isStatusActive ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color: ${isStatusActive ? '#10b981' : '#f87171'};">
               ${u.status.toUpperCase()}
             </span>
           </td>
-          <td><small style="color: var(--text-muted);">${createdStr}</small></td>
+          <td style="text-align: center;">
+            <button class="btn-pill-small" onclick='openConfigureUserModal(${JSON.stringify(u)})'>⚙️ Configure</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    loadAdminRecycleBinCount();
+  } catch (e) {
+    console.error("Error loading admin users:", e);
+  }
+}
+
+async function loadAdminRecycleBinCount() {
+  try {
+    const res = await secureFetch("/api/admin/users/recycle-bin");
+    if (res.ok) {
+      const items = await res.json();
+      const countEl = document.getElementById('count-recycle-users');
+      if (countEl) countEl.innerText = Array.isArray(items) ? items.length : 0;
+    }
+  } catch (e) {}
+}
+
+async function loadAdminRecycleBin() {
+  const tbody = document.getElementById('admin-recycle-table-body');
+  const countBadge = document.getElementById('count-recycle-users');
+  if (!tbody) return;
+
+  try {
+    const res = await secureFetch("/api/admin/users/recycle-bin");
+    if (!res.ok) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">Restricted to Administrators.</td></tr>`;
+      return;
+    }
+
+    const items = await res.json();
+    const list = Array.isArray(items) ? items : [];
+    if (countBadge) countBadge.innerText = list.length;
+
+    if (list.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Recycle Bin is empty 🗑️ (No deleted accounts).</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = list.map(u => {
+      const deletedDateStr = u.deleted_at ? new Date(u.deleted_at * 1000).toLocaleString() : 'Recently';
+      const hasAvatar = u.avatar_url && u.avatar_url.trim();
+      const displayName = u.full_name ? u.full_name : u.username;
+
+      return `
+        <tr>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 28px; height: 28px; border-radius: 50%; ${hasAvatar ? `background-image: url('${u.avatar_url}'); background-size: cover; background-position: center; border: 1.5px solid #ef4444;` : 'background: rgba(239,68,68,0.15); font-size: 0.75rem; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fca5a5;'} flex-shrink: 0;">
+                ${hasAvatar ? '' : displayName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <strong style="color: #fca5a5; display: block; font-size: 0.88rem; text-decoration: line-through;">${escapeHtml(displayName)}</strong>
+                <span style="color: var(--text-muted); font-size: 0.74rem;">@${escapeHtml(u.username)}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="role-pill-badge" style="border-color: rgba(239,68,68,0.4); color: #fca5a5;">${u.role.toUpperCase()}</span></td>
+          <td><small style="color: var(--text-muted);">${deletedDateStr}</small></td>
+          <td><span style="color: var(--accent-cyan); font-size: 0.8rem;">${escapeHtml(u.deleted_by || 'Admin')}</span></td>
           <td style="text-align: center;">
             <div style="display: inline-flex; gap: 6px;">
-              <button class="btn-pill-small" onclick="saveAdminUserRole(${u.id}, '${u.username}')" ${isSelf ? 'disabled' : ''}>Save Role 💾</button>
-              <button class="btn-pill-small ${isStatusActive ? 'danger' : ''}" onclick="toggleAdminUserStatus(${u.id}, '${u.status}', '${u.username}')" ${isSelf ? 'disabled' : ''}>
-                ${isStatusActive ? 'Suspend ⛔' : 'Activate ✅'}
-              </button>
+              <button class="btn-pill-small" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #6ee7b7;" onclick="restoreUserFromRecycleBin(${u.id}, '${escapeHtml(u.username)}')">♻️ Restore</button>
+              <button class="btn-pill-small btn-pill-danger" onclick="permanentlyDeleteUser(${u.id}, '${escapeHtml(u.username)}')">❌ Purge</button>
             </div>
           </td>
         </tr>
       `;
     }).join('');
+  } catch (e) {
+    console.error("Error loading recycle bin:", e);
+  }
+}
+
+function openConfigureUserModal(user) {
+  const modal = document.getElementById('modal-configure-user');
+  const overlay = document.getElementById('modal-overlay');
+  if (!modal || !overlay) return;
+
+  hideModals();
+
+  document.getElementById('config-user-id').value = user.id;
+  document.getElementById('config-user-role').value = user.role || 'guest';
+  document.getElementById('config-user-status').value = user.status || 'active';
+  document.getElementById('config-user-title').innerText = `Configure @${user.username}`;
+  document.getElementById('config-user-sub').innerText = user.full_name ? `${user.full_name} (#${user.id})` : `Operator ID #${user.id}`;
+
+  const badgeEl = document.getElementById('config-user-avatar-badge');
+  if (badgeEl) {
+    if (user.avatar_url && user.avatar_url.trim()) {
+      badgeEl.style.backgroundImage = `url('${user.avatar_url}')`;
+      badgeEl.style.backgroundSize = 'cover';
+      badgeEl.style.backgroundPosition = 'center';
+      badgeEl.innerText = '';
+    } else {
+      badgeEl.style.backgroundImage = 'none';
+      badgeEl.innerText = (user.full_name || user.username || 'U').charAt(0).toUpperCase();
+    }
+  }
+
+  overlay.style.display = 'flex';
+  modal.style.display = 'block';
+}
+
+async function submitSaveUserConfig() {
+  const userId = document.getElementById('config-user-id').value;
+  const role = document.getElementById('config-user-role').value;
+  const status = document.getElementById('config-user-status').value;
+
+  try {
+    const roleRes = await secureFetch(`/api/admin/users/${userId}/role`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role })
+    });
+    if (!roleRes.ok) {
+      const d = await roleRes.json().catch(() => ({}));
+      showErrorToast(d.detail || "Failed to update role.");
+      return;
+    }
+
+    const statusRes = await secureFetch(`/api/admin/users/${userId}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+    if (!statusRes.ok) {
+      const d = await statusRes.json().catch(() => ({}));
+      showErrorToast(d.detail || "Failed to update status.");
+      return;
+    }
+
+    showSuccessToast("Operator configuration updated successfully! 💾");
+    hideModals();
+    loadAdminUsers();
+  } catch (e) {
+    showErrorToast(e.message);
+  }
+}
+
+async function submitMoveUserToRecycleBin() {
+  const userId = document.getElementById('config-user-id').value;
+  if (!confirm("Are you sure you want to move this operator to the Recycle Bin? Their active sessions will be revoked, but you can restore the account at any time.")) {
+    return;
+  }
+
+  try {
+    const res = await secureFetch(`/api/admin/users/${userId}`, {
+      method: "DELETE"
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showErrorToast(d.detail || "Failed to delete user.");
+      return;
+    }
+
+    showSuccessToast("Account moved to Recycle Bin 🗑️ (Soft Deleted)");
+    hideModals();
+    loadAdminUsers();
+    loadAdminRecycleBinCount();
+  } catch (e) {
+    showErrorToast(e.message);
+  }
+}
+
+async function restoreUserFromRecycleBin(userId, username) {
+  try {
+    const res = await secureFetch(`/api/admin/users/${userId}/restore`, {
+      method: "POST"
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showErrorToast(d.detail || "Failed to restore user.");
+      return;
+    }
+
+    showSuccessToast(`Operator @${username} restored to Active Roster! ♻️`);
+    loadAdminRecycleBin();
+    loadAdminUsers();
+  } catch (e) {
+    showErrorToast(e.message);
+  }
+}
+
+async function permanentlyDeleteUser(userId, username) {
+  if (!confirm(`⚠️ PERMANENT DESTRUCTION WARNING: Are you sure you want to permanently erase operator @${username}? All cascaded wallets and history will be purged. This action CANNOT be undone.`)) {
+    return;
+  }
+
+  try {
+    const res = await secureFetch(`/api/admin/users/${userId}/permanent`, {
+      method: "DELETE"
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showErrorToast(d.detail || "Failed to permanently purge user.");
+      return;
+    }
+
+    showSuccessToast(`Operator @${username} permanently purged from system. ❌`);
+    loadAdminRecycleBin();
+    loadAdminUsers();
+  } catch (e) {
+    showErrorToast(e.message);
+  }
+}
+
+async function submitResetUserPassword() {
+  const userId = document.getElementById('config-user-id').value;
+  try {
+    const res = await secureFetch(`/api/admin/users/${userId}/reset-password`, {
+      method: "PUT"
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showErrorToast(d.detail || "Failed to reset password.");
+      return;
+    }
+
+    alert(`🔑 Temporary Password Generated:\n\n${d.temp_password}\n\nPlease share this one-time passphrase securely with the operator. They will be required to change it on next login.`);
+  } catch (e) {
+    showErrorToast(e.message);
+  }
+}
 
     // Also populate operator assignment dropdown
     const assignSelect = document.getElementById('assign-operator-username');
@@ -5333,26 +5578,6 @@ async function loadExportedNodePackages() {
 // =====================================================================
 // STAGE 1 CORE: ADMIN CONTROL MODULE
 // =====================================================================
-async function loadAdminUsers() {
-  try {
-    const res = await secureFetch("/api/admin/users");
-    if (!res.ok) return;
-    const users = await res.json();
-    const tbody = document.getElementById('admin-users-table-body');
-    if (tbody) {
-      tbody.innerHTML = users.map(u => `
-        <tr>
-          <td><strong>${u.username}</strong></td>
-          <td><span class="role-pill-badge">${u.role.toUpperCase()}</span></td>
-          <td><span style="color: ${u.status === 'active' ? '#10b981' : '#f87171'}; font-weight: 700;">${u.status.toUpperCase()}</span></td>
-          <td style="text-align: center;"><button class="btn-pill-small" onclick="alert('Manage user: ${u.username}')">Configure</button></td>
-        </tr>
-      `).join('');
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
 
 async function loadAdminDevices() {
   try {

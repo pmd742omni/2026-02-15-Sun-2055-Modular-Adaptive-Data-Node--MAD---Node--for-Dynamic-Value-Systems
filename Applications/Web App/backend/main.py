@@ -703,10 +703,23 @@ def require_elevated_admin(request: Request, admin = Depends(require_admin)):
 @app.get("/api/admin/users", dependencies=[Depends(require_admin)])
 async def list_users():
     db = get_db()
-    cursor = db.execute("SELECT id, username, full_name, phone, email, avatar_url, role, status, created_at, last_login_at FROM users WHERE username != 'system_root'")
+    cursor = db.execute("SELECT id, username, full_name, phone, email, avatar_url, role, status, created_at, last_login_at FROM users WHERE username != 'system_root' AND (is_deleted = 0 OR is_deleted IS NULL)")
     users = [dict(row) for row in cursor.fetchall()]
     db.close()
     return users
+
+@app.get("/api/admin/users/recycle-bin", dependencies=[Depends(require_admin)])
+async def list_recycle_bin():
+    db = get_db()
+    cursor = db.execute("""
+        SELECT id, username, full_name, phone, email, avatar_url, role, status, created_at, deleted_at, deleted_by 
+        FROM users 
+        WHERE is_deleted = 1 
+        ORDER BY deleted_at DESC
+    """)
+    items = [dict(row) for row in cursor.fetchall()]
+    db.close()
+    return items
 
 @app.put("/api/admin/users/{user_id}/status")
 async def update_user_status(user_id: int, request: Request, admin = Depends(require_elevated_admin)):
@@ -730,7 +743,7 @@ async def update_user_status(user_id: int, request: Request, admin = Depends(req
         raise HTTPException(status_code=404, detail="User not found")
         
     if target["role"] == "admin" and new_status == "disabled":
-        cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active'")
+        cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active' AND (is_deleted = 0 OR is_deleted IS NULL)")
         active_admins = cursor.fetchone()["count"]
         if active_admins <= 1:
             db.close()
@@ -772,7 +785,7 @@ async def update_user_role(user_id: int, request: Request, admin = Depends(requi
         raise HTTPException(status_code=404, detail="User not found")
         
     if target["role"] == "admin" and new_role != "admin":
-        cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active'")
+        cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active' AND (is_deleted = 0 OR is_deleted IS NULL)")
         active_admins = cursor.fetchone()["count"]
         if active_admins <= 1:
             db.close()
@@ -828,26 +841,84 @@ async def delete_user(user_id: int, admin = Depends(require_elevated_admin)):
     db = get_db()
     
     # Confirm user exists
-    cursor = db.execute("SELECT role, username FROM users WHERE id = ?", (user_id,))
+    cursor = db.execute("SELECT role, username, is_deleted FROM users WHERE id = ?", (user_id,))
     target = cursor.fetchone()
-    if not target:
+    if not target or target["is_deleted"] == 1:
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
         
-    # Assert we are not deleting the last admin
+    # Assert we are not deleting the last active admin
     if target["role"] == "admin":
-        cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active'")
+        cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active' AND (is_deleted = 0 OR is_deleted IS NULL)")
         active_admins = cursor.fetchone()["count"]
         if active_admins <= 1:
             db.close()
             raise HTTPException(status_code=400, detail="Cannot delete the last active administrator.")
             
+    now = int(time.time())
+    db.execute("""
+        UPDATE users 
+        SET is_deleted = 1, status = 'deleted', deleted_at = ?, deleted_by = ?, updated_at = ? 
+        WHERE id = ?
+    """, (now, admin["username"], now, user_id))
+    
+    # Immediately revoke all active sessions for this user
+    db.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+    
+    db.commit()
+    db.close()
+    
+    write_audit_log(admin["username"], "USER_RECYCLE_BIN", f"Moved user '{target['username']}' (ID: {user_id}) to Recycle Bin.")
+    return {"message": f"User '{target['username']}' moved to Recycle Bin.", "deleted": True}
+
+@app.post("/api/admin/users/{user_id}/restore")
+async def restore_user(user_id: int, admin = Depends(require_elevated_admin)):
+    db = get_db()
+    cursor = db.execute("SELECT username, is_deleted FROM users WHERE id = ?", (user_id,))
+    target = cursor.fetchone()
+    if not target:
+        db.close()
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if not target["is_deleted"]:
+        db.close()
+        return {"message": f"User '{target['username']}' is already active."}
+        
+    now = int(time.time())
+    db.execute("""
+        UPDATE users 
+        SET is_deleted = 0, status = 'active', deleted_at = NULL, deleted_by = '', updated_at = ? 
+        WHERE id = ?
+    """, (now, user_id))
+    db.commit()
+    db.close()
+    
+    write_audit_log(admin["username"], "USER_RESTORE", f"Restored user '{target['username']}' (ID: {user_id}) from Recycle Bin.")
+    return {"message": f"User '{target['username']}' restored successfully.", "restored": True}
+
+@app.delete("/api/admin/users/{user_id}/permanent")
+async def permanently_delete_user(user_id: int, admin = Depends(require_elevated_admin)):
+    if user_id == admin["user_id"]:
+        raise HTTPException(status_code=400, detail="Self-lockout protection: Cannot delete your own account.")
+        
+    db = get_db()
+    cursor = db.execute("SELECT username, is_deleted FROM users WHERE id = ?", (user_id,))
+    target = cursor.fetchone()
+    if not target:
+        db.close()
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # Cascade delete related entries
+    db.execute("DELETE FROM wallets WHERE username = ?", (target["username"],))
+    db.execute("DELETE FROM business_operators WHERE username = ?", (target["username"],))
+    db.execute("DELETE FROM password_history WHERE user_id = ?", (user_id,))
+    db.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
     db.execute("DELETE FROM users WHERE id = ?", (user_id,))
     db.commit()
     db.close()
     
-    write_audit_log(admin["username"], "USER_DELETE", f"Permanently deleted user '{target['username']}' (ID: {user_id}).")
-    return {"message": f"User '{target['username']}' deleted successfully."}
+    write_audit_log(admin["username"], "USER_PERMANENT_DELETE", f"Permanently destroyed user '{target['username']}' (ID: {user_id}) and purged all cascaded records.")
+    return {"message": f"User '{target['username']}' permanently purged.", "permanent_delete": True}
 
 # --- ADMIN DEVICE MANAGEMENT ENDPOINTS ---
 
