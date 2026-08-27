@@ -1866,42 +1866,67 @@ def classify_user_agent(ua_str):
     return "Desktop"
 
 
+# --- IN-MEMORY SECURITY & DEVICE CACHE ---
+_BLOCKED_IPS_CACHE = set()
+_BLOCKED_IPS_LAST_FETCH = 0.0
+_DEVICE_TRACK_CACHE = {}  # ip -> last_updated_ts
+
+
 def track_device_activity(ip_address, user_agent, username="anonymous"):
     if not ip_address:
         return
-    db = get_db()
+    global _DEVICE_TRACK_CACHE
+    now_ts = int(time.time())
+    last_tracked = _DEVICE_TRACK_CACHE.get(ip_address, 0)
+    
+    # Throttle DB updates to once per 60 seconds per IP
+    if now_ts - last_tracked < 60:
+        return
+        
+    _DEVICE_TRACK_CACHE[ip_address] = now_ts
     device_type = classify_user_agent(user_agent)
-    now = int(time.time())
     
-    cursor = db.execute("SELECT first_seen FROM tracked_devices WHERE ip_address = ?", (ip_address,))
-    row = cursor.fetchone()
-    
-    if row:
-        db.execute("""
-            UPDATE tracked_devices 
-            SET user_agent = ?, device_type = ?, last_seen = ?, last_username = ? 
-            WHERE ip_address = ?
-        """, (user_agent, device_type, now, username, ip_address))
-    else:
-        db.execute("""
-            INSERT INTO tracked_devices (ip_address, user_agent, device_type, first_seen, last_seen, last_username)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (ip_address, user_agent, device_type, now, now, username))
-    db.commit()
-    db.close()
+    try:
+        db = get_db()
+        cursor = db.execute("SELECT first_seen FROM tracked_devices WHERE ip_address = ?", (ip_address,))
+        row = cursor.fetchone()
+        
+        if row:
+            db.execute("""
+                UPDATE tracked_devices 
+                SET user_agent = ?, device_type = ?, last_seen = ?, last_username = ? 
+                WHERE ip_address = ?
+            """, (user_agent, device_type, now_ts, username, ip_address))
+        else:
+            db.execute("""
+                INSERT INTO tracked_devices (ip_address, user_agent, device_type, first_seen, last_seen, last_username)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (ip_address, user_agent, device_type, now_ts, now_ts, username))
+        db.commit()
+        db.close()
+    except Exception as e:
+        print(f"[DEVICE TRACKING WARNING] Non-blocking device track warning: {e}")
 
 
 def is_device_blocked(ip_address):
     if not ip_address:
         return False
-    db = get_db()
-    cursor = db.execute("SELECT ip_address FROM blocked_devices WHERE ip_address = ?", (ip_address,))
-    blocked = cursor.fetchone() is not None
-    db.close()
-    return blocked
+    global _BLOCKED_IPS_CACHE, _BLOCKED_IPS_LAST_FETCH
+    now = time.time()
+    if now - _BLOCKED_IPS_LAST_FETCH > 15.0:
+        try:
+            db = get_db()
+            cursor = db.execute("SELECT ip_address FROM blocked_devices")
+            _BLOCKED_IPS_CACHE = {r["ip_address"] for r in cursor.fetchall()}
+            _BLOCKED_IPS_LAST_FETCH = now
+            db.close()
+        except Exception:
+            pass
+    return ip_address in _BLOCKED_IPS_CACHE
 
 
 def block_device(ip_address, admin_user, reason="Blocked by System Administrator"):
+    global _BLOCKED_IPS_LAST_FETCH
     db = get_db()
     now = int(time.time())
     db.execute("""
@@ -1912,14 +1937,17 @@ def block_device(ip_address, admin_user, reason="Blocked by System Administrator
     db.execute("DELETE FROM sessions WHERE ip_subnet = ?", (ip_address,))
     db.commit()
     db.close()
+    _BLOCKED_IPS_LAST_FETCH = 0.0  # Invalidate cache
     write_audit_log(admin_user, "BLOCK_DEVICE", f"Blocked device IP '{ip_address}'. Reason: {reason}")
 
 
 def unblock_device(ip_address, admin_user):
+    global _BLOCKED_IPS_LAST_FETCH
     db = get_db()
     db.execute("DELETE FROM blocked_devices WHERE ip_address = ?", (ip_address,))
     db.commit()
     db.close()
+    _BLOCKED_IPS_LAST_FETCH = 0.0  # Invalidate cache
     write_audit_log(admin_user, "UNBLOCK_DEVICE", f"Unblocked device IP '{ip_address}'.")
 
 
