@@ -5243,6 +5243,26 @@ function toggleWidgetCollapse(widgetId) {
 }
 window.toggleWidgetCollapse = toggleWidgetCollapse;
 
+function closeAllFullscreenPanels() {
+  const fsPanels = document.querySelectorAll('.panel-fullscreen');
+  fsPanels.forEach(panel => {
+    panel.classList.remove('panel-fullscreen');
+    const btns = panel.querySelectorAll('.btn-panel-expand');
+    btns.forEach(btn => {
+      if (btn.classList.contains('btn-card-ctrl')) {
+        btn.innerHTML = '⛶';
+        btn.title = 'Expand to Fullscreen';
+      } else {
+        btn.innerHTML = '⛶ Expand';
+        btn.title = 'Expand to Fullscreen';
+      }
+    });
+  });
+  document.getElementById('panel-fullscreen-backdrop')?.classList.remove('is-active');
+  document.body.style.overflow = '';
+}
+window.closeAllFullscreenPanels = closeAllFullscreenPanels;
+
 function togglePanelFullscreen(panelId) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
@@ -5257,11 +5277,18 @@ function togglePanelFullscreen(panelId) {
       btn.title = isFs ? 'Exit Fullscreen Mode (or press Esc)' : 'Expand to Fullscreen';
     }
   });
+
+  const backdrop = document.getElementById('panel-fullscreen-backdrop');
   if (isFs) {
+    if (backdrop) backdrop.classList.add('is-active');
     document.body.style.overflow = 'hidden';
     panel.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
-    document.body.style.overflow = '';
+    const anyRemaining = document.querySelector('.panel-fullscreen');
+    if (!anyRemaining) {
+      if (backdrop) backdrop.classList.remove('is-active');
+      document.body.style.overflow = '';
+    }
   }
 }
 window.togglePanelFullscreen = togglePanelFullscreen;
@@ -5269,21 +5296,7 @@ window.togglePanelFullscreen = togglePanelFullscreen;
 // Global escape key listener to close any expanded panel
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' || e.key === 'Esc') {
-    const fsPanels = document.querySelectorAll('.panel-fullscreen');
-    fsPanels.forEach(panel => {
-      panel.classList.remove('panel-fullscreen');
-      const btns = panel.querySelectorAll('.btn-panel-expand');
-      btns.forEach(btn => {
-        if (btn.classList.contains('btn-card-ctrl')) {
-          btn.innerHTML = '⛶';
-          btn.title = 'Expand to Fullscreen';
-        } else {
-          btn.innerHTML = '⛶ Expand';
-          btn.title = 'Expand to Fullscreen';
-        }
-      });
-    });
-    document.body.style.overflow = '';
+    closeAllFullscreenPanels();
   }
 });
 
