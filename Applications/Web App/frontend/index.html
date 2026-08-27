@@ -426,13 +426,16 @@
       <form novalidate id="form-login" onsubmit="event.preventDefault(); return false;">
         <div class="form-group" style="margin-bottom: 16px;">
           <label for="login-username" style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Username or Operator ID</label>
-          <input type="text" id="login-username" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="Enter your username or operator ID" required autofocus>
+          <div style="position: relative; display: flex; align-items: center; width: 100%;">
+            <input type="text" id="login-username" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 48px 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="Enter your username or operator ID" required autofocus autocomplete="username">
+            <button type="button" id="btn-toggle-username" onclick="toggleFieldMasking('login-username', this)" style="position: absolute; right: 16px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0;" title="Mask Username" aria-label="Toggle username visibility">🙈</button>
+          </div>
         </div>
         <div class="form-group" style="margin-bottom: 18px;">
           <label for="login-password" style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Password</label>
           <div style="position: relative; display: flex; align-items: center; width: 100%;">
-            <input type="password" id="login-password" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 48px 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="Enter your password" required>
-            <button type="button" id="btn-toggle-password" onclick="togglePasswordVisibility('login-password', this)" style="position: absolute; right: 16px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0;" title="Show/Hide Password">👁️</button>
+            <input type="password" id="login-password" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 48px 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" id="btn-toggle-password" onclick="toggleFieldMasking('login-password', this)" style="position: absolute; right: 16px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0;" title="Reveal Password" aria-label="Toggle password visibility">👁️</button>
           </div>
         </div>
         
@@ -3588,6 +3591,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260827_13"></script>
+  <script src="./app.js?v=20260827_14"></script>
 </body>
 </html>

@@ -38,6 +38,37 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+// --- CREDENTIAL & FIELD MASKING VISIBILITY ENGINE ---
+function toggleFieldMasking(inputId, btnElement) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  
+  if (input.type === 'password') {
+    // Reveal text
+    input.type = 'text';
+    if (btnElement) {
+      btnElement.innerHTML = '🙈';
+      btnElement.title = 'Hide / Mask characters';
+      btnElement.setAttribute('aria-label', btnElement.title);
+    }
+  } else {
+    // Mask text
+    input.type = 'password';
+    if (btnElement) {
+      btnElement.innerHTML = '👁️';
+      btnElement.title = 'Show / Reveal characters';
+      btnElement.setAttribute('aria-label', btnElement.title);
+    }
+  }
+}
+
+function togglePasswordVisibility(inputId, btnElement) {
+  toggleFieldMasking(inputId, btnElement);
+}
+
+window.toggleFieldMasking = toggleFieldMasking;
+window.togglePasswordVisibility = togglePasswordVisibility;
+
 // --- VISIONPRO GLASSMORPHIC TOAST NOTIFICATION ENGINE ---
 function showToast(message, type = 'info', duration = 3500) {
   let toastContainer = document.getElementById('madn-toast-container');
@@ -2619,15 +2650,6 @@ async function submitResetUserPassword() {
   }
 }
 
-    // Also populate operator assignment dropdown
-    const assignSelect = document.getElementById('assign-operator-username');
-    if (assignSelect) {
-      assignSelect.innerHTML = users.map(u => `<option value="${u.username}">${u.full_name ? u.full_name + ' (@' + u.username + ')' : '@' + u.username} (${u.role})</option>`).join('');
-    }
-  } catch (e) {
-    console.error("Failed to load admin users:", e);
-  }
-}
 
 async function saveAdminUserRole(userId, username) {
   const select = document.getElementById(`user-role-select-${userId}`);
