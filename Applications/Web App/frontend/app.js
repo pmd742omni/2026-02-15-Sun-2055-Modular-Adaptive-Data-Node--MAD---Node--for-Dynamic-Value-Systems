@@ -330,65 +330,148 @@ async function secureFetch(url, options = {}) {
   }
 }
 
-// --- EXPLOSION & DIMENSIONAL WARP ENGINE ---
+// --- FULLSCREEN CANVAS FIREWORK & PARTICLE EXPLOSION ENGINE ---
 function triggerLaunchExplosion(buttonEl) {
-  if (!buttonEl) return;
-  const rect = buttonEl.getBoundingClientRect();
+  const authOverlay = document.getElementById('auth-overlay');
+  if (!authOverlay) return;
+
+  const oldCanvas = document.getElementById('auth-explosion-canvas');
+  if (oldCanvas) oldCanvas.remove();
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'auth-explosion-canvas';
+  canvas.style.position = 'fixed';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.width = '100vw';
+  canvas.style.height = '100vh';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.zIndex = '2800';
+  authOverlay.appendChild(canvas);
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+
+  const rect = buttonEl ? buttonEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0, height: 0 };
   const originX = rect.left + rect.width / 2;
   const originY = rect.top + rect.height / 2;
 
-  // 1. Shockwave Expanding Ring
-  const ring = document.createElement('div');
-  ring.style.position = 'fixed';
-  ring.style.left = `${originX}px`;
-  ring.style.top = `${originY}px`;
-  ring.style.width = '60px';
-  ring.style.height = '60px';
-  ring.style.borderRadius = '50%';
-  ring.style.border = '3px solid #00e5ff';
-  ring.style.boxShadow = '0 0 35px #00e5ff, inset 0 0 20px #10b981';
-  ring.style.pointerEvents = 'none';
-  ring.style.zIndex = '9999';
-  ring.style.animation = 'shockwaveExpand 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards';
-  document.body.appendChild(ring);
-  setTimeout(() => ring.remove(), 650);
+  const particles = [];
+  const colors = ['#00e5ff', '#10b981', '#fbbf24', '#f43f5e', '#a855f7', '#38bdf8', '#ffffff'];
+  const emojis = ['🚀', '✨', '⚡', '💥', '🌟', '🎉', '💫', '💎', '🔥'];
 
-  // 2. Cosmic Particle Burst (Emojis & Glowing Sparks)
-  const emojis = ['✨', '🚀', '⚡', '💫', '🌟', '🌌', '💥', '✨', '⚡', '💎'];
-  const numParticles = 24;
-  for (let i = 0; i < numParticles; i++) {
-    const p = document.createElement('div');
-    const angle = (i / numParticles) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
-    const dist = 90 + Math.random() * 160;
-    const tx = Math.cos(angle) * dist;
-    const ty = Math.sin(angle) * dist;
-    const rot = (Math.random() * 720 - 360) + 'deg';
-    const isEmoji = i % 2 === 0;
+  // 1. Expanding Shockwaves
+  const shockwaves = [
+    { radius: 10, maxRadius: 380, alpha: 1, color: '#00e5ff', width: 8 },
+    { radius: 5, maxRadius: 280, alpha: 1, color: '#10b981', width: 5 }
+  ];
 
-    p.style.position = 'fixed';
-    p.style.left = `${originX}px`;
-    p.style.top = `${originY}px`;
-    p.style.pointerEvents = 'none';
-    p.style.zIndex = '10000';
-    p.style.setProperty('--tx', `${tx}px`);
-    p.style.setProperty('--ty', `${ty}px`);
-    p.style.setProperty('--rot', rot);
-    p.style.animation = `particleBurst ${0.5 + Math.random() * 0.3}s cubic-bezier(0.15, 0.9, 0.3, 1) forwards`;
+  // 2. 90 High-Velocity Firework Sparks
+  for (let i = 0; i < 90; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 5 + Math.random() * 14;
+    particles.push({
+      x: originX,
+      y: originY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2.5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      radius: 2.5 + Math.random() * 4.5,
+      alpha: 1,
+      decay: 0.014 + Math.random() * 0.018,
+      gravity: 0.22,
+      type: 'spark'
+    });
+  }
 
-    if (isEmoji) {
-      p.innerText = emojis[i % emojis.length];
-      p.style.fontSize = `${14 + Math.random() * 14}px`;
-    } else {
-      p.style.width = `${6 + Math.random() * 8}px`;
-      p.style.height = p.style.width;
-      p.style.borderRadius = '50%';
-      p.style.background = (i % 3 === 0) ? '#00e5ff' : ((i % 3 === 1) ? '#10b981' : '#f59e0b');
-      p.style.boxShadow = `0 0 14px ${p.style.background}`;
+  // 3. 28 Cosmic Emojis Bursting
+  for (let i = 0; i < 28; i++) {
+    const angle = (i / 28) * Math.PI * 2 + (Math.random() * 0.3 - 0.15);
+    const speed = 6 + Math.random() * 10;
+    particles.push({
+      x: originX,
+      y: originY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 3.5,
+      emoji: emojis[i % emojis.length],
+      size: 20 + Math.random() * 16,
+      alpha: 1,
+      decay: 0.016 + Math.random() * 0.014,
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() * 0.35 - 0.175),
+      gravity: 0.2,
+      type: 'emoji'
+    });
+  }
+
+  const startTime = performance.now();
+  const duration = 1400;
+
+  function animate(currentTime) {
+    const elapsed = currentTime - startTime;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw shockwaves
+    for (const sw of shockwaves) {
+      if (sw.alpha > 0.01) {
+        ctx.beginPath();
+        ctx.arc(originX, originY, sw.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = sw.color;
+        ctx.lineWidth = sw.width * sw.alpha;
+        ctx.globalAlpha = sw.alpha;
+        ctx.shadowColor = sw.color;
+        ctx.shadowBlur = 24;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        sw.radius += (sw.maxRadius - sw.radius) * 0.11 + 3;
+        sw.alpha *= 0.92;
+      }
     }
 
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 850);
+    // Draw particles
+    for (const p of particles) {
+      if (p.alpha <= 0.01) continue;
+
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= 0.97;
+      p.alpha -= p.decay;
+
+      ctx.globalAlpha = Math.max(0, p.alpha);
+
+      if (p.type === 'spark') {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 14;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      } else if (p.type === 'emoji') {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        p.rotation += p.rotSpeed;
+        ctx.rotate(p.rotation);
+        ctx.font = `${p.size}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.emoji, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    ctx.globalAlpha = 1;
+
+    if (elapsed < duration) {
+      requestAnimationFrame(animate);
+    } else {
+      canvas.remove();
+    }
   }
+
+  requestAnimationFrame(animate);
 }
 
 // --- AUTHENTICATION & SESSION ---
@@ -414,17 +497,20 @@ function initAuthSystem() {
 
     if (errBox) errBox.style.display = 'none';
 
-    // 1. Trigger explosive shockwave and glowing particle burst
+    // 1. Trigger Fullscreen Canvas Firework Shockwave Explosion!
     triggerLaunchExplosion(btnLogin);
+
+    // Let the firework burst play for 320ms before starting card transition
+    await new Promise(r => setTimeout(r, 320));
 
     // 2. Animate Login Card Warp Out
     if (cardLogin) {
       cardLogin.classList.add('card-warp-out');
     }
 
-    await new Promise(r => setTimeout(r, 220));
+    await new Promise(r => setTimeout(r, 260));
 
-    // 3. Transition into Cinematic Journey Portal with Warp In Bloom
+    // 3. Transition into Loading Space with Dimensional Bloom
     if (cardLogin && cardJourney) {
       cardLogin.style.display = 'none';
       cardLogin.classList.remove('card-warp-out');
@@ -432,15 +518,15 @@ function initAuthSystem() {
       cardJourney.style.display = 'block';
       cardJourney.classList.add('card-warp-in');
 
-      // Reset journey elements
+      // Reset journey elements with human, friendly copy
       const iconEl = document.getElementById('journey-icon');
       const hlEl = document.getElementById('journey-headline');
       const subEl = document.getElementById('journey-subtext');
       const barEl = document.getElementById('journey-progress-bar');
 
-      if (iconEl) iconEl.innerText = '🔐';
-      if (hlEl) hlEl.innerText = 'Entering Sovereign Workspace...';
-      if (subEl) subEl.innerText = 'Verifying sovereign passphrase against vault...';
+      if (iconEl) iconEl.innerText = '✨';
+      if (hlEl) hlEl.innerText = 'Opening your space... ✨';
+      if (subEl) subEl.innerText = 'Checking your key... 🔑';
       if (barEl) barEl.style.width = '30%';
 
       for (let i = 1; i <= 4; i++) {
@@ -493,7 +579,7 @@ function initAuthSystem() {
       state.currentRole = data.role;
       updateUserUI(data);
 
-      // Milestone 1 complete, advance to Milestone 2: Mesh synchronization
+      // Milestone 1 complete, advance to Milestone 2: Connecting with community
       const barEl = document.getElementById('journey-progress-bar');
       const subEl = document.getElementById('journey-subtext');
       const iconEl = document.getElementById('journey-icon');
@@ -506,43 +592,43 @@ function initAuthSystem() {
       if (s1El) s1El.style.color = '#10b981';
       if (s2Icon) s2Icon.innerText = '⏳';
       if (s2El) s2El.style.color = '#fff';
-      if (iconEl) iconEl.innerText = '📡';
-      if (subEl) subEl.innerText = 'Connecting Data Node & Tri-Node Mesh...';
+      if (iconEl) iconEl.innerText = '🌐';
+      if (subEl) subEl.innerText = 'Connecting with your community... 🌐';
       if (barEl) barEl.style.width = '60%';
 
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 220));
 
-      // Milestone 2 complete, advance to Milestone 3: Vault & Ledgers
+      // Milestone 2 complete, advance to Milestone 3: Loading wallet & store
       const s3Icon = document.getElementById('journey-step-3-icon');
       const s3El = document.getElementById('journey-step-3');
       if (s2Icon) s2Icon.innerText = '✅';
       if (s2El) s2El.style.color = '#10b981';
       if (s3Icon) s3Icon.innerText = '⏳';
       if (s3El) s3El.style.color = '#fff';
-      if (iconEl) iconEl.innerText = '🏦';
-      if (subEl) subEl.innerText = 'Mounting digital banking wallets & product catalog...';
+      if (iconEl) iconEl.innerText = '🏪';
+      if (subEl) subEl.innerText = 'Loading your wallet & store... 🏪';
       if (barEl) barEl.style.width = '85%';
 
       loadAllSubsystemData();
 
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 220));
 
-      // Milestone 3 complete, Milestone 4: Sovereign Welcome
+      // Milestone 3 complete, Milestone 4: Ready to go!
       const s4Icon = document.getElementById('journey-step-4-icon');
       const s4El = document.getElementById('journey-step-4');
       const hlEl = document.getElementById('journey-headline');
-      const displayName = data.full_name || data.username || 'Operator';
+      const displayName = data.full_name || data.username || 'Friend';
 
       if (s3Icon) s3Icon.innerText = '✅';
       if (s3El) s3El.style.color = '#10b981';
-      if (s4Icon) s4Icon.innerText = '✨';
+      if (s4Icon) s4Icon.innerText = '🎉';
       if (s4El) s4El.style.color = '#38bdf8';
       if (iconEl) iconEl.innerText = '🚀';
-      if (hlEl) hlEl.innerText = `Welcome, ${displayName}! 🌾✨`;
-      if (subEl) subEl.innerText = 'Workspace mounted successfully.';
+      if (hlEl) hlEl.innerText = `Welcome, ${displayName}! 🎉`;
+      if (subEl) subEl.innerText = "You're all set! Let's build! 🌾✨";
       if (barEl) barEl.style.width = '100%';
 
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 340));
 
       if (cardJourney) cardJourney.classList.remove('card-warp-in');
       hideLoginOverlay();
