@@ -673,7 +673,7 @@ async function openProfileModal() {
     }
     const profile = await res.json();
     state.operatorProfile = profile;
-    state.pendingProfileAvatar = profile.avatar_url || '';
+    state.pendingProfileAvatar = profile.avatar_url || state.user?.avatar_url || '';
 
     // Populate modal elements
     const titleEl = document.getElementById('profile-modal-title');
@@ -1114,7 +1114,7 @@ async function submitStudioAvatarSave() {
 }
 
 function removeProfileAvatar() {
-  state.pendingProfileAvatar = "";
+  state.pendingProfileAvatar = "__REMOVED__";
   state.pendingStudioAvatar = "";
   renderProfileModalAvatarPreview("");
   showSuccessToast("Profile photo removed. Click 'Save Profile Settings' to save.");
@@ -1146,17 +1146,27 @@ async function submitSaveProfile() {
     saveBtn.style.animation = "none";
   }
 
-  const activeAvatar = state.pendingProfileAvatar !== undefined 
-    ? state.pendingProfileAvatar 
-    : (state.user?.avatar_url || "");
+  let activeAvatar = undefined;
+  if (state.pendingProfileAvatar === "__REMOVED__") {
+    activeAvatar = "";
+  } else if (state.pendingProfileAvatar && state.pendingProfileAvatar.trim()) {
+    activeAvatar = state.pendingProfileAvatar.trim();
+  } else if (state.user?.avatar_url && state.user.avatar_url.trim()) {
+    activeAvatar = state.user.avatar_url.trim();
+  } else if (state.operatorProfile?.avatar_url && state.operatorProfile.avatar_url.trim()) {
+    activeAvatar = state.operatorProfile.avatar_url.trim();
+  }
 
   const payload = {
     full_name: fnInput ? fnInput.value.trim() : "",
     username: username,
     phone: phInput ? phInput.value.trim() : "",
-    email: emInput ? emInput.value.trim() : "",
-    avatar_url: activeAvatar
+    email: emInput ? emInput.value.trim() : ""
   };
+
+  if (activeAvatar !== undefined) {
+    payload.avatar_url = activeAvatar;
+  }
 
   if (pin) {
     payload.pin = pin;
