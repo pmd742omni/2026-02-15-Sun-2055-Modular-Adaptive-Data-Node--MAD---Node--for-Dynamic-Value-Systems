@@ -528,20 +528,26 @@ function initAuthSystem() {
 
     if (errBox) errBox.style.display = 'none';
 
-    // 1. Trigger Fullscreen Canvas Firework Shockwave Explosion!
+    // 1. Trigger Fullscreen Canvas Firework Shockwave Explosion immediately
     triggerLaunchExplosion(btnLogin);
 
-    // Let the firework burst play for 320ms before starting card transition
-    await new Promise(r => setTimeout(r, 320));
+    // 2. Begin network authentication in parallel (zero network delay)
+    const authBody = { username: u, password: p };
+    if (mfa) authBody.totp_token = mfa;
 
-    // 2. Animate Login Card Warp Out
+    const authFetchPromise = fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(authBody)
+    });
+
+    // 3. Smooth, instant card cross-dissolve
     if (cardLogin) {
       cardLogin.classList.add('card-warp-out');
     }
 
-    await new Promise(r => setTimeout(r, 260));
+    await new Promise(r => setTimeout(r, 140));
 
-    // 3. Transition into Loading Space with Dimensional Bloom
     if (cardLogin && cardJourney) {
       cardLogin.style.display = 'none';
       cardLogin.classList.remove('card-warp-out');
@@ -549,16 +555,18 @@ function initAuthSystem() {
       cardJourney.style.display = 'block';
       cardJourney.classList.add('card-warp-in');
 
-      // Reset journey elements with human, friendly copy
+      // Initialize journey display
       const iconEl = document.getElementById('journey-icon');
       const hlEl = document.getElementById('journey-headline');
       const subEl = document.getElementById('journey-subtext');
       const barEl = document.getElementById('journey-progress-bar');
+      const s3Text = document.getElementById('journey-step-3-text');
 
       if (iconEl) iconEl.innerText = '✨';
       if (hlEl) hlEl.innerText = 'Opening your space... ✨';
-      if (subEl) subEl.innerText = 'Checking your key... 🔑';
-      if (barEl) barEl.style.width = '30%';
+      if (subEl) subEl.innerText = 'Checking your credentials... 🔑';
+      if (barEl) barEl.style.width = '35%';
+      if (s3Text) s3Text.innerText = '3. Getting your space ready ✨';
 
       for (let i = 1; i <= 4; i++) {
         const stepEl = document.getElementById(`journey-step-${i}`);
@@ -585,14 +593,7 @@ function initAuthSystem() {
     };
 
     try {
-      const body = { username: u, password: p };
-      if (mfa) body.totp_token = mfa;
-
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      const res = await authFetchPromise;
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ detail: "Invalid credentials." }));
@@ -610,7 +611,6 @@ function initAuthSystem() {
       state.currentRole = data.role;
       updateUserUI(data);
 
-      // Milestone 1 complete, advance to Milestone 2: Connecting with community
       const barEl = document.getElementById('journey-progress-bar');
       const subEl = document.getElementById('journey-subtext');
       const iconEl = document.getElementById('journey-icon');
@@ -619,70 +619,71 @@ function initAuthSystem() {
       const s2Icon = document.getElementById('journey-step-2-icon');
       const s2El = document.getElementById('journey-step-2');
 
+      // Milestone 1 complete: Credentials checked
       if (s1Icon) s1Icon.innerText = '✅';
       if (s1El) s1El.style.color = '#10b981';
       if (s2Icon) s2Icon.innerText = '⏳';
       if (s2El) s2El.style.color = '#fff';
       if (iconEl) iconEl.innerText = '🌐';
       if (subEl) subEl.innerText = 'Connecting with your community... 🌐';
-      if (barEl) barEl.style.width = '55%';
+      if (barEl) barEl.style.width = '60%';
 
-      await new Promise(r => setTimeout(r, 260));
+      await new Promise(r => setTimeout(r, 160));
 
-      // Milestone 2 complete, advance to Milestone 3: Dynamically tailored to operator role & permissions!
+      // Milestone 2 complete: Tailored to operator role with friendly language
       const userRole = (data.role || 'guest').toLowerCase();
-      const displayName = data.full_name || data.username || 'Operator';
+      const displayName = data.full_name || data.username || 'Friend';
 
       const roleProfiles = {
         admin: {
-          step3Text: '3. Loading sovereign tri-node & ledger control 👑',
-          subtext: 'Loading sovereign tri-node & multi-currency ledgers... 👑',
+          step3Text: '3. Preparing your admin controls 👑',
+          subtext: 'Getting your admin controls ready... 👑',
           icon: '👑',
-          toast: `Welcome, Administrator ${displayName}! Sovereign node active 👑✨`
+          toast: `Welcome back, Administrator ${displayName}! 👑✨`
         },
         agronomist: {
-          step3Text: '3. Loading fields, plantings & precision agriculture 🌾',
-          subtext: 'Loading your agricultural fields & harvest logs... 🌾',
+          step3Text: '3. Preparing your farm & crops 🌾',
+          subtext: 'Loading your fields & crops... 🌾',
           icon: '🌾',
-          toast: `Welcome, Agronomist ${displayName}! Field tools active 🌾✨`
+          toast: `Welcome back, Agronomist ${displayName}! 🌾✨`
         },
         guard: {
-          step3Text: '3. Loading visitor gatekeeper & access registry 🛡️',
-          subtext: 'Preparing visitor registry & security logs... 🛡️',
+          step3Text: '3. Preparing your security checkpoint 🛡️',
+          subtext: 'Setting up your visitor registry... 🛡️',
           icon: '🛡️',
-          toast: `Welcome, Officer ${displayName}! Gatekeeper ready 🛡️✨`
+          toast: `Welcome back, Officer ${displayName}! 🛡️✨`
         },
         merchant: {
-          step3Text: '3. Loading store catalog & point-of-sale register 🏪',
-          subtext: 'Loading your store products & register... 🏪',
+          step3Text: '3. Preparing your store & register 🏪',
+          subtext: 'Getting your store & register ready... 🏪',
           icon: '🏪',
-          toast: `Welcome, Merchant ${displayName}! Store POS ready 🏪✨`
+          toast: `Welcome back, Merchant ${displayName}! 🏪✨`
         },
         customer: {
-          step3Text: '3. Loading digital wallet & customer vault 🏦',
-          subtext: 'Loading your digital wallet & payment receipts... 🏦',
+          step3Text: '3. Preparing your wallet & receipts 🏦',
+          subtext: 'Loading your wallet & receipts... 🏦',
           icon: '🏦',
-          toast: `Welcome, ${displayName}! Digital banking ready 🏦✨`
+          toast: `Welcome back, ${displayName}! 🏦✨`
         },
         guest: {
-          step3Text: '3. Loading community marketplace & nodes 🌐',
-          subtext: 'Loading community catalog & discovery mesh... 🌐',
+          step3Text: '3. Preparing the community space 🌐',
+          subtext: 'Opening up the community space... 🌐',
           icon: '🌐',
-          toast: `Welcome, ${displayName}! Community workspace ready 🌐✨`
+          toast: `Welcome, ${displayName}! 🌐✨`
         },
         operator: {
-          step3Text: '3. Loading terminal console & operations ⚙️',
-          subtext: 'Loading your assigned terminal modules... ⚙️',
-          icon: '⚙️',
-          toast: `Welcome, ${displayName}! Operator console ready ⚙️✨`
+          step3Text: '3. Getting your tools ready 🛠️',
+          subtext: 'Setting everything up for you... 🛠️',
+          icon: '🛠️',
+          toast: `Welcome back, ${displayName}! 🚀✨`
         }
       };
 
       const profile = roleProfiles[userRole] || {
-        step3Text: '3. Preparing your workspace modules ✨',
-        subtext: 'Loading your workspace modules... ✨',
+        step3Text: '3. Getting your space ready ✨',
+        subtext: 'Setting everything up for you... ✨',
         icon: '✨',
-        toast: `Welcome, ${displayName}! You're all set! ✨`
+        toast: `Welcome, ${displayName}! Everything is ready ✨`
       };
 
       const s3Icon = document.getElementById('journey-step-3-icon');
@@ -696,11 +697,11 @@ function initAuthSystem() {
       if (s3Text) s3Text.innerText = profile.step3Text;
       if (iconEl) iconEl.innerText = profile.icon;
       if (subEl) subEl.innerText = profile.subtext;
-      if (barEl) barEl.style.width = '82%';
+      if (barEl) barEl.style.width = '85%';
 
       loadAllSubsystemData();
 
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 180));
 
       // Milestone 3 complete, Milestone 4: Ready to go!
       const s4Icon = document.getElementById('journey-step-4-icon');
@@ -713,10 +714,10 @@ function initAuthSystem() {
       if (s4El) s4El.style.color = '#38bdf8';
       if (iconEl) iconEl.innerText = '🚀';
       if (hlEl) hlEl.innerText = `Welcome, ${displayName}! 🎉`;
-      if (subEl) subEl.innerText = "You're all set! Let's build! ✨";
+      if (subEl) subEl.innerText = "Everything is ready for you! ✨";
       if (barEl) barEl.style.width = '100%';
 
-      await new Promise(r => setTimeout(r, 360));
+      await new Promise(r => setTimeout(r, 220));
 
       if (cardJourney) cardJourney.classList.remove('card-warp-in');
       hideLoginOverlay();
