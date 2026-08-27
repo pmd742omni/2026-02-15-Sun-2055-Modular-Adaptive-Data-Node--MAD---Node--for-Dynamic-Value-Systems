@@ -117,22 +117,45 @@ python -m pytest test_portable_node_generation.py test_customer_banking.py test_
 
 ---
 
-## 3. User Authentication & Demo Accounts
+## 3. User Authentication & Sovereign Operator Hierarchy
 
-### 3.1 Demo Accounts & Passwords
-The system is pre-seeded with six standard role accounts:
+### 3.1 Genesis Bootstrap Account (`admin`) & Sovereign Customization Lifecycle
+When MADN is provisioned on a fresh system or clean database, it initializes with a **Genesis Bootstrap Account**:
+- **Default Username**: `admin`
+- **Default Password**: `Password123!`
+- **Default Security PIN**: `1234`
 
-| Role | Username | Password | Default PIN | Granted Access |
+> [!IMPORTANT]
+> The `admin` account is **not a separate, permanent fixed account**. It exists solely as the out-of-the-box bootstrap credential to allow first-time offline setup.
+>
+> As soon as the operator opens **Profile Settings** and customizes their profile details (e.g. changing display name, updating the username to `pmd742omni`, setting a custom password, or uploading an avatar):
+> 1. **Sovereign Transformation**: That very genesis record is permanently transformed into your personal **Primary Sovereign Administrator Account**.
+> 2. **No Residual Default**: There is no secondary or leftover `admin` account remaining in the database.
+> 3. **Root Sovereignty**: This account holds non-demotable root ownership of the node and cryptographic vault.
+
+### 3.2 Operator Privilege Delegation Model
+All subsequent user accounts in MADN (whether created through self-registration or provisioned in the Admin Control Panel) are **Operators / Sub-Accounts**:
+- The **Sovereign Administrator** assigns and scopes permissions to each operator account:
+  - 🌾 **Agronomist**: Granted access to Precision Agriculture (fields, plantings, itemized crop costs, harvest work orders).
+  - 🏪 **Merchant**: Granted access to Business & POS (registers, dynamic decay pricing, inventory catalog, vouchers).
+  - 🛡️ **Security Guard**: Granted access to Security Gatekeeper (visitor checkpoint, RF signal scanner, shift handover log).
+  - 🛒 **Customer**: Digital banking wallet, P2P fund transfers, and personal receipt vault.
+  - 👤 **Guest**: Read-only social feed, stories, and public catalog.
+- Operators can also be assigned **scoped business access** to specific stores (e.g. *Green Valley Farm* vs. *Sunrise Dairy*) with fine-grained granular permissions.
+
+### 3.3 Demo Operator Accounts & Quick Sign-In
+For offline demonstration and testing, standard demo operator accounts are available:
+
+| Role | Username | Password | Default PIN | Granted Access & Authority |
 | :--- | :--- | :--- | :---: | :--- |
-| 👑 **Administrator** | `admin` | `Password123!` | `1234` | Full access across all systems, cluster management, and user rosters |
-| 🌾 **Agronomist** | `agronomist` | `Password123!` | `1234` | Precision Agriculture (Planting cycles, itemized crop costs, harvest work orders) |
-| 🏪 **Merchant** | `merchant` | `Password123!` | `1234` | Business & Retail (POS touch register, dynamic decay pricing, inventory, vouchers) |
-| 🛡️ **Security Guard** | `guard` | `Password123!` | `1234` | Security Gatekeeper (Visitor gatekeeper, RF signal map, guard shift handovers) |
-| 🛒 **Customer** | `customer` | `Password123!` | `1234` | Digital banking wallet, P2P fund transfers, personal receipt vault |
-| 👤 **Guest** | `guest` | `Password123!` | `1234` | Public social feed, stories, and catalog exploration |
+| 👑 **Administrator** | `admin` | `Password123!` | `1234` | Genesis root admin (transforms into Sovereign Owner on profile update) |
+| 🌾 **Agronomist** | `agronomist` | `Password123!` | `1234` | Precision Agriculture work orders, plantings, crop cost calculations |
+| 🏪 **Merchant** | `merchant` | `Password123!` | `1234` | POS touch register, inventory catalog, dynamic decay pricing |
+| 🛡️ **Security Guard** | `guard` | `Password123!` | `1234` | Security Gatekeeper visitor logging and gate authorization |
+| 🛒 **Customer** | `customer` | `Password123!` | `1234` | Multi-currency wallet, P2P transfers, digital receipt vault |
+| 👤 **Guest** | `guest` | `Password123!` | `1234` | Public social feed, stories, and product catalog |
 
-### 3.2 Quick Demo Role Login Buttons
-On the sign-in page (`http://127.0.0.1:8000`), click any button under **Quick Demo Role Login** (**`👑 Admin`**, **`🌾 Agronomist`**, **`🏪 Merchant`**, etc.) to immediately log into that role's interface without typing.
+On the sign-in page (`http://127.0.0.1:8000`), click any button under **Quick Demo Role Login** to sign into that operator role with one click.
 
 ---
 

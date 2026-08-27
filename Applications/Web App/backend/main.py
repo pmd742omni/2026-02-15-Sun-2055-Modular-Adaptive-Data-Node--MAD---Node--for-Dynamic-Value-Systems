@@ -754,7 +754,8 @@ async def update_user_role(user_id: int, request: Request, admin = Depends(requi
     body = await request.json()
     new_role = body.get("role", "")
     
-    if new_role not in ["admin", "operator"]:
+    VALID_ROLES = ["admin", "agronomist", "guard", "merchant", "customer", "guest", "operator"]
+    if new_role not in VALID_ROLES:
         raise HTTPException(status_code=400, detail="Invalid user role")
         
     # Self demotion protection
@@ -770,7 +771,7 @@ async def update_user_role(user_id: int, request: Request, admin = Depends(requi
         db.close()
         raise HTTPException(status_code=404, detail="User not found")
         
-    if target["role"] == "admin" and new_role == "operator":
+    if target["role"] == "admin" and new_role != "admin":
         cursor = db.execute("SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND status = 'active'")
         active_admins = cursor.fetchone()["count"]
         if active_admins <= 1:

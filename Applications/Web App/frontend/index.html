@@ -3159,16 +3159,43 @@
 
         <!-- Track 2: Composable RBAC & Multi-Business -->
         <div class="glass-panel tutorial-track-pane" id="tut-pane-rbac" style="padding: 28px; display: none;">
-          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">🏢 Track 2: Composable RBAC & Multi-Business Tenancy</h3>
+          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">🏢 Track 2: Genesis Bootstrap Account & Sovereign Operator Hierarchy</h3>
           <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
-            MADN enables multiple distinct enterprises (e.g. farms, grain millers, dairies) to operate on the same node while maintaining strict data and permission isolation.
+            MADN utilizes a sovereign ownership lifecycle: clean node deployments start with a temporary genesis bootstrap credential that transforms into your permanent Sovereign Administrator upon first customization.
           </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 16px; padding: 18px;">
+              <h4 style="color: var(--accent-cyan); margin: 0 0 8px 0;">1. Genesis Bootstrap Default</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
+                When MADN is provisioned on a new system or clean vault, it initializes with a temporary bootstrap account (<code>admin</code> / <code>Password123!</code>) to allow immediate offline operator login.
+              </p>
+              <span class="role-pill-badge" style="background: rgba(0, 229, 255, 0.1); color: var(--accent-cyan);">INITIAL SETUP ONLY</span>
+            </div>
+
+            <div style="background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #10b981; margin: 0 0 8px 0;">2. Sovereign Admin Transformation</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
+                As soon as you customize your profile (setting your full name, personal username, password, or avatar), the bootstrap account morphs into the node's permanent <strong>Sovereign Administrator</strong>.
+              </p>
+              <span class="role-pill-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">PERMANENT OWNER</span>
+            </div>
+
+            <div style="background: rgba(124, 77, 255, 0.04); border: 1px solid rgba(124, 77, 255, 0.2); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #a78bfa; margin: 0 0 8px 0;">3. Operator Privilege Delegation</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
+                All other accounts in the system are Operators (Agronomists, Guards, Merchants, Customers, Guests). Privileges and store access are granted, managed, and revoked exclusively by the Sovereign Admin.
+              </p>
+              <span class="role-pill-badge" style="background: rgba(124, 77, 255, 0.1); color: #a78bfa;">SCOPED PERMISSIONS</span>
+            </div>
+          </div>
+
           <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px; margin-bottom: 20px;">
-            <h4 style="color: #fff; margin: 0 0 10px 0;">How Multi-Store Operation Works:</h4>
+            <h4 style="color: #fff; margin: 0 0 10px 0;">Enterprise Multi-Store RBAC:</h4>
             <ol style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.8; margin: 0; padding-left: 20px;">
-              <li><strong>Admin Operator:</strong> Each business has an administrative operator who delegates subsystem access to other staff.</li>
-              <li><strong>Live Store Switcher:</strong> Switch active context via the <code>STORE</code> dropdown in the top header without re-authenticating.</li>
-              <li><strong>Fine-Grained Permissions:</strong> Subsystems (<code>agriculture</code>, <code>pos</code>, <code>security</code>, <code>banking</code>) are dynamically evaluated per operator role.</li>
+              <li><strong>Live Store Switcher:</strong> Switch active context via the <code>STORE</code> dropdown in the top header without logging out.</li>
+              <li><strong>Store Operator Scoping:</strong> Assign staff to specific stores (e.g. Green Valley Farm vs. Sunrise Dairy) with distinct permissions.</li>
+              <li><strong>Zero Default Privilege Bleed:</strong> Subsystems (<code>agriculture</code>, <code>pos</code>, <code>security</code>, <code>banking</code>) are evaluated strictly against active operator grants.</li>
             </ol>
           </div>
           <button class="btn-pill-primary" onclick="switchView('admin')">Manage Operators in Admin View ⚙</button>

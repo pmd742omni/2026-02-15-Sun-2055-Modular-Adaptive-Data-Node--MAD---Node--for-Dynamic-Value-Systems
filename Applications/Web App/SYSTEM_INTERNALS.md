@@ -185,6 +185,12 @@ Applications/
 * **CSRF Protection**: Double-Submit Cookie pattern. Non-GET operations validate `csrf_token` cookies against incoming `X-CSRF-Token` headers via constant-time comparison (`secrets.compare_digest`).
 * **Step-Up Authorization**: Sensitive administrative and financial operations require step-up re-authentication, setting an elevated session flag valid for 15 minutes.
 
+### 2.3 Genesis Bootstrap Account & Sovereign Operator Hierarchy
+* **Genesis Bootstrap Credential**: Clean node provisions initialize a single bootstrap user (`admin` / `Password123!`) with `role = 'admin'` to allow zero-internet bootstrapping.
+* **Sovereign Profile Transformation**: The `admin` account is temporary in state but permanent in identity. Updating the operator profile (display name, username, password, avatar) mutates the genesis record into the node's **Primary Sovereign Administrator Account** with cascading foreign-key updates across all sub-ledgers.
+* **Operator Privilege Delegation**: All subsequent user accounts are scoped Operators (`agronomist`, `guard`, `merchant`, `customer`, `guest`). Privileges and multi-business store assignments are dynamically evaluated and granted exclusively by the Sovereign Admin.
+* **Self-Demotion & Lockout Shielding**: The Sovereign Admin account cannot be disabled or demoted, preventing node lockout.
+
 ---
 
 ## 3. Portable Preflight & Node Generator Engine
