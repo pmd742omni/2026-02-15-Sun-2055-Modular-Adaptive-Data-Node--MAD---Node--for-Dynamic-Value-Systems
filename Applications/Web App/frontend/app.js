@@ -27,6 +27,17 @@ const state = {
   selectedTipCurrency: 'USD'
 };
 
+// --- CORE UTILITY FUNCTIONS ---
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // --- BULAWAYO CLIMATE DATA ---
 const climateData = [
   { month: "January", rainfall: 95, temp: 21.8, rainyDays: 10 },
