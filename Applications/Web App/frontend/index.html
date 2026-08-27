@@ -364,38 +364,38 @@
   <!-- Fullscreen Glassmorphic Authentication Overlay -->
   <div class="auth-overlay" id="auth-overlay" style="display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.94); backdrop-filter: blur(28px); z-index: 2000; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
     
-    <!-- Card 1: Ndebele Sovereign Gateway Login Portal -->
+    <!-- Card 1: Sovereign Gateway Login Portal -->
     <div class="auth-card glass-panel" id="card-login" style="padding: 36px 32px; width: 460px; max-width: 92%; text-align: left; box-shadow: 0 20px 60px rgba(0,0,0,0.85), inset 0 1px 1px rgba(255,255,255,0.2); border-radius: 28px;">
       <div class="auth-header" style="text-align: center; margin-bottom: 22px;">
         <div class="logo-badge" style="margin: 0 auto 12px auto; width: 48px; height: 48px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--accent-cyan), #10b981); border-radius: 16px; box-shadow: 0 0 28px rgba(0,229,255,0.45); animation: pulseGlow 3s infinite ease-in-out;">▲</div>
         <div style="display: inline-block; padding: 3px 12px; background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 9999px; margin-bottom: 8px;">
-          <span style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">ISANGO LOMPHAKATHI • SOVEREIGN COMMUNITY PORTAL</span>
+          <span style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">SOVEREIGN COMMUNITY PORTAL</span>
         </div>
-        <h3 style="font-size: 1.5rem; margin: 4px 0 6px 0; color: #fff; font-weight: 800; letter-spacing: -0.01em;">MADN • Isango Lempilo & Inani</h3>
+        <h3 style="font-size: 1.5rem; margin: 4px 0 6px 0; color: #fff; font-weight: 800; letter-spacing: -0.01em;">MADN • Isango Lomphakathi</h3>
         <p class="auth-subtitle" style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.45;">
-          Ubambiswano • Ezolimo Zesimanje • Amandla Omnotho Wendawo 🌾🪙
+          Smart Agriculture, Touch POS & Offline Digital Banking 🌾🪙
         </p>
       </div>
 
       <!-- Feature Badges Ticker -->
       <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 18px;">
-        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #38bdf8;">🌱 Ezolimo (Agri)</span>
-        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #34d399;">🪙 Inani & POS</span>
-        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #fbbf24;">🏦 Isikhwama (Banking)</span>
-        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #a78bfa;">🛡️ Isivikelo (Security)</span>
+        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #38bdf8;">🌱 Smart Agriculture</span>
+        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #34d399;">🪙 Touch POS & Vouchers</span>
+        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #fbbf24;">🏦 Digital Banking</span>
+        <span style="font-size: 0.72rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 9px; border-radius: 9999px; color: #a78bfa;">🛡️ Security Gate</span>
       </div>
       
       <div class="auth-alert hidden" id="login-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
 
       <form novalidate id="form-login" onsubmit="event.preventDefault(); return false;">
         <div class="form-group" style="margin-bottom: 15px;">
-          <label for="login-username" style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Ibizo / Username or Operator ID</label>
+          <label for="login-username" style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Username or Operator ID</label>
           <input type="text" id="login-username" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="e.g. pmd742omni or operator" required autofocus>
         </div>
         <div class="form-group" style="margin-bottom: 16px;">
-          <label for="login-password" style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Isivikelo / Password</label>
+          <label for="login-password" style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Password</label>
           <div style="position: relative; display: flex; align-items: center; width: 100%;">
-            <input type="password" id="login-password" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 48px 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="Enter your sovereign password" required>
+            <input type="password" id="login-password" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 48px 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="Enter account password" required>
             <button type="button" id="btn-toggle-password" onclick="togglePasswordVisibility('login-password', this)" style="position: absolute; right: 16px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 0;" title="Show/Hide Password">👁️</button>
           </div>
         </div>
@@ -406,20 +406,20 @@
         </div>
         
         <button type="button" class="btn-pill-primary" id="btn-login-submit" style="width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; padding: 14px 20px; font-size: 1rem; border-radius: 9999px; font-weight: 700; margin-top: 4px; background: linear-gradient(135deg, #00e5ff, #0284c7, #10b981); box-shadow: 0 6px 24px rgba(0, 229, 255, 0.35);">
-          Vula Isango Lobukhosi 🚀✨
+          Sign In to Your Workspace 🚀
         </button>
       </form>
 
       <!-- Dynamic Possibilities Ticker Banner -->
       <div id="login-possibilities-box" style="margin-top: 18px; padding: 11px 16px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.16); border-radius: 14px; text-align: center; min-height: 42px; display: flex; align-items: center; justify-content: center;">
         <span id="login-possibilities-text" style="font-size: 0.78rem; color: var(--accent-cyan); line-height: 1.35; transition: opacity 0.35s ease;">
-          🌱 <strong>Ezolimo Zesimanje:</strong> Hlela ukutshala, bala izindleko futhi uvikele isivuno.
+          🌱 <strong>Smart Farming:</strong> Plan crop plantings, track costs & maximize harvest yield effortlessly.
         </span>
       </div>
       
       <div class="auth-footer" style="margin-top: 18px; text-align: center; font-size: 0.84rem;">
-        <span style="color: var(--text-muted);">Umtsha lapha? (New operator?)</span>
-        <a href="#" id="link-goto-register" style="color: var(--accent-cyan); font-weight: 600; text-decoration: none; margin-left: 4px;">Cela I-Akhawunti (Request Account)</a>
+        <span style="color: var(--text-muted);">New operator?</span>
+        <a href="#" id="link-goto-register" style="color: var(--accent-cyan); font-weight: 600; text-decoration: none; margin-left: 4px;">Request Account</a>
       </div>
     </div>
 
@@ -434,29 +434,29 @@
       </div>
 
       <div style="display: inline-block; padding: 3px 12px; background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 9999px; margin-bottom: 8px;">
-        <span style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">UHLELO LOKUNGENA • ENTERING SYSTEM</span>
+        <span style="font-size: 0.72rem; color: var(--accent-cyan); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">MOUNTING WORKSPACE</span>
       </div>
 
-      <h3 id="journey-headline" style="font-size: 1.35rem; color: #fff; margin: 4px 0 6px 0; font-weight: 800;">Ukungena Esangweni Lobukhosi...</h3>
-      <p id="journey-subtext" style="font-size: 0.84rem; color: var(--accent-cyan); margin: 0 0 22px 0; min-height: 20px;">Ukuhlola izihluthulelo ze-Sovereign Vault...</p>
+      <h3 id="journey-headline" style="font-size: 1.35rem; color: #fff; margin: 4px 0 6px 0; font-weight: 800;">Entering Sovereign Workspace...</h3>
+      <p id="journey-subtext" style="font-size: 0.84rem; color: var(--accent-cyan); margin: 0 0 22px 0; min-height: 20px;">Unlocking cryptographic vault keys...</p>
 
       <!-- Journey Stages Timeline -->
       <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 14px 16px; margin-bottom: 20px; text-align: left; display: flex; flex-direction: column; gap: 10px;">
         <div id="journey-step-1" style="display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: #fff; transition: all 0.3s ease;">
           <span id="journey-step-1-icon" style="font-size: 1rem;">⏳</span>
-          <span style="flex-grow: 1;">1. Ukuhlola Isitifiketi (Verifying Passphrase)</span>
+          <span style="flex-grow: 1;">1. Verifying Sovereign Passphrase 🔐</span>
         </div>
         <div id="journey-step-2" style="display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--text-muted); transition: all 0.3s ease;">
           <span id="journey-step-2-icon" style="font-size: 1rem;">⚪</span>
-          <span style="flex-grow: 1;">2. Ukuxhuma i-Mesh & Data Node (Syncing Tri-Node Cluster)</span>
+          <span style="flex-grow: 1;">2. Connecting Tri-Node Cluster Mesh 📡</span>
         </div>
         <div id="journey-step-3" style="display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--text-muted); transition: all 0.3s ease;">
           <span id="journey-step-3-icon" style="font-size: 1rem;">⚪</span>
-          <span style="flex-grow: 1;">3. Ukulungisa i-Vault & Izikhwama (Loading Ledger)</span>
+          <span style="flex-grow: 1;">3. Unlocking Digital Banking & Ledgers 🏦</span>
         </div>
         <div id="journey-step-4" style="display: flex; align-items: center; gap: 10px; font-size: 0.82rem; color: var(--text-muted); transition: all 0.3s ease;">
           <span id="journey-step-4-icon" style="font-size: 1rem;">⚪</span>
-          <span style="flex-grow: 1;">4. Siyakwamukela! (Welcome to Workspace)</span>
+          <span style="flex-grow: 1;">4. Launching Sovereign Workspace 🚀</span>
         </div>
       </div>
 
@@ -3463,6 +3463,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260827_07"></script>
+  <script src="./app.js?v=20260827_08"></script>
 </body>
 </html>

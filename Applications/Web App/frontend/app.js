@@ -346,7 +346,7 @@ function initAuthSystem() {
     if (!u || !p) {
       if (errBox) {
         errBox.style.display = 'block';
-        errBox.innerText = "Sicela ufake ibizo le-password (Please enter both username and password).";
+        errBox.innerText = "Please enter both username and password.";
       }
       return;
     }
@@ -365,8 +365,8 @@ function initAuthSystem() {
       const barEl = document.getElementById('journey-progress-bar');
 
       if (iconEl) iconEl.innerText = '🔐';
-      if (hlEl) hlEl.innerText = 'Ukungena Esangweni Lobukhosi...';
-      if (subEl) subEl.innerText = 'Ukuhlola izihluthulelo ze-Sovereign Vault...';
+      if (hlEl) hlEl.innerText = 'Entering Sovereign Workspace...';
+      if (subEl) subEl.innerText = 'Verifying sovereign passphrase against vault...';
       if (barEl) barEl.style.width = '30%';
 
       for (let i = 1; i <= 4; i++) {
@@ -388,7 +388,7 @@ function initAuthSystem() {
       }
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerText = "Vula Isango Lobukhosi 🚀✨";
+        btnLogin.innerText = "Sign In to Your Workspace 🚀";
       }
     };
 
@@ -432,7 +432,7 @@ function initAuthSystem() {
       if (s2Icon) s2Icon.innerText = '⏳';
       if (s2El) s2El.style.color = '#fff';
       if (iconEl) iconEl.innerText = '📡';
-      if (subEl) subEl.innerText = 'Ukuxhuma i-Data Node & Tri-Node Mesh...';
+      if (subEl) subEl.innerText = 'Connecting Data Node & Tri-Node Mesh...';
       if (barEl) barEl.style.width = '60%';
 
       await new Promise(r => setTimeout(r, 200));
@@ -445,7 +445,7 @@ function initAuthSystem() {
       if (s3Icon) s3Icon.innerText = '⏳';
       if (s3El) s3El.style.color = '#fff';
       if (iconEl) iconEl.innerText = '🏦';
-      if (subEl) subEl.innerText = 'Ukulungisa izikhwama ze-digital banking & ikhathalogi...';
+      if (subEl) subEl.innerText = 'Mounting digital banking wallets & product catalog...';
       if (barEl) barEl.style.width = '85%';
 
       loadAllSubsystemData();
@@ -463,21 +463,21 @@ function initAuthSystem() {
       if (s4Icon) s4Icon.innerText = '✨';
       if (s4El) s4El.style.color = '#38bdf8';
       if (iconEl) iconEl.innerText = '🚀';
-      if (hlEl) hlEl.innerText = `Siyakwamukela, ${displayName}! 🌾✨`;
-      if (subEl) subEl.innerText = 'Ivulwa ngempumelelo... (Opening Workspace)';
+      if (hlEl) hlEl.innerText = `Welcome, ${displayName}! 🌾✨`;
+      if (subEl) subEl.innerText = 'Workspace mounted successfully.';
       if (barEl) barEl.style.width = '100%';
 
       await new Promise(r => setTimeout(r, 300));
 
       hideLoginOverlay();
-      showSuccessToast(`Sawubona ${displayName}! Siyakwamukela ku-MADN Sovereign Node 🌾✨`, 4500);
+      showSuccessToast(`Welcome back, ${displayName}! 🌾✨`, 4000);
 
     } catch (e) {
       resetToLoginCard(e.message || "Network error. Server might be restarting.");
     } finally {
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerText = "Vula Isango Lobukhosi 🚀✨";
+        btnLogin.innerText = "Sign In to Your Workspace 🚀";
       }
     }
   };
