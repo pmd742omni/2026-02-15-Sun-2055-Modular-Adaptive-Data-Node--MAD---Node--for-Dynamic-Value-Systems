@@ -409,12 +409,32 @@
           <input type="text" id="register-username" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. operator3" required>
         </div>
         <div class="form-group" style="margin-bottom: 16px;">
-          <label for="register-password" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Password (min 12 chars)</label>
-          <input type="password" id="register-password" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="••••••••••••" required>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="register-password" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Password (min 12 chars)</label>
+            <span id="register-pw-strength-label" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted);">Min 12 Chars</span>
+          </div>
+          <div style="position: relative; width: 100%;">
+            <input type="password" id="register-password" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 46px 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Enter strong password..." required oninput="checkPasswordStrength(this.value, 'register-pw')">
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('register-password', this)" title="View what you are typing" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.05rem; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;" aria-label="Toggle visibility">👁️</button>
+          </div>
+          <!-- Password Strength Meter -->
+          <div style="margin-top: 8px; height: 4px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden;">
+            <div id="register-pw-meter-bar" style="height: 100%; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; border-radius: 9999px;"></div>
+          </div>
+          <div id="register-pw-checklist" style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 0.73rem; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div id="chk-register-pw-len" style="color: var(--text-muted);">⚪ 12+ characters</div>
+            <div id="chk-register-pw-upper" style="color: var(--text-muted);">⚪ Uppercase (A-Z)</div>
+            <div id="chk-register-pw-lower" style="color: var(--text-muted);">⚪ Lowercase (a-z)</div>
+            <div id="chk-register-pw-num" style="color: var(--text-muted);">⚪ Number (0-9)</div>
+            <div id="chk-register-pw-sym" style="color: var(--text-muted); grid-column: span 2;">⚪ Special Symbol (!@#$%^&*...)</div>
+          </div>
         </div>
         <div class="form-group" style="margin-bottom: 16px;">
           <label for="register-confirm" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Confirm Password</label>
-          <input type="password" id="register-confirm" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="••••••••••••" required>
+          <div style="position: relative; width: 100%;">
+            <input type="password" id="register-confirm" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 46px 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="••••••••••••" required>
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('register-confirm', this)" title="View what you are typing" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.05rem; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;" aria-label="Toggle visibility">👁️</button>
+          </div>
         </div>
         <button class="btn-pill-primary" id="btn-register-submit" style="width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; padding: 14px 20px; font-size: 1rem; border-radius: 9999px; font-weight: 700;">Submit Registration 🚀</button>
       </form>
@@ -429,7 +449,7 @@
   <!-- Common Modals Container (MFA & Password updates) -->
   <div class="auth-overlay hidden" id="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.9); backdrop-filter: blur(24px); z-index: 1500; align-items: center; justify-content: center;">
     <!-- Modal 1: Change Password Modal -->
-    <div class="auth-card glass-panel" id="modal-change-password" style="padding: 36px; width: 400px; max-width: 90%; text-align: left; display: none;">
+    <div class="auth-card glass-panel" id="modal-change-password" style="padding: 36px; width: 440px; max-width: 92%; text-align: left; display: none;">
       <div class="auth-header" style="text-align: center; margin-bottom: 24px;">
         <h3 style="font-size: 1.3rem; margin-bottom: 4px; color: #fff;">Update Account Password</h3>
         <p class="auth-subtitle" id="change-pw-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Verify credentials and set strong passphrase</p>
@@ -437,16 +457,44 @@
       <div class="auth-alert hidden" id="change-pw-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
       <form novalidate id="form-change-password" onsubmit="return false;">
         <div class="form-group" style="margin-bottom: 14px;">
-          <label for="change-pw-current" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Current Password</label>
-          <input type="password" id="change-pw-current" class="search-input" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="••••••••••••" required>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="change-pw-current" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Current Password</label>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Required for verification</span>
+          </div>
+          <div style="position: relative; width: 100%;">
+            <input type="password" id="change-pw-current" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 46px 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="••••••••••••" required autocomplete="current-password">
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('change-pw-current', this)" title="View what you are typing" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.05rem; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;" aria-label="Toggle password visibility">👁️</button>
+          </div>
         </div>
-        <div class="form-group" style="margin-bottom: 14px;">
-          <label for="change-pw-new" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">New Password (min 12 chars)</label>
-          <input type="password" id="change-pw-new" class="search-input" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="••••••••••••" required>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label for="change-pw-new" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">New Password (min 12 chars)</label>
+            <span id="change-pw-strength-label" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted);">Min 12 Chars</span>
+          </div>
+          <div style="position: relative; width: 100%;">
+            <input type="password" id="change-pw-new" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 46px 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Enter new strong passphrase..." required autocomplete="new-password" oninput="checkPasswordStrength(this.value, 'change-pw')">
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('change-pw-new', this)" title="View what you are typing" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.05rem; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;" aria-label="Toggle password visibility">👁️</button>
+          </div>
+
+          <!-- Password Strength Progress Meter -->
+          <div style="margin-top: 8px; height: 4px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 9999px; overflow: hidden;">
+            <div id="change-pw-meter-bar" style="height: 100%; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; border-radius: 9999px;"></div>
+          </div>
+
+          <!-- Live Interactive Password Checking Checklist -->
+          <div id="change-pw-checklist" style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 0.73rem; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div id="chk-change-pw-len" style="color: var(--text-muted); transition: color 0.2s;">⚪ 12+ characters</div>
+            <div id="chk-change-pw-upper" style="color: var(--text-muted); transition: color 0.2s;">⚪ Uppercase (A-Z)</div>
+            <div id="chk-change-pw-lower" style="color: var(--text-muted); transition: color 0.2s;">⚪ Lowercase (a-z)</div>
+            <div id="chk-change-pw-num" style="color: var(--text-muted); transition: color 0.2s;">⚪ Number (0-9)</div>
+            <div id="chk-change-pw-sym" style="color: var(--text-muted); transition: color 0.2s; grid-column: span 2;">⚪ Special Symbol (!@#$%^&*...)</div>
+          </div>
         </div>
+
         <div style="display: flex; gap: 12px; margin-top: 20px;">
           <button class="btn-pill-secondary" id="btn-change-pw-cancel" style="flex-grow: 1;">Cancel</button>
-          <button class="btn-pill-primary" id="btn-change-pw-submit" style="flex-grow: 1; margin: 0;">Update Password</button>
+          <button class="btn-pill-primary" id="btn-change-pw-submit" style="flex-grow: 1; margin: 0;">Update Password 🔐</button>
         </div>
       </form>
     </div>
@@ -461,11 +509,14 @@
       <form novalidate id="form-step-up" onsubmit="return false;">
         <div class="form-group" style="margin-bottom: 14px;">
           <label for="step-up-password" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Current Password or 4-digit PIN</label>
-          <input type="password" id="step-up-password" class="search-input" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Password or PIN" required>
+          <div style="position: relative; width: 100%;">
+            <input type="password" id="step-up-password" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 46px 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Password or PIN" required>
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('step-up-password', this)" title="View what you are typing" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.05rem; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;" aria-label="Toggle visibility">👁️</button>
+          </div>
         </div>
         <div style="display: flex; gap: 12px; margin-top: 20px;">
           <button class="btn-pill-secondary" id="btn-step-up-cancel" style="flex-grow: 1;">Cancel</button>
-          <button class="btn-pill-primary" id="btn-step-up-submit" style="flex-grow: 1; margin: 0; background: var(--danger); color: #fff;">Confirm Action</button>
+          <button class="btn-pill-primary" id="btn-step-up-submit" style="flex-grow: 1; margin: 0; background: var(--danger); color: #fff;">Confirm Action ⚡</button>
         </div>
       </form>
     </div>
@@ -1392,7 +1443,10 @@
 
         <div style="margin-bottom: 14px;">
           <label for="profile-input-pin" style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">4-Digit Security PIN (POS & Step-Up Auth)</label>
-          <input type="password" id="profile-input-pin" maxlength="4" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; letter-spacing: 4px; font-weight: 700;" placeholder="•••• (Leave blank to keep unchanged)">
+          <div style="position: relative; width: 100%;">
+            <input type="password" id="profile-input-pin" maxlength="4" class="search-input" style="width: 100%; box-sizing: border-box; padding: 8px 40px 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; letter-spacing: 4px; font-weight: 700;" placeholder="•••• (Leave blank to keep unchanged)">
+            <button type="button" class="pw-toggle-btn" onclick="togglePasswordVisibility('profile-input-pin', this)" title="View what you are typing" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.95rem; padding: 2px;" aria-label="Toggle PIN visibility">👁️</button>
+          </div>
         </div>
 
         <div style="display: flex; gap: 8px; margin-top: 4px;">
@@ -3308,6 +3362,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260827_04"></script>
+  <script src="./app.js?v=20260827_05"></script>
 </body>
 </html>

@@ -1241,8 +1241,17 @@ function openChangePasswordModal() {
 
   const curr = document.getElementById('change-pw-current');
   const nw = document.getElementById('change-pw-new');
-  if (curr) curr.value = '';
-  if (nw) nw.value = '';
+  if (curr) { curr.value = ''; curr.type = 'password'; }
+  if (nw) { nw.value = ''; nw.type = 'password'; }
+
+  // Reset toggle buttons to 👁️
+  document.querySelectorAll('#modal-change-password .pw-toggle-btn').forEach(btn => {
+    btn.innerHTML = '👁️';
+    btn.title = 'View what you are typing';
+  });
+
+  // Reset live strength checker
+  checkPasswordStrength('', 'change-pw');
 
   if (overlay) overlay.style.display = 'flex';
   if (modal) modal.style.display = 'block';
@@ -5031,16 +5040,97 @@ async function loadAdminAuditLogs() {
   }
 }
 
-// --- PASSWORD VISIBILITY TOGGLE ---
+// --- PASSWORD VISIBILITY TOGGLE & REAL-TIME STRENGTH CHECKER ---
 function togglePasswordVisibility(inputId, btnElement) {
   const input = document.getElementById(inputId);
   if (!input) return;
-  if (input.type === 'password') {
-    input.type = 'text';
-    if (btnElement) btnElement.innerText = '🔒';
+  const isHidden = (input.type === 'password');
+  input.type = isHidden ? 'text' : 'password';
+  if (btnElement) {
+    btnElement.innerHTML = isHidden ? '🙈' : '👁️';
+    btnElement.title = isHidden ? 'Hide what you are typing' : 'View what you are typing';
+    btnElement.setAttribute('aria-label', btnElement.title);
+  }
+}
+
+function checkPasswordStrength(password, prefix) {
+  const pwd = password || '';
+  const lenEl = document.getElementById(`chk-${prefix}-len`);
+  const upperEl = document.getElementById(`chk-${prefix}-upper`);
+  const lowerEl = document.getElementById(`chk-${prefix}-lower`);
+  const numEl = document.getElementById(`chk-${prefix}-num`);
+  const symEl = document.getElementById(`chk-${prefix}-sym`);
+  const meterBar = document.getElementById(`${prefix}-meter-bar`);
+  const strengthLabel = document.getElementById(`${prefix}-strength-label`);
+
+  const hasLen = pwd.length >= 12;
+  const hasUpper = /[A-Z]/.test(pwd);
+  const hasLower = /[a-z]/.test(pwd);
+  const hasNum = /[0-9]/.test(pwd);
+  const hasSym = /[^A-Za-z0-9]/.test(pwd);
+
+  const updateItem = (el, valid, text) => {
+    if (!el) return;
+    if (valid) {
+      el.style.color = '#10b981';
+      el.innerHTML = `✅ <span style="color:#10b981; font-weight:600;">${text}</span>`;
+    } else {
+      el.style.color = 'var(--text-muted)';
+      el.innerHTML = `⚪ <span style="color:var(--text-muted);">${text}</span>`;
+    }
+  };
+
+  updateItem(lenEl, hasLen, '12+ characters');
+  updateItem(upperEl, hasUpper, 'Uppercase (A-Z)');
+  updateItem(lowerEl, hasLower, 'Lowercase (a-z)');
+  updateItem(numEl, hasNum, 'Number (0-9)');
+  updateItem(symEl, hasSym, 'Special Symbol (!@#$...)');
+
+  // Calculate score (0 to 5)
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (hasLen) score++;
+  if (hasUpper && hasLower) score++;
+  if (hasNum) score++;
+  if (hasSym) score++;
+
+  let percent = 0;
+  let color = 'var(--text-muted)';
+  let labelText = 'Min 12 Chars';
+
+  if (!pwd) {
+    percent = 0;
+    labelText = 'Min 12 Chars';
+    color = 'var(--text-muted)';
+  } else if (score <= 1) {
+    percent = 20;
+    color = '#ef4444';
+    labelText = 'Weak ⚠️';
+  } else if (score === 2) {
+    percent = 40;
+    color = '#f59e0b';
+    labelText = 'Fair 🟡';
+  } else if (score === 3) {
+    percent = 65;
+    color = '#3b82f6';
+    labelText = 'Good 🔵';
+  } else if (score === 4) {
+    percent = 85;
+    color = '#10b981';
+    labelText = 'Strong 🟢';
   } else {
-    input.type = 'password';
-    if (btnElement) btnElement.innerText = '👁️';
+    percent = 100;
+    color = 'var(--accent-cyan)';
+    labelText = 'Vault-Grade 🔒✨';
+  }
+
+  if (meterBar) {
+    meterBar.style.width = `${percent}%`;
+    meterBar.style.background = color;
+  }
+  if (strengthLabel) {
+    strengthLabel.innerText = labelText;
+    strengthLabel.style.color = color;
   }
 }
 
