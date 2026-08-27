@@ -4719,12 +4719,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 const LOGIN_POSSIBILITIES = [
-  "🌱 <strong>Ezolimo Zesimanje (Smart Farming):</strong> Hlela ukutshala, bala izindleko futhi uvikele isivuno kalula.",
-  "💸 <strong>Isikhwama Senani (Offline Banking):</strong> Thumela imali futhi uthenge ngaphandle kokudinga i-inthanethi.",
-  "🏪 <strong>I-POS Yesimanje (Smart Touch Register):</strong> Ukudayisa okusheshayo, izaphulelo zokwehlisa intengo kanye namavawusha.",
-  "🔒 <strong>Isivikelo Sokuzimela (Sovereign Security):</strong> Imininingwane yakho ivikelekile ngaphansi kwe-Sovereign Vault.",
-  "🌐 <strong>Amandla Emali (Multi-Currency):</strong> Hweba nge-USD, Zimbabwe Gold (ZiG), kanye namavawusha endawo.",
-  "🤝 <strong>Ubambiswano (Community Strength):</strong> Phatha amabhizinisi, abasebenzi kanye nezakhamuzi endaweni eyodwa."
+  "🌐 <strong>Decentralized Mesh:</strong> Sovereign peer-to-peer data nodes with zero single points of failure.",
+  "🪙 <strong>Dynamic Value Systems:</strong> Continuous pricing models, decay curves, and multi-currency ledgers.",
+  "🛡️ <strong>Offline First:</strong> Full transactional autonomy, cryptographic vaults, and local consensus.",
+  "⚡ <strong>Adaptive Scalability:</strong> Modular micro-services dynamically tailored to local community needs.",
+  "🔒 <strong>Cryptographic Vaults:</strong> Scrypt key derivation, HMAC-SHA256 signatures, and zero-knowledge audits.",
+  "🌍 <strong>Global Interoperability:</strong> Sovereign local economies seamlessly interfacing with global currencies."
 ];
 
 let loginTickerIndex = 0;
