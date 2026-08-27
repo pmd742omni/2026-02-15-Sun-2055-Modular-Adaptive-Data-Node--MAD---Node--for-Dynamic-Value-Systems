@@ -398,6 +398,14 @@
   </script>
 </head>
 <body>
+  <!-- Ambient Living Dynamic Atmosphere & Aurora Lighting Layers -->
+  <div class="ambient-aurora-container" aria-hidden="true">
+    <div class="ambient-aurora-blob blob-cyan"></div>
+    <div class="ambient-aurora-blob blob-emerald"></div>
+    <div class="ambient-aurora-blob blob-purple"></div>
+  </div>
+  <div class="ambient-mesh-grid" aria-hidden="true"></div>
+
   <!-- Fullscreen Glassmorphic Authentication Overlay -->
   <div class="auth-overlay" id="auth-overlay" style="display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(5, 7, 10, 0.94); backdrop-filter: blur(28px); z-index: 2000; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
     
@@ -1774,7 +1782,10 @@
             </div>
           </div>
           <div class="hero-text-details">
-            <h2 class="hero-title-name" id="hero-header-operator-name">MAD Node Hub — Vault 1</h2>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <h2 class="hero-title-name" id="hero-header-operator-name">MAD Node Hub — Vault 1</h2>
+              <span class="badge-status-pill" style="font-size: 0.68rem; padding: 2px 9px;" title="Node is operating in zero-trust WAL mode"><span class="live-pulse-dot"></span> Online • 0ms</span>
+            </div>
             <p class="hero-subtitle-desc" id="hero-header-operator-role">Modular Adaptive Data Node • Primary Autonomous Mesh Vault #1 Active</p>
           </div>
         </div>
@@ -2475,15 +2486,61 @@
       <!-- SECTION 5: BUSINESS & STORE MANAGEMENT -->
       <section class="view-section" id="view-business">
         <!-- Store Setup Required Gatekeeper (When 0 businesses registered) -->
-        <div class="glass-panel" id="business-no-store-container" style="display: none; padding: 48px 24px; text-align: center; border: 1px dashed rgba(255,255,255,0.2); border-radius: 20px; margin-bottom: 20px;">
-          <div style="font-size: 3.5rem; margin-bottom: 14px;">🏢</div>
-          <h2 style="font-size: 1.6rem; color: #fff; margin-bottom: 8px;">Store Setup Required</h2>
-          <p style="font-size: 0.95rem; color: var(--text-muted); max-width: 580px; margin: 0 auto 24px auto; line-height: 1.6;">
-            You must establish at least one business or store before adding inventory items or operating the POS checkout register. Set up your store name, branding logo, and settlement currency.
+        <div class="glass-panel store-launchpad-hero" id="business-no-store-container" style="display: none; margin-bottom: 20px;">
+          <!-- Radiant Floating 3D Badge -->
+          <div class="store-launchpad-badge-wrapper">
+            <div class="store-launchpad-glow-ring"></div>
+            <div class="store-launchpad-dashed-ring"></div>
+            <div class="store-launchpad-icon">🏪</div>
+          </div>
+
+          <div class="inline-pill-badge mb-2">
+            <span class="live-pulse-dot"></span>
+            <span>READY TO START SELLING</span>
+          </div>
+
+          <h2 class="store-launchpad-title">Launch Your Sovereign Store & Register</h2>
+          <p class="store-launchpad-desc">
+            Set up your store name, brand, and settlement currency in seconds. Unlock dynamic exponential decay pricing, touch POS checkout, and cryptographic receipts.
           </p>
-          <button type="button" class="btn-pill-primary" onclick="openCreateBusinessModal()" style="padding: 14px 32px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 18px rgba(16,185,129,0.35);">
-            + Set Up Your Store 🏪
-          </button>
+
+          <!-- 3 Interactive Feature Preview Showcase Cards -->
+          <div class="store-feature-showcase-grid">
+            <div class="store-feature-card">
+              <div class="store-feature-icon-box" style="background: rgba(0, 229, 255, 0.12); border-color: rgba(0, 229, 255, 0.3); color: #00e5ff;">
+                🪙
+              </div>
+              <h4>Multi-Currency POS</h4>
+              <p>Accept USD, Zimbabwe Gold (ZiG), and ZAR with real-time conversion and split payments.</p>
+            </div>
+
+            <div class="store-feature-card">
+              <div class="store-feature-icon-box" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">
+                ⚡
+              </div>
+              <h4>Smart Freshness Pricing</h4>
+              <p>Continuous decay curves for agricultural produce, ensuring maximum sales and zero food waste.</p>
+            </div>
+
+            <div class="store-feature-card">
+              <div class="store-feature-icon-box" style="background: rgba(124, 77, 255, 0.12); border-color: rgba(124, 77, 255, 0.3); color: #c084fc;">
+                🧾
+              </div>
+              <h4>Cryptographic Receipts</h4>
+              <p>Issue offline QR change vouchers and tamper-proof printable thermal receipts.</p>
+            </div>
+          </div>
+
+          <!-- Primary Action & Quick-Start Buttons -->
+          <div class="store-launchpad-actions">
+            <button type="button" class="btn-pill-primary glow-launch-btn" onclick="openCreateBusinessModal()" style="padding: 14px 28px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #0284c7); box-shadow: 0 4px 24px rgba(16, 185, 129, 0.4);">
+              <span>+ Set Up Your Store</span>
+              <span>🏪✨</span>
+            </button>
+            <button type="button" class="btn-quickstart-preset" onclick="quickStartPresetStore()">
+              <span>⚡ Quick-Start Farm Store (1-Click)</span>
+            </button>
+          </div>
         </div>
 
         <!-- Subview 1: Point of Sale Terminal (Bypasses to Inventory Intake when Empty) -->
@@ -3503,53 +3560,59 @@
 
         <!-- Widget Card 1: System Health -->
         <div class="glass-panel widget-card">
-          <h4 class="widget-title">Subsystem Health</h4>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h4 class="widget-title" style="margin: 0;">Subsystem Health</h4>
+            <span class="badge-status-pill" style="font-size: 0.65rem; padding: 2px 8px;"><span class="live-pulse-dot"></span> LIVE</span>
+          </div>
           <div class="widget-item-row">
             <div class="widget-item-info">
               <span class="widget-item-heading">SQLite WAL Engine</span>
-              <span class="widget-item-sub">BEGIN IMMEDIATE locks</span>
+              <span class="widget-item-sub">Zero-lock concurrency</span>
             </div>
-            <button class="btn-pill-small">Active</button>
+            <span class="badge-status-pill"><span class="live-pulse-dot"></span> Active</span>
           </div>
           <div class="widget-item-row">
             <div class="widget-item-info">
               <span class="widget-item-heading">Mesh Beacon</span>
-              <span class="widget-item-sub">UDP 224.0.0.251</span>
+              <span class="widget-item-sub">UDP 224.0.0.251:8001</span>
             </div>
-            <button class="btn-pill-small">Online</button>
+            <span class="badge-status-pill badge-mesh"><span class="live-pulse-dot dot-cyan"></span> Online</span>
           </div>
           <div class="widget-item-row">
             <div class="widget-item-info">
               <span class="widget-item-heading">Continuous Decay POS</span>
-              <span class="widget-item-sub">Margin Floor Protected</span>
+              <span class="widget-item-sub">Dynamic margin protection</span>
             </div>
-            <button class="btn-pill-small">Active</button>
+            <span class="badge-status-pill"><span class="live-pulse-dot dot-amber"></span> Active</span>
           </div>
         </div>
 
         <!-- Widget Card 2: Live Feeds -->
         <div class="glass-panel widget-card">
-          <h4 class="widget-title">Active Metrics</h4>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h4 class="widget-title" style="margin: 0;">Active Metrics</h4>
+            <span class="badge-status-pill badge-mesh" style="font-size: 0.65rem; padding: 2px 8px;"><span class="live-pulse-dot dot-cyan"></span> SYNC</span>
+          </div>
           <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('agriculture')">
             <div class="widget-item-info">
-              <span class="widget-item-heading">Field Batches</span>
+              <span class="widget-item-heading">🌾 Field Batches</span>
               <span class="widget-item-sub" id="widget-active-plantings-text">0 Batches in Soil</span>
             </div>
-            <button class="btn-pill-small" style="background: rgba(16,185,129,0.15); color: #10b981;">Live</button>
+            <span class="badge-status-pill"><span class="live-pulse-dot"></span> Live</span>
           </div>
           <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('security')">
             <div class="widget-item-info">
-              <span class="widget-item-heading">Active Visitors</span>
+              <span class="widget-item-heading">🛡️ Active Visitors</span>
               <span class="widget-item-sub" id="widget-active-visitors-text">0 On-Premises</span>
             </div>
-            <button class="btn-pill-small" style="background: rgba(59,130,246,0.15); color: #38bdf8;">Gate</button>
+            <span class="badge-status-pill badge-mesh"><span class="live-pulse-dot dot-cyan"></span> Gate</span>
           </div>
           <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('cluster')">
             <div class="widget-item-info">
-              <span class="widget-item-heading">Data Nodes</span>
+              <span class="widget-item-heading">📡 Data Nodes</span>
               <span class="widget-item-sub" id="widget-cluster-nodes-text">1 Node (Vault Hub)</span>
             </div>
-            <button class="btn-pill-small" style="background: rgba(168,85,247,0.15); color: #c084fc;">Mesh</button>
+            <span class="badge-status-pill badge-purple"><span class="live-pulse-dot dot-purple"></span> Mesh</span>
           </div>
         </div>
 
@@ -3584,6 +3647,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260827_16"></script>
+  <script src="./app.js?v=20260827_17"></script>
 </body>
 </html>

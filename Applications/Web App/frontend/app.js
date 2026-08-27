@@ -1888,6 +1888,55 @@ function handleLiveBusinessSwitch(bizId) {
   updateUIPermissions();
 }
 
+async function quickStartPresetStore() {
+  showSuccessToast("Launching Green Valley Farm & Market preset... 🏪🌱", 3000);
+  try {
+    const payload = {
+      name: "Green Valley Farm & Market",
+      category: "agriculture",
+      settlement_currency: "USD",
+      physical_address: "Plot 12, Umguza Valley, Bulawayo",
+      phone: "+263 77 234 5678",
+      tax_id: "ZW-8841-HORT",
+      return_policy: "Fresh produce guaranteed. Returns accepted within 24 hours.",
+      receipt_footer: "Sustainably grown with organic compost. Siyabonga!"
+    };
+    
+    const res = await secureFetch("/api/businesses", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to create store preset");
+    }
+    
+    const newBiz = await res.json();
+    
+    // Add sample fresh produce items to populate POS immediately!
+    const sampleProducts = [
+      { name: "Organic Roma Tomatoes", category: "Vegetables", price: 1.50, unit: "kg", stock_qty: 45, allow_decay: 1, decay_half_life_hours: 48, min_decay_price: 0.75, business_id: newBiz.id },
+      { name: "Sweet White Maize (SC719)", category: "Grains", price: 0.80, unit: "kg", stock_qty: 120, allow_decay: 0, min_decay_price: 0.80, business_id: newBiz.id },
+      { name: "Fresh Crisp Spinach", category: "Leafy Greens", price: 1.00, unit: "bundle", stock_qty: 30, allow_decay: 1, decay_half_life_hours: 24, min_decay_price: 0.50, business_id: newBiz.id }
+    ];
+    
+    for (const prod of sampleProducts) {
+      await secureFetch("/api/pos/products", {
+        method: "POST",
+        body: JSON.stringify(prod)
+      }).catch(() => {});
+    }
+    
+    await loadBusinesses();
+    switchBusiness(newBiz.id);
+    showSuccessToast("Green Valley Farm Store is Live! POS register and fresh crops active 🏪🎉", 5000);
+  } catch (err) {
+    showErrorToast(err.message || "Failed to launch quick store preset");
+  }
+}
+window.quickStartPresetStore = quickStartPresetStore;
+
 function openCreateBusinessModal() {
   document.querySelectorAll('.auth-card').forEach(m => m.style.display = 'none');
   const overlay = document.getElementById('modal-overlay');
