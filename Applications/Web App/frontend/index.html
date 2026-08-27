@@ -94,6 +94,50 @@
   50% { transform: translateY(-6px); }
   100% { transform: translateY(0px); }
 }
+
+@keyframes rocketPulse {
+  0% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-3px) rotate(-8deg) scale(1.15); filter: drop-shadow(0 0 8px #00e5ff); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+@keyframes shockwaveExpand {
+  0% { transform: translate(-50%, -50%) scale(0.1); opacity: 1; border-color: #00e5ff; }
+  100% { transform: translate(-50%, -50%) scale(4); opacity: 0; border-color: #10b981; }
+}
+
+@keyframes particleBurst {
+  0% { transform: translate(-50%, -50%) translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0.1) rotate(var(--rot)); opacity: 0; }
+}
+
+.card-warp-out {
+  transform: scale(0.88) translateY(-16px) !important;
+  opacity: 0 !important;
+  filter: blur(12px) brightness(1.4) !important;
+  transition: all 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.card-warp-in {
+  animation: journeyPortalBloom 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+@keyframes journeyPortalBloom {
+  0% {
+    transform: scale(0.85) translateY(20px);
+    opacity: 0;
+    filter: blur(10px) brightness(1.6);
+  }
+  60% {
+    transform: scale(1.02);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    filter: blur(0) brightness(1);
+  }
+}
   </style>
 
   <!-- Guaranteed Inline View & Sub-Nav Switcher Script -->
@@ -397,8 +441,9 @@
           <input type="text" id="login-mfa-token" class="search-input" style="width: 100%; box-sizing: border-box; padding: 13px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="6-digit authenticator code" maxlength="6">
         </div>
         
-        <button type="button" class="btn-pill-primary" id="btn-login-submit" style="width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; padding: 14px 20px; font-size: 1rem; border-radius: 9999px; font-weight: 700; margin-top: 4px; background: linear-gradient(135deg, #00e5ff, #0284c7, #10b981); box-shadow: 0 6px 24px rgba(0, 229, 255, 0.35);">
-          Sign In
+        <button type="button" class="btn-pill-primary glow-launch-btn" id="btn-login-submit" style="width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 14px 20px; font-size: 1rem; border-radius: 9999px; font-weight: 700; margin-top: 4px; background: linear-gradient(135deg, #00e5ff, #0284c7, #10b981); box-shadow: 0 6px 24px rgba(0, 229, 255, 0.4), 0 0 15px rgba(16, 185, 129, 0.3); transition: all 0.25s ease; cursor: pointer; position: relative; overflow: hidden;">
+          <span id="btn-login-text">Launch Sovereign Node</span>
+          <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.15rem;">🚀✨</span>
         </button>
       </form>
 
@@ -3455,6 +3500,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260827_09"></script>
+  <script src="./app.js?v=20260827_10"></script>
 </body>
 </html>

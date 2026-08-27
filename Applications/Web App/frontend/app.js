@@ -330,6 +330,67 @@ async function secureFetch(url, options = {}) {
   }
 }
 
+// --- EXPLOSION & DIMENSIONAL WARP ENGINE ---
+function triggerLaunchExplosion(buttonEl) {
+  if (!buttonEl) return;
+  const rect = buttonEl.getBoundingClientRect();
+  const originX = rect.left + rect.width / 2;
+  const originY = rect.top + rect.height / 2;
+
+  // 1. Shockwave Expanding Ring
+  const ring = document.createElement('div');
+  ring.style.position = 'fixed';
+  ring.style.left = `${originX}px`;
+  ring.style.top = `${originY}px`;
+  ring.style.width = '60px';
+  ring.style.height = '60px';
+  ring.style.borderRadius = '50%';
+  ring.style.border = '3px solid #00e5ff';
+  ring.style.boxShadow = '0 0 35px #00e5ff, inset 0 0 20px #10b981';
+  ring.style.pointerEvents = 'none';
+  ring.style.zIndex = '9999';
+  ring.style.animation = 'shockwaveExpand 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards';
+  document.body.appendChild(ring);
+  setTimeout(() => ring.remove(), 650);
+
+  // 2. Cosmic Particle Burst (Emojis & Glowing Sparks)
+  const emojis = ['✨', '🚀', '⚡', '💫', '🌟', '🌌', '💥', '✨', '⚡', '💎'];
+  const numParticles = 24;
+  for (let i = 0; i < numParticles; i++) {
+    const p = document.createElement('div');
+    const angle = (i / numParticles) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
+    const dist = 90 + Math.random() * 160;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    const rot = (Math.random() * 720 - 360) + 'deg';
+    const isEmoji = i % 2 === 0;
+
+    p.style.position = 'fixed';
+    p.style.left = `${originX}px`;
+    p.style.top = `${originY}px`;
+    p.style.pointerEvents = 'none';
+    p.style.zIndex = '10000';
+    p.style.setProperty('--tx', `${tx}px`);
+    p.style.setProperty('--ty', `${ty}px`);
+    p.style.setProperty('--rot', rot);
+    p.style.animation = `particleBurst ${0.5 + Math.random() * 0.3}s cubic-bezier(0.15, 0.9, 0.3, 1) forwards`;
+
+    if (isEmoji) {
+      p.innerText = emojis[i % emojis.length];
+      p.style.fontSize = `${14 + Math.random() * 14}px`;
+    } else {
+      p.style.width = `${6 + Math.random() * 8}px`;
+      p.style.height = p.style.width;
+      p.style.borderRadius = '50%';
+      p.style.background = (i % 3 === 0) ? '#00e5ff' : ((i % 3 === 1) ? '#10b981' : '#f59e0b');
+      p.style.boxShadow = `0 0 14px ${p.style.background}`;
+    }
+
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 850);
+  }
+}
+
 // --- AUTHENTICATION & SESSION ---
 function initAuthSystem() {
   const btnLogin = document.getElementById('btn-login-submit');
@@ -353,10 +414,23 @@ function initAuthSystem() {
 
     if (errBox) errBox.style.display = 'none';
 
-    // Transition into Cinematic Journey Portal
+    // 1. Trigger explosive shockwave and glowing particle burst
+    triggerLaunchExplosion(btnLogin);
+
+    // 2. Animate Login Card Warp Out
+    if (cardLogin) {
+      cardLogin.classList.add('card-warp-out');
+    }
+
+    await new Promise(r => setTimeout(r, 220));
+
+    // 3. Transition into Cinematic Journey Portal with Warp In Bloom
     if (cardLogin && cardJourney) {
       cardLogin.style.display = 'none';
+      cardLogin.classList.remove('card-warp-out');
+
       cardJourney.style.display = 'block';
+      cardJourney.classList.add('card-warp-in');
 
       // Reset journey elements
       const iconEl = document.getElementById('journey-icon');
@@ -379,6 +453,7 @@ function initAuthSystem() {
 
     const resetToLoginCard = (errorMsg) => {
       if (cardJourney && cardLogin) {
+        cardJourney.classList.remove('card-warp-in');
         cardJourney.style.display = 'none';
         cardLogin.style.display = 'block';
       }
@@ -388,7 +463,7 @@ function initAuthSystem() {
       }
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerText = "Sign In to Your Workspace 🚀";
+        btnLogin.innerHTML = `<span id="btn-login-text">Launch Sovereign Node</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.15rem;">🚀✨</span>`;
       }
     };
 
@@ -469,6 +544,7 @@ function initAuthSystem() {
 
       await new Promise(r => setTimeout(r, 300));
 
+      if (cardJourney) cardJourney.classList.remove('card-warp-in');
       hideLoginOverlay();
       showSuccessToast(`Welcome back, ${displayName}! 🌾✨`, 4000);
 
@@ -477,7 +553,7 @@ function initAuthSystem() {
     } finally {
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerText = "Sign In to Your Workspace 🚀";
+        btnLogin.innerHTML = `<span id="btn-login-text">Launch Sovereign Node</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.15rem;">🚀✨</span>`;
       }
     }
   };
@@ -682,11 +758,17 @@ function showLoginOverlay() {
   const cardLogin = document.getElementById('card-login');
   const cardJourney = document.getElementById('card-journey');
   const cardRegister = document.getElementById('card-register');
+  const btnLogin = document.getElementById('btn-login-submit');
 
   if (authOverlay) authOverlay.style.display = 'flex';
   if (cardLogin) cardLogin.style.display = 'block';
   if (cardJourney) cardJourney.style.display = 'none';
   if (cardRegister) cardRegister.style.display = 'none';
+
+  if (btnLogin) {
+    btnLogin.disabled = false;
+    btnLogin.innerHTML = `<span id="btn-login-text">Launch Sovereign Node</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.15rem;">🚀✨</span>`;
+  }
 
   hideModals();
 

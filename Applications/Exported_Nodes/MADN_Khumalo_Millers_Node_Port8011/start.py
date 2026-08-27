@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     print(f"=======================================================")
     print(f"   STARTING PORTABLE NODE: Khumalo_Millers_Node (DATA_NODE)")
-    print(f"   Port: 8011 | ID: data-node-khumalo_millers_node-92d1ea")
+    print(f"   Port: 8011 | ID: data-node-khumalo_millers_node-610c71")
     print(f"   Web UI: https://127.0.0.1:8011")
     print(f"=======================================================")
     threading.Thread(target=open_browser, daemon=True).start()
