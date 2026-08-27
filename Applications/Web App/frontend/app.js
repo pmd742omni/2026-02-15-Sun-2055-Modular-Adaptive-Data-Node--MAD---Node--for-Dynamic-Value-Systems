@@ -463,7 +463,7 @@ function initAuthSystem() {
       }
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerHTML = `<span id="btn-login-text">Launch Sovereign Node</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.15rem;">🚀✨</span>`;
+        btnLogin.innerHTML = `<span id="btn-login-text">Let's Go!</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.2rem;">🚀✨</span>`;
       }
     };
 
@@ -553,7 +553,7 @@ function initAuthSystem() {
     } finally {
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerHTML = `<span id="btn-login-text">Launch Sovereign Node</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.15rem;">🚀✨</span>`;
+        btnLogin.innerHTML = `<span id="btn-login-text">Let's Go!</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.2rem;">🚀✨</span>`;
       }
     }
   };
@@ -767,7 +767,7 @@ function showLoginOverlay() {
 
   if (btnLogin) {
     btnLogin.disabled = false;
-    btnLogin.innerHTML = `<span id="btn-login-text">Launch Sovereign Node</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.15rem;">🚀✨</span>`;
+    btnLogin.innerHTML = `<span id="btn-login-text">Let's Go!</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.2rem;">🚀✨</span>`;
   }
 
   hideModals();
