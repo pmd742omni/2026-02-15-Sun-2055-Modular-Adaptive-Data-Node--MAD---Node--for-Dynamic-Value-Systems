@@ -3378,23 +3378,21 @@ def get_customer_receipts(customer_username: str, query: str = None) -> list:
 # =====================================================================
 
 def seed_stage1_demo_data():
-    """Seeds only the initial primary administrator account and its wallet. All other accounts register dynamically."""
+    """Seeds only the initial genesis primary administrator account if the database is completely empty. If an operator has already customized their account, no duplicate default account is created."""
     now = int(time.time())
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     with get_db() as db:
-        # Seed only the primary admin user if not exists
-        cursor = db.execute("SELECT id FROM users WHERE username = 'admin'")
-        if not cursor.fetchone():
+        # Check if any user already exists in the system
+        cursor = db.execute("SELECT COUNT(*) as count FROM users")
+        if cursor.fetchone()["count"] == 0:
             salt_hex, hash_hex = hash_password("Password123!")
             db.execute("""
                 INSERT OR IGNORE INTO users (username, password_hash, salt, role, status, created_at, updated_at, must_change_password, pin)
                 VALUES ('admin', ?, ?, 'admin', 'active', ?, ?, 0, '1234')
             """, (hash_hex, salt_hex, now, now))
 
-        # Seed admin wallet with authentic 0.00 balances
-        cursor = db.execute("SELECT account_number FROM wallets WHERE username = 'admin'")
-        if not cursor.fetchone():
+            # Seed admin wallet with authentic 0.00 balances
             acc = f"ACC-2026-{uuid.uuid4().hex[:6].upper()}"
             db.execute("""
                 INSERT OR IGNORE INTO wallets (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status)
@@ -3408,6 +3406,21 @@ def seed_stage1_demo_data():
                     INSERT OR IGNORE INTO wallet_balances (account_number, currency, balance, updated_at_utc)
                     VALUES (?, ?, 0.0, ?)
                 """, (acc, c["code"], now_utc))
+
+        # Cleanup: If user 1 is customized (username != 'admin'), remove duplicate uncustomized genesis 'admin' if present
+        admin_row = db.execute("SELECT id, username FROM users WHERE id = 1").fetchone()
+        if admin_row and admin_row["username"] != "admin":
+            wallets = db.execute("SELECT account_number FROM wallets WHERE username = 'admin'").fetchall()
+            for w in wallets:
+                db.execute("DELETE FROM wallet_balances WHERE account_number = ?", (w["account_number"],))
+            db.execute("DELETE FROM wallets WHERE username = 'admin'")
+            db.execute("DELETE FROM customer_receipts WHERE customer_username = 'admin'")
+            db.execute("DELETE FROM business_operators WHERE username = 'admin'")
+            dup_ids = [r["id"] for r in db.execute("SELECT id FROM users WHERE username = 'admin' AND id != 1").fetchall()]
+            for uid in dup_ids:
+                db.execute("DELETE FROM password_history WHERE user_id = ?", (uid,))
+                db.execute("DELETE FROM sessions WHERE user_id = ?", (uid,))
+                db.execute("DELETE FROM users WHERE id = ?", (uid,))
 
         db.commit()
 

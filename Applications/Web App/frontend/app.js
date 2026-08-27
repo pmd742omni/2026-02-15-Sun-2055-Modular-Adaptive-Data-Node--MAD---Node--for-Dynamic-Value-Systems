@@ -338,22 +338,59 @@ function initAuthSystem() {
   const executeLogin = async () => {
     const u = document.getElementById('login-username').value.trim();
     const p = document.getElementById('login-password').value;
-    const mfa = document.getElementById('login-mfa-token').value.trim();
+    const mfa = document.getElementById('login-mfa-token')?.value.trim() || '';
     const errBox = document.getElementById('login-error');
+    const cardLogin = document.getElementById('card-login');
+    const cardJourney = document.getElementById('card-journey');
 
     if (!u || !p) {
       if (errBox) {
         errBox.style.display = 'block';
-        errBox.innerText = "Please enter both username and password.";
+        errBox.innerText = "Sicela ufake ibizo le-password (Please enter both username and password).";
       }
       return;
     }
 
     if (errBox) errBox.style.display = 'none';
-    if (btnLogin) {
-      btnLogin.disabled = true;
-      btnLogin.innerText = "Signing in...";
+
+    // Transition into Cinematic Journey Portal
+    if (cardLogin && cardJourney) {
+      cardLogin.style.display = 'none';
+      cardJourney.style.display = 'block';
+
+      // Reset journey elements
+      const iconEl = document.getElementById('journey-icon');
+      const hlEl = document.getElementById('journey-headline');
+      const subEl = document.getElementById('journey-subtext');
+      const barEl = document.getElementById('journey-progress-bar');
+
+      if (iconEl) iconEl.innerText = '🔐';
+      if (hlEl) hlEl.innerText = 'Ukungena Esangweni Lobukhosi...';
+      if (subEl) subEl.innerText = 'Ukuhlola izihluthulelo ze-Sovereign Vault...';
+      if (barEl) barEl.style.width = '30%';
+
+      for (let i = 1; i <= 4; i++) {
+        const stepEl = document.getElementById(`journey-step-${i}`);
+        const sIcon = document.getElementById(`journey-step-${i}-icon`);
+        if (stepEl) stepEl.style.color = i === 1 ? '#fff' : 'var(--text-muted)';
+        if (sIcon) sIcon.innerText = i === 1 ? '⏳' : '⚪';
+      }
     }
+
+    const resetToLoginCard = (errorMsg) => {
+      if (cardJourney && cardLogin) {
+        cardJourney.style.display = 'none';
+        cardLogin.style.display = 'block';
+      }
+      if (errBox) {
+        errBox.style.display = 'block';
+        errBox.innerText = errorMsg || "Authentication failed.";
+      }
+      if (btnLogin) {
+        btnLogin.disabled = false;
+        btnLogin.innerText = "Vula Isango Lobukhosi 🚀✨";
+      }
+    };
 
     try {
       const body = { username: u, password: p };
@@ -366,19 +403,13 @@ function initAuthSystem() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ detail: "Authentication failed." }));
+        const data = await res.json().catch(() => ({ detail: "Invalid credentials." }));
         if (data.detail && data.detail.includes("MFA code required")) {
           document.getElementById('login-mfa-group').style.display = 'block';
-          if (errBox) {
-            errBox.style.display = 'block';
-            errBox.innerText = "MFA code required for this account.";
-          }
+          resetToLoginCard("MFA Authenticator code required for this account.");
           return;
         }
-        if (errBox) {
-          errBox.style.display = 'block';
-          errBox.innerText = data.detail || "Authentication failed.";
-        }
+        resetToLoginCard(data.detail || "Invalid username or password.");
         return;
       }
 
@@ -386,17 +417,67 @@ function initAuthSystem() {
       state.user = data;
       state.currentRole = data.role;
       updateUserUI(data);
-      hideLoginOverlay();
+
+      // Milestone 1 complete, advance to Milestone 2: Mesh synchronization
+      const barEl = document.getElementById('journey-progress-bar');
+      const subEl = document.getElementById('journey-subtext');
+      const iconEl = document.getElementById('journey-icon');
+      const s1Icon = document.getElementById('journey-step-1-icon');
+      const s1El = document.getElementById('journey-step-1');
+      const s2Icon = document.getElementById('journey-step-2-icon');
+      const s2El = document.getElementById('journey-step-2');
+
+      if (s1Icon) s1Icon.innerText = '✅';
+      if (s1El) s1El.style.color = '#10b981';
+      if (s2Icon) s2Icon.innerText = '⏳';
+      if (s2El) s2El.style.color = '#fff';
+      if (iconEl) iconEl.innerText = '📡';
+      if (subEl) subEl.innerText = 'Ukuxhuma i-Data Node & Tri-Node Mesh...';
+      if (barEl) barEl.style.width = '60%';
+
+      await new Promise(r => setTimeout(r, 200));
+
+      // Milestone 2 complete, advance to Milestone 3: Vault & Ledgers
+      const s3Icon = document.getElementById('journey-step-3-icon');
+      const s3El = document.getElementById('journey-step-3');
+      if (s2Icon) s2Icon.innerText = '✅';
+      if (s2El) s2El.style.color = '#10b981';
+      if (s3Icon) s3Icon.innerText = '⏳';
+      if (s3El) s3El.style.color = '#fff';
+      if (iconEl) iconEl.innerText = '🏦';
+      if (subEl) subEl.innerText = 'Ukulungisa izikhwama ze-digital banking & ikhathalogi...';
+      if (barEl) barEl.style.width = '85%';
+
       loadAllSubsystemData();
+
+      await new Promise(r => setTimeout(r, 200));
+
+      // Milestone 3 complete, Milestone 4: Sovereign Welcome
+      const s4Icon = document.getElementById('journey-step-4-icon');
+      const s4El = document.getElementById('journey-step-4');
+      const hlEl = document.getElementById('journey-headline');
+      const displayName = data.full_name || data.username || 'Operator';
+
+      if (s3Icon) s3Icon.innerText = '✅';
+      if (s3El) s3El.style.color = '#10b981';
+      if (s4Icon) s4Icon.innerText = '✨';
+      if (s4El) s4El.style.color = '#38bdf8';
+      if (iconEl) iconEl.innerText = '🚀';
+      if (hlEl) hlEl.innerText = `Siyakwamukela, ${displayName}! 🌾✨`;
+      if (subEl) subEl.innerText = 'Ivulwa ngempumelelo... (Opening Workspace)';
+      if (barEl) barEl.style.width = '100%';
+
+      await new Promise(r => setTimeout(r, 300));
+
+      hideLoginOverlay();
+      showSuccessToast(`Sawubona ${displayName}! Siyakwamukela ku-MADN Sovereign Node 🌾✨`, 4500);
+
     } catch (e) {
-      if (errBox) {
-        errBox.style.display = 'block';
-        errBox.innerText = e.message || "Network error. Server might be restarting.";
-      }
+      resetToLoginCard(e.message || "Network error. Server might be restarting.");
     } finally {
       if (btnLogin) {
         btnLogin.disabled = false;
-        btnLogin.innerText = "Sign In to Your Workspace 🚀";
+        btnLogin.innerText = "Vula Isango Lobukhosi 🚀✨";
       }
     }
   };
@@ -599,10 +680,12 @@ function showLoginOverlay() {
 
   const authOverlay = document.getElementById('auth-overlay');
   const cardLogin = document.getElementById('card-login');
+  const cardJourney = document.getElementById('card-journey');
   const cardRegister = document.getElementById('card-register');
 
   if (authOverlay) authOverlay.style.display = 'flex';
   if (cardLogin) cardLogin.style.display = 'block';
+  if (cardJourney) cardJourney.style.display = 'none';
   if (cardRegister) cardRegister.style.display = 'none';
 
   hideModals();
@@ -4636,12 +4719,12 @@ document.addEventListener('keydown', (e) => {
 });
 
 const LOGIN_POSSIBILITIES = [
-  "🌱 <strong>Smart Farming:</strong> Plan crop plantings, get weather advice & maximize harvest yield effortlessly.",
-  "💸 <strong>Offline Digital Banking:</strong> Transfer funds & pay for items seamlessly without needing internet.",
-  "🏪 <strong>Effortless Touch Register:</strong> Lightning-fast checkouts, automatic change vouchers & live stock sync.",
-  "🔒 <strong>100% Private & Sovereign:</strong> Your records stay in your hands, safe, private, and always accessible.",
-  "🌐 <strong>Multi-Currency Freedom:</strong> Trade freely in USD, Zimbabwe Gold (ZiG), and custom community tokens.",
-  "🤝 <strong>Connected Communities:</strong> Manage multiple shops, staff, and customer accounts in one unified hub."
+  "🌱 <strong>Ezolimo Zesimanje (Smart Farming):</strong> Hlela ukutshala, bala izindleko futhi uvikele isivuno kalula.",
+  "💸 <strong>Isikhwama Senani (Offline Banking):</strong> Thumela imali futhi uthenge ngaphandle kokudinga i-inthanethi.",
+  "🏪 <strong>I-POS Yesimanje (Smart Touch Register):</strong> Ukudayisa okusheshayo, izaphulelo zokwehlisa intengo kanye namavawusha.",
+  "🔒 <strong>Isivikelo Sokuzimela (Sovereign Security):</strong> Imininingwane yakho ivikelekile ngaphansi kwe-Sovereign Vault.",
+  "🌐 <strong>Amandla Emali (Multi-Currency):</strong> Hweba nge-USD, Zimbabwe Gold (ZiG), kanye namavawusha endawo.",
+  "🤝 <strong>Ubambiswano (Community Strength):</strong> Phatha amabhizinisi, abasebenzi kanye nezakhamuzi endaweni eyodwa."
 ];
 
 let loginTickerIndex = 0;
