@@ -6,6 +6,7 @@ import uuid
 import json
 import datetime
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status, Query
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -2221,6 +2222,15 @@ def get_my_receipts_endpoint(query: Optional[str] = None, current_user = Depends
     """Fetch customer's archived digital receipts from their personal receipt vault."""
     receipts = get_customer_receipts(current_user["username"], query=query)
     return {"status": "success", "username": current_user["username"], "receipts": receipts}
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.svg", include_in_schema=False)
+def get_favicon():
+    favicon_path = os.path.join(FRONTEND_DIR, "favicon.svg")
+    if os.path.exists(favicon_path):
+        return FileResponse(favicon_path, media_type="image/svg+xml")
+    raise HTTPException(status_code=404, detail="Favicon not found")
 
 
 # Serve static frontend folder (last route matches remaining files)
