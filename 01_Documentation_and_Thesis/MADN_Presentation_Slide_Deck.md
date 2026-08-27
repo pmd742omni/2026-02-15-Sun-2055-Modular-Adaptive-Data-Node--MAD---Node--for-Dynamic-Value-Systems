@@ -8,24 +8,24 @@
 ---
 
 ### Slide 1: Title Slide — The Sovereign Edge Paradigm
-* **Header**: SOVEREIGN EDGE COMPUTING & DECENTRALIZED VALUATION
+* **Header**: LOCAL CONNECTIVITY & OPERATOR DEVELOPMENT FRAMEWORK
 * **Title**: Modular Adaptive Data Node (MADN) for Dynamic Value Systems
-* **Subtitle**: Unlocking Exponential Value in Idle Everyday Compute, Multi-Gigabit Local Mesh, and Continuous Algorithmic Pricing
-* **Key Badges**: 🚀 Zero Cloud Subscriptions • 🔒 AES-256-GCM Vault • ⚡ Wi-Fi 7 Sub-Millisecond Mesh • 🌾 Precision Agri & Touch POS
+* **Subtitle**: Harnessing High-Speed Local Networking and Idle Edge Hardware to Provide a Composable Framework for Operators to Build Sovereign Economic Systems
+* **Key Badges**: ⚡ Local Wireless Mesh • 🛠️ Composable Operator Framework • 🔒 Zero-Cloud Sovereign Vault • 🌾 Precision Agri & Touch POS
 * **Speaker Notes**:
-  > Welcome everyone. Today we present the Modular Adaptive Data Node (MADN)—an architectural breakthrough that shifts economic transactions, pricing, and record-keeping from fragile, expensive centralized clouds to sovereign local edge computing.
+  > Welcome everyone. Today we present the Modular Adaptive Data Node (MADN)—an architectural framework designed around high-speed local networking and idle edge compute, allowing any operator to develop and deploy sovereign economic and valuation systems without cloud reliance.
 
 ---
 
 ### Slide 2: The Macro Transformation (1999 vs. Today)
-* **Header**: The Hardware & Bandwidth Revolution: 1999 vs. Today
+* **Header**: The Hardware & Bandwidth Revolution: Why Local Compute Wins
 * **Comparison Matrix**:
   * **RAM & Memory**: 1999 ($64\text{ MB} – 128\text{ MB}$ SDRAM, \$150+) vs Today ($16\text{ GB} – 32\text{ GB}$ LPDDR5X, $500\times$ capacity, $100\times$ speed).
-  * **Bandwidth**: 1999 ($56\text{ kbps}$ dial-up / $10\text{ Mbps}$ ethernet) vs Today (Wi-Fi 7 at $5,000 – 30,000\text{ Mbps}$ wireless).
-  * **Latency**: 1999 ($50 – 150\text{ ms}$ dial-up) vs Today (sub-$2\text{ ms}$ local wireless mesh).
+  * **Local Bandwidth**: 1999 ($56\text{ kbps}$ dial-up / $10\text{ Mbps}$ ethernet) vs Today (Wi-Fi 7 at $5,000 – 30,000\text{ Mbps}$ wireless).
+  * **Local Latency**: 1999 ($50 – 150\text{ ms}$ dial-up) vs Today (sub-$2\text{ ms}$ local wireless mesh).
   * **Storage**: 1999 ($10\text{ GB}$ spinning magnetic HDD @ $5\text{ MB/s}$) vs Today ($1 – 2\text{ TB}$ NVMe SSD @ $7,000\text{ MB/s}$).
 * **Core Takeaway**:
-  > In 1999, cloud servers were necessary because client devices were too weak. Today, the laptop in your backpack or the Raspberry Pi on a store counter is more powerful than an enterprise datacenter from 1999.
+  > In 1999, cloud servers were necessary because client devices were too weak. Today, local hardware and multi-gigabit local Wi-Fi allow operators to build robust, high-performance systems right on the edge.
 
 ---
 
@@ -39,22 +39,22 @@
 
 ---
 
-### Slide 4: Research Objectives — Engineering Sovereign Edge Valuation
-* **Header**: Research Objectives: Engineering Sovereign Edge Valuation
+### Slide 4: Research Objectives — Building the Sovereign Operator Framework
+* **Header**: Research Objectives: Building the Sovereign Operator Framework
 * **Primary Objective**:
-  > To architect, develop, and empirically validate an offline-first Modular Adaptive Data Node (MADN) ecosystem that leverages idle commodity edge hardware and local high-bandwidth wireless mesh to enable autonomous, tamper-evident dynamic valuation, multi-tender settlement, and closed-loop agro-industrial tracking.
+  > To architect, develop, and empirically validate an offline-first Modular Adaptive Data Node (MADN) framework that leverages local network connectivity and idle edge hardware, empowering operators to deploy sovereign dynamic pricing, multi-tender settlement, and agro-industrial systems.
 * **Specific Technical Objectives**:
-  * **RO-1 (Tri-Node Mesh Architecture)**: Engineer zero-cloud decoupling, UDP multicast beacon discovery ($224.0.0.251:8001$), and sub-millisecond SQLite WAL ACID transaction concurrency.
-  * **RO-2 (Dynamic Value Systems)**: Implement continuous exponential decay pricing $P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}})e^{-\lambda t}$, tri-currency split tenders, and HMAC-SHA256 offline QR change vouchers.
+  * **RO-1 (Local Mesh & Tri-Node Architecture)**: Engineer zero-cloud decoupling, UDP multicast beacon discovery ($224.0.0.251:8001$) over local Wi-Fi, and sub-millisecond SQLite WAL ACID transaction concurrency.
+  * **RO-2 (Dynamic Value & Multi-Tender Engine)**: Implement continuous exponential decay pricing $P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}})e^{-\lambda t}$, tri-currency split tenders, and HMAC-SHA256 offline QR change vouchers.
   * **RO-3 (Closed-Loop Precision Agriculture)**: Provision physical farm plots with soil classifications and irrigation setups, track input cost ledgers, compute automated cost-plus pricing, and synchronize harvests directly to POS catalogs.
-  * **RO-4 (Zero-Exposure Security & Portability)**: Enforce ephemeral RAM-derived AES-256-GCM keys, chained audit trails, and one-click self-replicating node generation (`node_generator.py`).
+  * **RO-4 (Sovereign Security & Node Portability)**: Enforce ephemeral RAM-derived AES-256-GCM keys, chained audit trails, and one-click self-replicating node generation (`node_generator.py`).
 
 ---
 
 ### Slide 5: Tri-Node Architecture Overview
 * **Header**: Tri-Node Sovereign Architecture: Modular & Composable
 * **Component Architecture**:
-  1. **Operator Node (:8000)**: Zero-installation VisionPro Dark Glass web SPA with touch POS and organic avatar identity.
+  1. **Operator Node (:8000)**: Zero-installation VisionPro Dark Glass web SPA with touch POS, dynamic catalog, and organic avatar identity.
   2. **Data Node (:8002)**: UDP multicast peer discovery ($224.0.0.251:8001$), 170+ ISO currency collector, and encrypted key-value storage.
   3. **Vault Node (:8000)**: Scrypt/TOTP security, SQLite WAL concurrency, multi-currency ledger, and portable node generator.
 
@@ -66,16 +66,16 @@
   * **Client Tier (Operator Node :8000)**: VisionPro UI, Dynamic Subnav Controllers, POS Register, Concentric Organic Avatar Studio, Receipt Vault Scanner.
   * **Core Ledger Tier (Vault Node :8000)**: FastAPI REST API, Scrypt/TOTP Security, SQLite WAL Ledger, Dynamic Pricing Engine, Multi-Tender Settlement, Voucher Signer, Node Generator.
   * **Catalog & Mesh Tier (Data Node :8002)**: UDP Multicast Beacon ($224.0.0.251:8001$), Global Currency Collector (170+ Fiats, 50+ Cryptos), AES-256-GCM Encrypted KV Store, Remote Lifecycle Supervisor.
-* **Inter-Node Protocols**:
-  * $\text{Operator} \leftrightarrow \text{Vault}$: JSON REST + HMAC-SHA256 Bearer Signatures + Secure HttpOnly Cookies.
+* **Local Network Protocols**:
+  * $\text{Operator} \leftrightarrow \text{Vault}$: Local JSON REST + HMAC-SHA256 Bearer Signatures + Secure HttpOnly Cookies.
   * $\text{Vault} \leftrightarrow \text{Data Node}$: HTTP Collection Sync & Collision Validation.
-  * $\text{Data Node} \leftrightarrow \text{Mesh}$: UDP Multicast Beacon ($224.0.0.251:8001$) Heartbeat Broadcast every 5s.
+  * $\text{Data Node} \leftrightarrow \text{Local Mesh}$: UDP Multicast Beacon ($224.0.0.251:8001$) Heartbeat Broadcast every 5s.
   * $\text{Vault} \leftrightarrow \text{Storage}$: Scrypt-derived AES-256-GCM data encryption at rest.
 
 ---
 
 ### Slide 7: Dynamic Value Systems & Continuous Algorithmic Pricing
-* **Header**: Dynamic Value Systems: Continuous Pricing & Multi-Tender Settlement
+* **Header**: Dynamic Value Systems: Algorithmic Pricing & Multi-Tender Settlement
 * **Mathematical Formulations**:
   * **Continuous Exponential Decay**:
     $$P(t) = P_{\text{cost}} + (P_{\text{base}} - P_{\text{cost}}) \cdot e^{-\lambda t}, \quad \lambda = \frac{\ln(2)}{T_{\text{half-life}}}$$
@@ -115,8 +115,9 @@
 ---
 
 ### Slide 11: Conclusion & Deployment Roadmap
-* **Header**: Conclusion: The Future of Value Systems is Local and Sovereign
+* **Header**: Conclusion: Empowering Operators with Sovereign Systems
 * **Key Achievements**:
+  * High-speed local networking connectivity eliminating cloud dependencies.
+  * Composable modular framework for operators to build local stores, vaults, and ledgers.
   * 100% automated test suite pass rate (49 tests).
   * Zero-config single-command startup: `python start.py`.
-  * Upcoming Cycle 5: P2P vector delta mesh sync and captive portal POS Wi-Fi vending.

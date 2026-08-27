@@ -1392,11 +1392,11 @@
 
         <div style="margin-bottom: 14px;">
           <label for="profile-input-pin" style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px;">4-Digit Security PIN (POS & Step-Up Auth)</label>
-          <input type="password" id="profile-input-pin" maxlength="4" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; letter-spacing: 4px; font-weight: 700;" placeholder="••••">
+          <input type="password" id="profile-input-pin" maxlength="4" class="search-input" style="width: 100%; padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; letter-spacing: 4px; font-weight: 700;" placeholder="•••• (Leave blank to keep unchanged)">
         </div>
 
         <div style="display: flex; gap: 8px; margin-top: 4px;">
-          <button type="button" class="btn-pill-primary" onclick="submitSaveProfile()" style="flex-grow: 1; margin: 0; padding: 8px 16px; font-size: 0.85rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;">Save Profile Settings 💾</button>
+          <button type="button" class="btn-pill-primary" id="btn-save-profile-settings" onclick="submitSaveProfile()" style="flex-grow: 1; margin: 0; padding: 8px 16px; font-size: 0.85rem; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: #fff;">Save Profile Settings 💾</button>
           <button type="button" class="btn-pill-secondary" onclick="openChangePasswordModal()" style="margin: 0; padding: 8px 14px; font-size: 0.82rem; border-color: rgba(255,255,255,0.2);">Change Password 🔑</button>
           <button type="button" class="btn-pill-secondary" onclick="hideModals()" style="margin: 0; padding: 8px 14px; font-size: 0.82rem;">Close ✕</button>
         </div>
@@ -3308,6 +3308,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260826_05"></script>
+  <script src="./app.js?v=20260827_01"></script>
 </body>
 </html>

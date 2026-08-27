@@ -659,7 +659,7 @@ async function openProfileModal() {
     if (unInput) unInput.value = profile.username || '';
     if (phInput) phInput.value = profile.phone || '';
     if (emInput) emInput.value = profile.email || '';
-    if (pinInput) pinInput.value = profile.pin_set ? '1234' : '';
+    if (pinInput) pinInput.value = ''; // Clean blank state, preserves existing PIN unless changed
 
     // Show modal
     hideModals();
@@ -1073,10 +1073,11 @@ async function submitSaveProfile() {
   const phInput = document.getElementById('profile-input-phone');
   const emInput = document.getElementById('profile-input-email');
   const pinInput = document.getElementById('profile-input-pin');
+  const saveBtn = document.getElementById('btn-save-profile-settings');
 
   const username = unInput ? unInput.value.trim() : "";
   if (!username || username.length < 3) {
-    showErrorToast("Username must be at least 3 characters long.");
+    showErrorToast("Username must be at least 3 alphanumeric characters.");
     return;
   }
 
@@ -1084,6 +1085,12 @@ async function submitSaveProfile() {
   if (pin && (pin.length !== 4 || !/^\d{4}$/.test(pin))) {
     showErrorToast("Security PIN must be exactly 4 digits.");
     return;
+  }
+
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = "Saving Profile Settings... ⏳";
+    saveBtn.style.animation = "none";
   }
 
   const activeAvatar = state.pendingProfileAvatar !== undefined 
@@ -1095,9 +1102,12 @@ async function submitSaveProfile() {
     username: username,
     phone: phInput ? phInput.value.trim() : "",
     email: emInput ? emInput.value.trim() : "",
-    pin: pin,
     avatar_url: activeAvatar
   };
+
+  if (pin) {
+    payload.pin = pin;
+  }
 
   try {
     const res = await secureFetch("/api/user/profile", {
@@ -1109,19 +1119,47 @@ async function submitSaveProfile() {
     const data = await res.json();
     if (!res.ok) {
       showErrorToast(data.detail || "Failed to update profile.");
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save Profile Settings 💾";
+      }
       return;
     }
 
-    showSuccessToast("Operator profile updated successfully! 💾");
+    // In-place Visual Save Indication on Button
+    if (saveBtn) {
+      saveBtn.innerText = "Settings Saved Successfully! ✅";
+      saveBtn.style.background = "#10b981";
+      saveBtn.style.borderColor = "#10b981";
+    }
+
+    showSuccessToast("Operator profile settings saved and synchronized to Sovereign Vault! 💾✨");
+
     if (data.profile) {
       state.user.username = data.profile.username;
       state.user.full_name = data.profile.full_name;
       state.user.avatar_url = data.profile.avatar_url;
+      state.user.phone = data.profile.phone;
+      state.user.email = data.profile.email;
       updateUserUI(state.user);
     }
-    hideModals();
+
+    // Smoothly auto-dismiss after confirming
+    setTimeout(() => {
+      hideModals();
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save Profile Settings 💾";
+        saveBtn.style.background = "";
+        saveBtn.style.borderColor = "";
+      }
+    }, 700);
   } catch (e) {
     showErrorToast(e.message || "Network error updating profile.");
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerText = "Save Profile Settings 💾";
+    }
   }
 }
 
