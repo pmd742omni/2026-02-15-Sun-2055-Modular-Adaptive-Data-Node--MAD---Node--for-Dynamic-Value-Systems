@@ -38,6 +38,115 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
+// --- VISIONPRO GLASSMORPHIC TOAST NOTIFICATION ENGINE ---
+function showToast(message, type = 'info', duration = 3500) {
+  let toastContainer = document.getElementById('madn-toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'madn-toast-container';
+    toastContainer.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      max-width: 420px;
+      width: calc(100vw - 48px);
+    `;
+    document.body.appendChild(toastContainer);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `glass-panel madn-toast madn-toast-${type}`;
+  
+  const iconMap = {
+    success: '✅',
+    danger: '❌',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+
+  const borderMap = {
+    success: 'rgba(16, 185, 129, 0.4)',
+    danger: 'rgba(239, 68, 68, 0.4)',
+    error: 'rgba(239, 68, 68, 0.4)',
+    warning: 'rgba(245, 158, 11, 0.4)',
+    info: 'rgba(0, 229, 255, 0.4)'
+  };
+
+  const bgMap = {
+    success: 'rgba(16, 185, 129, 0.18)',
+    danger: 'rgba(239, 68, 68, 0.22)',
+    error: 'rgba(239, 68, 68, 0.22)',
+    warning: 'rgba(245, 158, 11, 0.18)',
+    info: 'rgba(0, 229, 255, 0.15)'
+  };
+
+  const currentIcon = iconMap[type] || '✨';
+  const currentBorder = borderMap[type] || 'rgba(255,255,255,0.15)';
+  const currentBg = bgMap[type] || 'rgba(15, 23, 42, 0.9)';
+
+  toast.style.cssText = `
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    border-radius: 16px;
+    background: ${currentBg};
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid ${currentBorder};
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 20px ${currentBorder};
+    color: #fff;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  `;
+
+  toast.innerHTML = `
+    <span style="font-size: 1.2rem; flex-shrink: 0;">${currentIcon}</span>
+    <span style="flex-grow: 1; color: #fff; word-break: break-word;">${escapeHtml(message)}</span>
+    <button type="button" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; padding: 2px 6px; margin-left: 4px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: color 0.2s;" onclick="this.parentElement.remove()">✕</button>
+  `;
+
+  toastContainer.appendChild(toast);
+
+  // Trigger animation
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0) scale(1)';
+  });
+
+  // Auto dismiss
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px) scale(0.95)';
+    setTimeout(() => {
+      if (toast.parentElement) toast.remove();
+    }, 350);
+  }, duration);
+}
+
+function showSuccessToast(message, duration = 3500) {
+  showToast(message, 'success', duration);
+}
+
+function showErrorToast(message, duration = 4000) {
+  showToast(message, 'danger', duration);
+}
+
+function showInfoToast(message, duration = 3500) {
+  showToast(message, 'info', duration);
+}
+
 // --- BULAWAYO CLIMATE DATA ---
 const climateData = [
   { month: "January", rainfall: 95, temp: 21.8, rainyDays: 10 },
