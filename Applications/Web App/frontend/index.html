@@ -1786,9 +1786,9 @@
           <div class="hero-text-details">
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <h2 class="hero-title-name" id="hero-header-operator-name">MAD Node Hub — Vault 1</h2>
-              <span class="badge-status-pill" style="font-size: 0.68rem; padding: 2px 9px;" title="Node is operating in zero-trust WAL mode"><span class="live-pulse-dot"></span> Online • 0ms</span>
+              <span class="badge-status-pill" style="font-size: 0.68rem; padding: 2px 9px;" title="Connected and active"><span class="live-pulse-dot"></span> Online • 0ms</span>
             </div>
-            <p class="hero-subtitle-desc" id="hero-header-operator-role">Modular Adaptive Data Node • Primary Autonomous Mesh Vault #1 Active</p>
+            <p class="hero-subtitle-desc" id="hero-header-operator-role">Modular Adaptive Data Node • Primary Community Vault #1 Connected</p>
           </div>
         </div>
 
@@ -1868,39 +1868,39 @@
           </div>
         </div>
 
-        <!-- Subview 2: Detailed System Health -->
+        <!-- Subview 2: Detailed System Services -->
         <div class="dash-subview" id="dash-subview-health" style="display: none;">
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
             <div class="glass-panel" style="padding: 24px;">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                <h3 style="font-size: 1.1rem; color: #ffffff;">SQLite WAL Engine</h3>
-                <span style="padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: 700; font-size: 0.75rem;">Active</span>
+                <h3 style="font-size: 1.1rem; color: #ffffff;">⚡ Instant Local Storage Vault</h3>
+                <span class="badge-status-pill"><span class="live-pulse-dot"></span> Active</span>
               </div>
-              <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">BEGIN IMMEDIATE transaction locks & non-blocking WAL reads.</p>
+              <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">Safe, real-time data storage with continuous instant backups and zero data collisions.</p>
               <div style="font-size: 0.82rem; color: rgba(255,255,255,0.75); display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px;">
-                <div><strong>Journal Mode:</strong> WAL</div>
-                <div><strong>Busy Timeout:</strong> 5000 ms</div>
-                <div><strong>Write Lock Status:</strong> Isolated (Single-Writer)</div>
+                <div><strong>Storage Mode:</strong> Instant Safe Vault Log</div>
+                <div><strong>Safety Guard:</strong> Continuous Auto-Sync</div>
+                <div><strong>Data Protection:</strong> Multi-Device Concurrency Safe</div>
               </div>
             </div>
             
             <div class="glass-panel" style="padding: 24px;">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                <h3 style="font-size: 1.1rem; color: #ffffff;">Mesh Multicast Beacon</h3>
-                <span style="padding: 4px 12px; border-radius: 9999px; background: rgba(59, 130, 246, 0.2); color: #3b82f6; font-weight: 700; font-size: 0.75rem;">Online</span>
+                <h3 style="font-size: 1.1rem; color: #ffffff;">🌐 Community Wireless Link</h3>
+                <span class="badge-status-pill badge-mesh"><span class="live-pulse-dot dot-cyan"></span> Online</span>
               </div>
-              <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">UDP Multicast 224.0.0.251:8001 discovery across local subnets.</p>
+              <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">Automatic wireless discovery connecting phones, tablets, registers, and computers across your local network.</p>
               <div style="font-size: 0.82rem; color: rgba(255,255,255,0.75); display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px;">
-                <div><strong>Multicast Group:</strong> 224.0.0.251:8001</div>
-                <div><strong>Vault Hub Port:</strong> 8000</div>
-                <div><strong>Standalone Node Port:</strong> 8002</div>
+                <div><strong>Network Channel:</strong> Local Community Broadcast</div>
+                <div><strong>Main Hub Access:</strong> Active (Port 8000)</div>
+                <div><strong>Storage Node Link:</strong> Connected (Port 8002)</div>
               </div>
             </div>
             
             <div class="glass-panel" style="padding: 24px;">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
                 <h3 style="font-size: 1.1rem; color: #ffffff;">🌾 Smart Freshness Pricing</h3>
-                <span style="padding: 4px 12px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); color: #10b981; font-weight: 700; font-size: 0.75rem;">Active</span>
+                <span class="badge-status-pill"><span class="live-pulse-dot dot-amber"></span> Active</span>
               </div>
               <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px;">Automatic gradual discounts over time to speed up produce sales while protecting farming costs.</p>
               <div style="font-size: 0.82rem; color: rgba(255,255,255,0.85); display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.03); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);">
@@ -1952,7 +1952,10 @@
               <h3 style="margin: 0 0 4px 0;">🏞️ Farm Fields & Plots Management</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Register and manage your land areas, greenhouses, and planting beds. All crop plans start by selecting a field.</p>
             </div>
-            <button class="btn-pill-primary" onclick="toggleFieldForm()">+ Add Farm Field</button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-pill-primary" onclick="toggleFieldForm()">+ Add Farm Field</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-fields-box')" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
           </div>
 
           <!-- New Field Form (collapsible) -->
@@ -2040,7 +2043,10 @@
               <h3 style="margin: 0 0 4px 0;">🌱 Crop Plantings & Plans (Field-First)</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Plan and record crop plantings by choosing your target field first.</p>
             </div>
-            <button class="btn-pill-primary" onclick="togglePlantingForm()">+ New Planting Plan</button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-pill-primary" onclick="togglePlantingForm()">+ New Planting Plan</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-plantings-box')" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
           </div>
 
           <!-- New Planting Form (collapsible) -->
@@ -2148,10 +2154,13 @@
 
         <!-- Subview 3: Itemized Cost Breakdown & Price Derivation Calculator -->
         <div class="glass-panel" id="agri-cost-calc-box" style="padding: 28px; display: none;">
-          <h3>💰 Production Cost Accounting & Price Derivation</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
-            Calculate your total growing expenses, set aside food for family or farm consumption, and determine your break-even floor price and recommended retail selling price.
-          </p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">💰 Production Cost Accounting & Price Derivation</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Calculate your total growing expenses, set aside food for family or farm consumption, and determine your break-even floor price and recommended retail selling price.</p>
+            </div>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-cost-calc-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
 
           <!-- Step 1: Select Field Planting for Accounting -->
           <div style="background: rgba(0,229,255,0.04); padding: 14px 18px; border-radius: 16px; border: 1px dashed rgba(0,229,255,0.25); margin-bottom: 20px;">
@@ -2252,10 +2261,13 @@
 
         <!-- Subview 4: Log Harvest Batch & Inventory Sync -->
         <div class="glass-panel" id="agri-harvest-box" style="padding: 28px; display: none;">
-          <h3>🚜 Harvest Batch Logger & Inventory Synchronizer</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
-            Finalize harvest, lock cost accounting, split self-consumption, and push marketable yield directly to POS catalog.
-          </p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">🚜 Harvest Batch Logger & Inventory Synchronizer</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Finalize harvest, lock cost accounting, split self-consumption, and push marketable yield directly to POS catalog.</p>
+            </div>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-harvest-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
 
           <form novalidate id="form-log-harvest" onsubmit="return false;" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
             <div>
@@ -2296,7 +2308,10 @@
 
         <!-- Subview 5: Yield Dispositions Ledger -->
         <div class="glass-panel" id="agri-dispositions-box" style="padding: 28px; display: none;">
-          <h3>📦 Yield Dispositions Ledger</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="margin: 0;">📦 Yield Dispositions Ledger</h3>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-dispositions-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
           <div class="table-responsive-wrapper" style="margin-top: 14px;">
             <table class="visitor-table">
               <thead>
@@ -2319,7 +2334,10 @@
 
         <!-- Subview 6: Bulawayo Climate -->
         <div class="glass-panel" id="agri-climate-box" style="padding: 28px; display: none;">
-          <h3>🌤️ Bulawayo Historical Climate & Irrigation Engine</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="margin: 0;">🌤️ Bulawayo Historical Climate & Irrigation Engine</h3>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-climate-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px;">
             <div>
               <label for="agri-crop-select" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Select Target Crop</label>
@@ -2344,10 +2362,13 @@
       <section class="view-section" id="view-security">
         <!-- Subview 1: Visitor Check-In Form -->
         <div class="glass-panel" id="sec-checkin-box" style="padding: 28px;">
-          <h3>📝 Perimeter Visitor Gatekeeper Check-In</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
-            Log physical entry of external visitors across defined facility environments.
-          </p>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">📝 Perimeter Visitor Gatekeeper Check-In</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Log physical entry of external visitors across defined facility environments.</p>
+            </div>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('sec-checkin-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
 
           <form novalidate id="form-visitor-checkin" onsubmit="return false;" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
             <div>
@@ -2389,12 +2410,15 @@
 
         <!-- Subview 2: Real-time Active Visitor Registry -->
         <div class="glass-panel" id="sec-active-box" style="padding: 28px; display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
             <div>
-              <h3>🟢 Active Visitors On-Premises</h3>
-              <p style="font-size: 0.85rem; color: var(--text-muted);">Live roll of visitors currently inside the perimeter with one-click departure check-out.</p>
+              <h3 style="margin: 0 0 4px 0;">🟢 Active Visitors On-Premises</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Live roll of visitors currently inside the perimeter with one-click departure check-out.</p>
             </div>
-            <button class="btn-pill-secondary" onclick="loadActiveVisitors()">Refresh Roster 🔄</button>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-pill-secondary" onclick="loadActiveVisitors()">Refresh Roster 🔄</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('sec-active-box')" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
           </div>
 
           <div class="table-responsive-wrapper">
@@ -2420,7 +2444,10 @@
 
         <!-- Subview 3: Historical Visitor Ledger -->
         <div class="glass-panel" id="sec-history-box" style="padding: 28px; display: none;">
-          <h3>📋 Complete Visitor Access History Log</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="margin: 0;">📋 Complete Visitor Access History Log</h3>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('sec-history-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
           <div style="display: flex; gap: 10px; margin: 14px 0;">
             <input type="text" id="vis-search-filter" class="search-input" style="flex-grow: 1; padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Search visitor by name or ID..." oninput="filterVisitorHistory()">
             <select id="vis-env-filter" class="search-input" style="width: 180px; padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" onchange="filterVisitorHistory()">
@@ -3396,15 +3423,15 @@
               </p>
             </div>
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
-              <h4 style="color: #34d399; margin: 0 0 8px 0;">2. Standalone Data Node (:8002)</h4>
+              <h4 style="color: #34d399; margin: 0 0 8px 0;">2. Standalone Storage Hub (:8002)</h4>
               <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
-                Autonomous storage engine. Emits periodic UDP multicast discovery beacons (<code>224.0.0.251:8001</code>) and provides remote node activation/deactivation endpoints.
+                Autonomous storage hub. Automatically broadcasts on local Wi-Fi to keep records synchronized across devices without internet.
               </p>
             </div>
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
               <h4 style="color: #fbbf24; margin: 0 0 8px 0;">3. Vault Coordinator (:8000)</h4>
               <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
-                Cryptographic security nexus. Enforces scrypt/TOTP credentials, SQLite WAL concurrency (<code>BEGIN IMMEDIATE</code>), and HMAC-SHA256 bearer signatures.
+                Security coordinator. Ensures zero-trust credential encryption, instant database updates, and tamper-proof digital receipts.
               </p>
             </div>
           </div>
@@ -3560,72 +3587,104 @@
           <input type="text" id="global-search-input" class="search-input" placeholder="Search system metrics...">
         </div>
 
-        <!-- Widget Card 1: System Health -->
-        <div class="glass-panel widget-card">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <h4 class="widget-title" style="margin: 0;">Subsystem Health</h4>
-            <span class="badge-status-pill" style="font-size: 0.65rem; padding: 2px 8px;"><span class="live-pulse-dot"></span> LIVE</span>
-          </div>
-          <div class="widget-item-row">
-            <div class="widget-item-info">
-              <span class="widget-item-heading">SQLite WAL Engine</span>
-              <span class="widget-item-sub">Zero-lock concurrency</span>
+        <!-- Widget Card 1: System Services (Pill with Maximize, Minimize, and Internal Scroll) -->
+        <div class="glass-panel widget-card" id="widget-card-services">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h4 class="widget-title" style="margin: 0; font-size: 0.9rem;">⚡ Live Services</h4>
+              <span class="badge-status-pill" style="font-size: 0.65rem; padding: 2px 7px;"><span class="live-pulse-dot"></span> LIVE</span>
             </div>
-            <span class="badge-status-pill"><span class="live-pulse-dot"></span> Active</span>
-          </div>
-          <div class="widget-item-row">
-            <div class="widget-item-info">
-              <span class="widget-item-heading">Mesh Beacon</span>
-              <span class="widget-item-sub">UDP 224.0.0.251:8001</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('widget-card-services')" title="Minimize to compact pill">▼</button>
+              <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('widget-card-services')" title="Expand to Fullscreen">⛶</button>
             </div>
-            <span class="badge-status-pill badge-mesh"><span class="live-pulse-dot dot-cyan"></span> Online</span>
           </div>
-          <div class="widget-item-row">
-            <div class="widget-item-info">
-              <span class="widget-item-heading">Continuous Decay POS</span>
-              <span class="widget-item-sub">Dynamic margin protection</span>
+          <div class="widget-scroll-body">
+            <div class="widget-item-row">
+              <div class="widget-item-info">
+                <span class="widget-item-heading">Instant Vault Storage</span>
+                <span class="widget-item-sub">Safe offline backup • Continuous</span>
+              </div>
+              <span class="badge-status-pill"><span class="live-pulse-dot"></span> Active</span>
             </div>
-            <span class="badge-status-pill"><span class="live-pulse-dot dot-amber"></span> Active</span>
+            <div class="widget-item-row">
+              <div class="widget-item-info">
+                <span class="widget-item-heading">Community Network Link</span>
+                <span class="widget-item-sub">Local wireless sync active</span>
+              </div>
+              <span class="badge-status-pill badge-mesh"><span class="live-pulse-dot dot-cyan"></span> Online</span>
+            </div>
+            <div class="widget-item-row">
+              <div class="widget-item-info">
+                <span class="widget-item-heading">Smart Freshness Pricing</span>
+                <span class="widget-item-sub">Automatic produce discounts</span>
+              </div>
+              <span class="badge-status-pill"><span class="live-pulse-dot dot-amber"></span> Active</span>
+            </div>
           </div>
         </div>
 
-        <!-- Widget Card 2: Live Feeds -->
-        <div class="glass-panel widget-card">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <h4 class="widget-title" style="margin: 0;">Active Metrics</h4>
-            <span class="badge-status-pill badge-mesh" style="font-size: 0.65rem; padding: 2px 8px;"><span class="live-pulse-dot dot-cyan"></span> SYNC</span>
-          </div>
-          <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('agriculture')">
-            <div class="widget-item-info">
-              <span class="widget-item-heading">🌾 Field Batches</span>
-              <span class="widget-item-sub" id="widget-active-plantings-text">0 Batches in Soil</span>
+        <!-- Widget Card 2: Community Activity (Pill with Maximize, Minimize, and Internal Scroll) -->
+        <div class="glass-panel widget-card" id="widget-card-metrics">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h4 class="widget-title" style="margin: 0; font-size: 0.9rem;">📊 Community Activity</h4>
+              <span class="badge-status-pill badge-mesh" style="font-size: 0.65rem; padding: 2px 7px;"><span class="live-pulse-dot dot-cyan"></span> SYNC</span>
             </div>
-            <span class="badge-status-pill"><span class="live-pulse-dot"></span> Live</span>
-          </div>
-          <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('security')">
-            <div class="widget-item-info">
-              <span class="widget-item-heading">🛡️ Active Visitors</span>
-              <span class="widget-item-sub" id="widget-active-visitors-text">0 On-Premises</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('widget-card-metrics')" title="Minimize to compact pill">▼</button>
+              <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('widget-card-metrics')" title="Expand to Fullscreen">⛶</button>
             </div>
-            <span class="badge-status-pill badge-mesh"><span class="live-pulse-dot dot-cyan"></span> Gate</span>
           </div>
-          <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('cluster')">
-            <div class="widget-item-info">
-              <span class="widget-item-heading">📡 Data Nodes</span>
-              <span class="widget-item-sub" id="widget-cluster-nodes-text">1 Node (Vault Hub)</span>
+          <div class="widget-scroll-body">
+            <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('agriculture')">
+              <div class="widget-item-info">
+                <span class="widget-item-heading">🌾 Farm Crop Batches</span>
+                <span class="widget-item-sub" id="widget-active-plantings-text">0 Batches in Soil</span>
+              </div>
+              <span class="badge-status-pill"><span class="live-pulse-dot"></span> Live</span>
             </div>
-            <span class="badge-status-pill badge-purple"><span class="live-pulse-dot dot-purple"></span> Mesh</span>
+            <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('security')">
+              <div class="widget-item-info">
+                <span class="widget-item-heading">🛡️ Checked-In Visitors</span>
+                <span class="widget-item-sub" id="widget-active-visitors-text">0 On-Premises</span>
+              </div>
+              <span class="badge-status-pill badge-mesh"><span class="live-pulse-dot dot-cyan"></span> Gate</span>
+            </div>
+            <div class="widget-item-row" style="cursor: pointer;" onclick="switchView('cluster')">
+              <div class="widget-item-info">
+                <span class="widget-item-heading">📡 Connected Vault Hubs</span>
+                <span class="widget-item-sub" id="widget-cluster-nodes-text">1 Active local hub</span>
+              </div>
+              <span class="badge-status-pill badge-purple"><span class="live-pulse-dot dot-purple"></span> Mesh</span>
+            </div>
           </div>
         </div>
 
-        <!-- Collapsible Bottom Quick Bar Drawers -->
+        <!-- Collapsible Bottom Quick Bar Drawers with Fullscreen Toggle -->
         <div class="collapsible-bottom-widget" id="widget-toggle-pos" onclick="switchView('business')">
-          <span style="font-weight: 600; font-size: 0.9rem;">Quick POS Register</span>
-          <span style="font-size: 1.1rem; color: var(--accent-cyan);">🪙 ▲</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>🪙</span>
+              <span style="font-weight: 600; font-size: 0.88rem;">Quick Store & POS Register</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="event.stopPropagation(); togglePanelFullscreen('pos-terminal-box')" title="Maximize Fullscreen">⛶</button>
+              <span style="font-size: 0.9rem; color: var(--accent-cyan);">▲</span>
+            </div>
+          </div>
         </div>
         <div class="collapsible-bottom-widget" id="widget-toggle-security" onclick="switchView('security')">
-          <span style="font-weight: 600; font-size: 0.9rem;">Gatekeeper Registry</span>
-          <span style="font-size: 1.1rem; color: var(--success);">🛡️ ▲</span>
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>🛡️</span>
+              <span style="font-weight: 600; font-size: 0.88rem;">Visitor Security Gatekeeper</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="event.stopPropagation(); togglePanelFullscreen('sec-checkin-box')" title="Maximize Fullscreen">⛶</button>
+              <span style="font-size: 0.9rem; color: var(--success);">▲</span>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
@@ -3649,6 +3708,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260827_18"></script>
+  <script src="./app.js?v=20260827_19"></script>
 </body>
 </html>

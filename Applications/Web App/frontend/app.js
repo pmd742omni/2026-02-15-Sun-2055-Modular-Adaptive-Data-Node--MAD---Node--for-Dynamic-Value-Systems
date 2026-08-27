@@ -5231,19 +5231,32 @@ function switchCurrencySubTab(subTab) {
   }
 }
 
+function toggleWidgetCollapse(widgetId) {
+  const el = document.getElementById(widgetId);
+  if (!el) return;
+  const isCollapsed = el.classList.toggle('is-collapsed');
+  const btn = el.querySelector('.btn-collapse-toggle') || el.querySelector(`[onclick*="toggleWidgetCollapse('${widgetId}')"]`);
+  if (btn) {
+    btn.innerHTML = isCollapsed ? '▲' : '▼';
+    btn.title = isCollapsed ? 'Expand to standard view' : 'Minimize to compact pill';
+  }
+}
+window.toggleWidgetCollapse = toggleWidgetCollapse;
+
 function togglePanelFullscreen(panelId) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
   const isFs = panel.classList.toggle('panel-fullscreen');
-  const btn = panel.querySelector('.btn-panel-expand');
-  if (btn) {
+  const btns = panel.querySelectorAll('.btn-panel-expand');
+  btns.forEach(btn => {
     btn.innerHTML = isFs ? '🗗 Restore (Esc)' : '⛶ Expand';
     btn.title = isFs ? 'Exit Fullscreen Mode (or press Esc)' : 'Expand to Fullscreen';
-  }
+  });
   if (isFs) {
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
+window.togglePanelFullscreen = togglePanelFullscreen;
 
 // Global escape key listener to close any expanded panel
 document.addEventListener('keydown', (e) => {
@@ -5251,11 +5264,11 @@ document.addEventListener('keydown', (e) => {
     const fsPanels = document.querySelectorAll('.panel-fullscreen');
     fsPanels.forEach(panel => {
       panel.classList.remove('panel-fullscreen');
-      const btn = panel.querySelector('.btn-panel-expand');
-      if (btn) {
+      const btns = panel.querySelectorAll('.btn-panel-expand');
+      btns.forEach(btn => {
         btn.innerHTML = '⛶ Expand';
         btn.title = 'Expand to Fullscreen';
-      }
+      });
     });
   }
 });

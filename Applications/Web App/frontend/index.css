@@ -1321,6 +1321,102 @@ input:focus, select:focus, textarea:focus {
   color: var(--accent-cyan) !important;
 }
 
+/* Universal Card / Pill Header Control Buttons */
+.btn-card-ctrl {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  border-radius: 7px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: var(--text-muted) !important;
+  font-size: 0.75rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-card-ctrl:hover {
+  background: rgba(0, 229, 255, 0.2) !important;
+  border-color: var(--accent-cyan) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.35) !important;
+  transform: scale(1.08) !important;
+}
+
+/* Widget Card internal scrolling & collapse states */
+.widget-card {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 250px !important;
+  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease, background 0.3s ease !important;
+  overflow: hidden !important;
+}
+
+.widget-scroll-body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding-right: 4px !important;
+  flex-grow: 1 !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.4) transparent;
+}
+
+.widget-scroll-body::-webkit-scrollbar {
+  width: 4px;
+}
+.widget-scroll-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.35);
+  border-radius: 9999px;
+}
+.widget-scroll-body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* Collapsed Pill State for Compact Sidebar Views */
+.widget-card.is-collapsed {
+  max-height: 88px !important;
+  background: rgba(14, 20, 32, 0.95) !important;
+  border-color: rgba(0, 229, 255, 0.35) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6) !important;
+}
+
+.widget-card.is-collapsed .widget-scroll-body {
+  max-height: 42px !important;
+}
+
+/* Universal Panel / Card Custom Slim Micro-Scrollbars */
+.glass-panel, .dash-subview, .collapsible-bottom-widget, .visitor-table-wrapper, .table-responsive-wrapper, .view-section {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.4) transparent;
+}
+
+.glass-panel::-webkit-scrollbar, .dash-subview::-webkit-scrollbar, .collapsible-bottom-widget::-webkit-scrollbar, .visitor-table-wrapper::-webkit-scrollbar, .table-responsive-wrapper::-webkit-scrollbar, .view-section::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.glass-panel::-webkit-scrollbar-track, .dash-subview::-webkit-scrollbar-track, .visitor-table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.glass-panel::-webkit-scrollbar-thumb, .dash-subview::-webkit-scrollbar-thumb, .visitor-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.35);
+  border-radius: 9999px;
+}
+
+.glass-panel::-webkit-scrollbar-thumb:hover, .dash-subview::-webkit-scrollbar-thumb:hover, .visitor-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan);
+}
+
 /* Sub-Tab navigation buttons in segmented panels */
 .btn-pill-secondary.active {
   background: rgba(0, 229, 255, 0.15) !important;
