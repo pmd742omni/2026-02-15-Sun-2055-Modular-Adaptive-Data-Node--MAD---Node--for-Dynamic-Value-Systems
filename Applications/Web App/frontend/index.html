@@ -1845,23 +1845,58 @@
         <!-- Subview 1: System Overview (Default) -->
         <div class="dash-subview active" id="dash-subview-overview">
           <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
-            <div class="glass-panel" style="padding: 24px; cursor: pointer;" onclick="switchView('agriculture')">
-              <h3 style="font-size: 1.1rem; margin-bottom: 10px; color: var(--accent-cyan);">🌾 Precision Agriculture</h3>
+            <div class="glass-panel widget-card" id="dash-card-agri" style="padding: 22px; cursor: pointer;" onclick="switchView('agriculture')">
+              <div class="widget-card-header">
+                <div class="widget-card-header-left">
+                  <h3 class="widget-title" style="color: var(--accent-cyan);">🌾 Precision Agriculture</h3>
+                </div>
+                <div class="widget-card-header-right">
+                  <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="event.stopPropagation(); toggleWidgetCollapse('dash-card-agri')" title="Minimize to compact pill">▼</button>
+                  <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="event.stopPropagation(); togglePanelFullscreen('dash-card-agri')" title="Expand to Fullscreen">⛶</button>
+                </div>
+              </div>
               <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">Lifecycle tracking, itemized production cost floors, and automated dynamic POS listing prices.</p>
               <span style="font-size: 0.78rem; color: #10b981; font-weight: 600;" id="dash-plantings-count">● 0 Active Plantings</span>
             </div>
-            <div class="glass-panel" style="padding: 24px; cursor: pointer;" onclick="switchView('security')">
-              <h3 style="font-size: 1.1rem; margin-bottom: 10px; color: var(--success);">🛡️ Security Gatekeeper</h3>
+
+            <div class="glass-panel widget-card" id="dash-card-sec" style="padding: 22px; cursor: pointer;" onclick="switchView('security')">
+              <div class="widget-card-header">
+                <div class="widget-card-header-left">
+                  <h3 class="widget-title" style="color: var(--success);">🛡️ Security Gatekeeper</h3>
+                </div>
+                <div class="widget-card-header-right">
+                  <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="event.stopPropagation(); toggleWidgetCollapse('dash-card-sec')" title="Minimize to compact pill">▼</button>
+                  <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="event.stopPropagation(); togglePanelFullscreen('dash-card-sec')" title="Expand to Fullscreen">⛶</button>
+                </div>
+              </div>
               <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">Perimeter access control, national ID entry logs, and real-time active visitor tracking.</p>
               <span style="font-size: 0.78rem; color: #3b82f6; font-weight: 600;" id="dash-active-visitors-count">● 0 Active Visitors</span>
             </div>
-            <div class="glass-panel" style="padding: 24px; cursor: pointer;" onclick="switchView('social')">
-              <h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #ec4899;">🌐 Social Media Hub</h3>
+
+            <div class="glass-panel widget-card" id="dash-card-social" style="padding: 22px; cursor: pointer;" onclick="switchView('social')">
+              <div class="widget-card-header">
+                <div class="widget-card-header-left">
+                  <h3 class="widget-title" style="color: #ec4899;">🌐 Social Media Hub</h3>
+                </div>
+                <div class="widget-card-header-right">
+                  <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="event.stopPropagation(); toggleWidgetCollapse('dash-card-social')" title="Minimize to compact pill">▼</button>
+                  <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="event.stopPropagation(); togglePanelFullscreen('dash-card-social')" title="Expand to Fullscreen">⛶</button>
+                </div>
+              </div>
               <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">4-in-1 hybrid community feed (Threads, Carousels, 24h Stories, Reels) with micro-tipping.</p>
               <span style="font-size: 0.78rem; color: #f472b6; font-weight: 600;" id="dash-posts-count">● 0 Community Posts</span>
             </div>
-            <div class="glass-panel" style="padding: 24px; cursor: pointer;" onclick="switchView('business')">
-              <h3 style="font-size: 1.1rem; margin-bottom: 10px; color: var(--warning);">💼 Business & Store Management</h3>
+
+            <div class="glass-panel widget-card" id="dash-card-business" style="padding: 22px; cursor: pointer;" onclick="switchView('business')">
+              <div class="widget-card-header">
+                <div class="widget-card-header-left">
+                  <h3 class="widget-title" style="color: var(--warning);">💼 Business & Store</h3>
+                </div>
+                <div class="widget-card-header-right">
+                  <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="event.stopPropagation(); toggleWidgetCollapse('dash-card-business')" title="Minimize to compact pill">▼</button>
+                  <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="event.stopPropagation(); togglePanelFullscreen('dash-card-business')" title="Expand to Fullscreen">⛶</button>
+                </div>
+              </div>
               <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 12px;">Smart freshness discounts, modular dynamic inventory, guaranteed farmer cost floors, and mixed-currency checkout.</p>
               <span style="font-size: 0.78rem; color: #fbbf24; font-weight: 600;" id="dash-catalog-count">● 0 Catalog Items</span>
             </div>
@@ -2515,7 +2550,13 @@
       <!-- SECTION 5: BUSINESS & STORE MANAGEMENT -->
       <section class="view-section" id="view-business">
         <!-- Store Setup Required Gatekeeper (When 0 businesses registered) -->
-        <div class="glass-panel store-launchpad-hero" id="business-no-store-container" style="display: none; margin-bottom: 20px;">
+        <div class="glass-panel store-launchpad-hero" id="business-no-store-container" style="display: none; margin-bottom: 20px; position: relative;">
+          <!-- Top Right Maximize / Minimize Controls -->
+          <div style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 6px; z-index: 20;">
+            <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('business-no-store-container')" title="Minimize to compact pill">▼</button>
+            <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('business-no-store-container')" title="Expand to Fullscreen">⛶</button>
+          </div>
+
           <!-- Radiant Floating 3D Badge -->
           <div class="store-launchpad-badge-wrapper">
             <div class="store-launchpad-glow-ring"></div>
@@ -3589,12 +3630,12 @@
 
         <!-- Widget Card 1: System Services (Pill with Maximize, Minimize, and Internal Scroll) -->
         <div class="glass-panel widget-card" id="widget-card-services">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <h4 class="widget-title" style="margin: 0; font-size: 0.9rem;">⚡ Live Services</h4>
-              <span class="badge-status-pill" style="font-size: 0.65rem; padding: 2px 7px;"><span class="live-pulse-dot"></span> LIVE</span>
+          <div class="widget-card-header">
+            <div class="widget-card-header-left">
+              <h4 class="widget-title">⚡ Live Services</h4>
+              <span class="badge-status-pill" style="font-size: 0.65rem; padding: 2px 8px; flex-shrink: 0;"><span class="live-pulse-dot"></span> LIVE</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 4px;">
+            <div class="widget-card-header-right">
               <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('widget-card-services')" title="Minimize to compact pill">▼</button>
               <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('widget-card-services')" title="Expand to Fullscreen">⛶</button>
             </div>
@@ -3626,12 +3667,12 @@
 
         <!-- Widget Card 2: Community Activity (Pill with Maximize, Minimize, and Internal Scroll) -->
         <div class="glass-panel widget-card" id="widget-card-metrics">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <h4 class="widget-title" style="margin: 0; font-size: 0.9rem;">📊 Community Activity</h4>
-              <span class="badge-status-pill badge-mesh" style="font-size: 0.65rem; padding: 2px 7px;"><span class="live-pulse-dot dot-cyan"></span> SYNC</span>
+          <div class="widget-card-header">
+            <div class="widget-card-header-left">
+              <h4 class="widget-title">📊 Community Activity</h4>
+              <span class="badge-status-pill badge-mesh" style="font-size: 0.65rem; padding: 2px 8px; flex-shrink: 0;"><span class="live-pulse-dot dot-cyan"></span> SYNC</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 4px;">
+            <div class="widget-card-header-right">
               <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('widget-card-metrics')" title="Minimize to compact pill">▼</button>
               <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('widget-card-metrics')" title="Expand to Fullscreen">⛶</button>
             </div>
@@ -3708,6 +3749,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260827_19"></script>
+  <script src="./app.js?v=20260827_20"></script>
 </body>
 </html>
