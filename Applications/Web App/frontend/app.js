@@ -503,13 +503,31 @@ function updateUserUI(user) {
   const heroName = document.getElementById('hero-header-operator-name');
   const heroRole = document.getElementById('hero-header-operator-role');
   const roleSelect = document.getElementById('role-switcher-select');
+  const walletOwnerEl = document.getElementById('wallet-owner-name');
+  const receiptOperatorEl = document.getElementById('receipt-operator');
+  const visEscortEl = document.getElementById('vis-escort-officer');
 
-  const displayName = user.full_name || user.username || 'Operator';
-  if (profileUser) profileUser.innerText = displayName;
-  if (heroName) heroName.innerText = `MAD Node Hub • ${displayName}`;
-  if (heroRole) heroRole.innerText = `Modular Adaptive Data Node • Primary Autonomous Mesh Vault #1 Active (${(user.role || 'operator').toUpperCase()})`;
+  const displayName = user.full_name && user.full_name.trim() ? user.full_name.trim() : (user.username || 'Operator');
+  const hasDistinctName = user.full_name && user.full_name.trim() && user.full_name.trim() !== user.username;
 
-  // Sidebar Avatar
+  // Sidebar User Drawer Name & Handle
+  if (profileUser) {
+    if (hasDistinctName) {
+      profileUser.innerHTML = `${escapeHtml(user.full_name)} <span style="display: block; font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">@${escapeHtml(user.username)}</span>`;
+    } else {
+      profileUser.innerText = user.username || 'Operator';
+    }
+  }
+
+  // Hero Cover Header Title & Active Mesh Role
+  if (heroName) {
+    heroName.innerText = `MAD Node Hub • ${displayName}`;
+  }
+  if (heroRole) {
+    heroRole.innerText = `Modular Adaptive Data Node • Primary Autonomous Mesh Vault #1 Active (${(user.role || 'operator').toUpperCase()})`;
+  }
+
+  // Sidebar Avatar with Organic Concentric Pattern
   if (avatarPic) {
     if (user.avatar_url && user.avatar_url.trim()) {
       avatarPic.style.backgroundImage = `url("${user.avatar_url}")`;
@@ -522,7 +540,7 @@ function updateUserUI(user) {
     }
   }
 
-  // Hero Header Avatar
+  // Hero Header Avatar with Organic Concentric Pattern
   if (heroAvatar) {
     if (user.avatar_url && user.avatar_url.trim()) {
       heroAvatar.style.backgroundImage = `url("${user.avatar_url}")`;
@@ -534,6 +552,24 @@ function updateUserUI(user) {
       heroAvatar.innerHTML = displayName.charAt(0).toUpperCase();
     }
   }
+
+  // Digital Banking Owner identity
+  if (walletOwnerEl) {
+    walletOwnerEl.innerText = `${displayName} (@${user.username})`;
+  }
+
+  // POS Cashier / Operator identity
+  if (receiptOperatorEl) {
+    receiptOperatorEl.innerText = `${displayName} (@${user.username})`;
+  }
+
+  // Gatekeeper Officer placeholder
+  if (visEscortEl && !visEscortEl.value) {
+    visEscortEl.placeholder = `e.g. Officer ${displayName}`;
+  }
+
+  // Profile modal preview sync if open
+  renderProfileModalAvatarPreview(user.avatar_url, displayName);
 
   const roleClassMap = {
     admin: 'role-badge-admin',
@@ -1030,6 +1066,12 @@ async function submitStudioAvatarSave() {
     updateUserUI(state.user);
     renderProfileModalAvatarPreview(state.pendingStudioAvatar);
 
+    // Refresh all subsystem views with updated avatar
+    loadSocialPosts();
+    loadSocialStories();
+    loadAdminUsers();
+    loadCustomerWallet();
+
     // Visual Success Indication inside the Studio
     if (saveBtn) {
       saveBtn.innerText = "Saved & Synchronized! ✅";
@@ -1142,6 +1184,12 @@ async function submitSaveProfile() {
       state.user.phone = data.profile.phone;
       state.user.email = data.profile.email;
       updateUserUI(state.user);
+
+      // Refresh all subsystem feeds with updated profile data
+      loadSocialPosts();
+      loadSocialStories();
+      loadAdminUsers();
+      loadCustomerWallet();
     }
 
     // Smoothly auto-dismiss after confirming
@@ -1879,7 +1927,7 @@ async function loadAdminUsers() {
     }
 
     const data = await res.json();
-    const users = data.users || [];
+    const users = Array.isArray(data) ? data : (data.users || []);
 
     if (users.length === 0) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">No registered users found.</td></tr>`;
@@ -1890,11 +1938,24 @@ async function loadAdminUsers() {
       const isSelf = (state.user && state.user.username === u.username);
       const isStatusActive = (u.status === 'active');
       const createdStr = u.created_at ? new Date(u.created_at * 1000).toISOString().substring(0, 10) : 'Genesis';
+      const hasAvatar = u.avatar_url && u.avatar_url.trim();
+      const displayName = u.full_name ? u.full_name : u.username;
 
       return `
         <tr>
           <td><code style="color: var(--accent-cyan); font-weight: 700;">#${u.id}</code></td>
-          <td><strong style="color: #fff;">@${u.username}</strong> ${isSelf ? '<span style="color: var(--accent-cyan); font-size: 0.72rem;">(You)</span>' : ''}</td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 28px; height: 28px; border-radius: 50%; ${hasAvatar ? `background-image: url('${u.avatar_url}'); background-size: cover; background-position: center; border: 1.5px solid var(--accent-cyan);` : 'background: rgba(255,255,255,0.08); font-size: 0.75rem; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;'} flex-shrink: 0;">
+                ${hasAvatar ? '' : displayName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <strong style="color: #fff; display: block; font-size: 0.88rem;">${escapeHtml(displayName)}</strong>
+                <span style="color: var(--accent-cyan); font-size: 0.74rem;">@${escapeHtml(u.username)}</span>
+                ${isSelf ? '<span style="color: #10b981; font-size: 0.7rem; font-weight: 700; margin-left: 4px;">(You)</span>' : ''}
+              </div>
+            </div>
+          </td>
           <td>
             <select id="user-role-select-${u.id}" class="role-switcher-select" style="padding: 4px 8px; font-size: 0.78rem;" ${isSelf ? 'disabled title="Cannot demote yourself"' : ''}>
               <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>👑 Admin</option>
@@ -1926,7 +1987,7 @@ async function loadAdminUsers() {
     // Also populate operator assignment dropdown
     const assignSelect = document.getElementById('assign-operator-username');
     if (assignSelect) {
-      assignSelect.innerHTML = users.map(u => `<option value="${u.username}">@${u.username} (${u.role})</option>`).join('');
+      assignSelect.innerHTML = users.map(u => `<option value="${u.username}">${u.full_name ? u.full_name + ' (@' + u.username + ')' : '@' + u.username} (${u.role})</option>`).join('');
     }
   } catch (e) {
     console.error("Failed to load admin users:", e);
@@ -3090,14 +3151,20 @@ async function loadSocialStories() {
     if (state.socialStories.length === 0) {
       container.innerHTML = `<span style="font-size: 0.8rem; color: var(--text-muted); padding: 10px;">No active 24h stories. Click "+ Post Story" to share one.</span>`;
     } else {
-      container.innerHTML = state.socialStories.map(s => `
-        <div class="story-bubble" onclick="alert('Story from @${s.author}: ${s.content_text}')">
-          <div class="story-ring">
-            <div class="story-avatar">${s.author.charAt(0).toUpperCase()}</div>
+      container.innerHTML = state.socialStories.map(s => {
+        const authorName = s.author_full_name ? s.author_full_name : `@${s.author}`;
+        const hasAvatar = s.author_avatar && s.author_avatar.trim();
+        return `
+          <div class="story-bubble" onclick="alert('Story from ${authorName}: ${escapeHtml(s.content_text)}')">
+            <div class="story-ring">
+              <div class="story-avatar" style="${hasAvatar ? `background-image: url('${s.author_avatar}'); background-size: cover; background-position: center; font-size: 0;` : ''}">
+                ${hasAvatar ? '' : s.author.charAt(0).toUpperCase()}
+              </div>
+            </div>
+            <span class="story-author-label" title="${authorName}">${authorName}</span>
           </div>
-          <span class="story-author-label">@${s.author}</span>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
   } catch (e) {
     console.error("Failed to load stories:", e);
@@ -3140,21 +3207,26 @@ async function loadSocialPosts(postType = null) {
     feed.innerHTML = state.socialPosts.map(p => {
       const typeIcons = { thread: '💬', carousel: '📸', story: '👻', reel: '🎬' };
       const tags = (p.tags || []).map(t => `<span style="color: var(--accent-cyan); font-size: 0.78rem; margin-right: 6px;">#${t}</span>`).join('');
+      const authorDisplay = p.author_full_name ? p.author_full_name : `@${p.author}`;
+      const hasAvatar = p.author_avatar && p.author_avatar.trim();
 
       return `
         <div class="social-card" id="card-${p.id}">
           <div class="social-card-header">
             <div class="social-card-author-group">
-              <div class="user-avatar-badge" style="width: 38px; height: 38px; font-size: 0.9rem;">${p.author.charAt(0).toUpperCase()}</div>
+              <div class="user-avatar-badge" style="width: 38px; height: 38px; ${hasAvatar ? `background-image: url('${p.author_avatar}'); background-size: cover; background-position: center; border: 1.5px solid var(--accent-cyan);` : 'font-size: 0.9rem;'}">
+                ${hasAvatar ? '' : p.author.charAt(0).toUpperCase()}
+              </div>
               <div>
-                <strong style="color: #fff; font-size: 0.95rem;">@${p.author}</strong>
+                <strong style="color: #fff; font-size: 0.95rem;">${escapeHtml(authorDisplay)}</strong>
+                ${p.author_full_name ? `<span style="font-size: 0.75rem; color: var(--accent-cyan); margin-left: 6px;">@${escapeHtml(p.author)}</span>` : ''}
                 <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 8px;">${p.created_at_utc ? p.created_at_utc.substring(0, 16).replace('T', ' ') : ''}</span>
               </div>
             </div>
             <span class="role-pill-badge" style="background: rgba(255,255,255,0.06);">${typeIcons[p.post_type] || '💬'} ${p.post_type.toUpperCase()}</span>
           </div>
 
-          <p style="font-size: 0.92rem; line-height: 1.5; color: var(--text-main); margin-bottom: 8px;">${p.content_text}</p>
+          <p style="font-size: 0.92rem; line-height: 1.5; color: var(--text-main); margin-bottom: 8px;">${escapeHtml(p.content_text)}</p>
           <div style="margin-bottom: 8px;">${tags}</div>
 
           <div class="social-card-actions">
@@ -3289,11 +3361,21 @@ async function toggleComments(postId) {
         const data = await res.json();
         const list = document.getElementById(`comments-list-${postId}`);
         if (list) {
-          list.innerHTML = (data.comments || []).map(c => `
-            <div style="background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; font-size: 0.82rem;">
-              <strong style="color: var(--accent-cyan);">@${c.author}:</strong> ${c.comment_text}
-            </div>
-          `).join('') || `<span style="font-size: 0.75rem; color: var(--text-muted);">No comments yet.</span>`;
+          list.innerHTML = (data.comments || []).map(c => {
+            const authorDisplay = c.author_full_name ? c.author_full_name : `@${c.author}`;
+            const hasAvatar = c.author_avatar && c.author_avatar.trim();
+            return `
+              <div style="background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 12px; font-size: 0.82rem; display: flex; align-items: center; gap: 8px;">
+                <div style="width: 22px; height: 22px; border-radius: 50%; ${hasAvatar ? `background-image: url('${c.author_avatar}'); background-size: cover; background-position: center; border: 1px solid var(--accent-cyan);` : 'background: rgba(255,255,255,0.1); font-size: 0.68rem; display: flex; align-items: center; justify-content: center; font-weight: 700;'} flex-shrink: 0;">
+                  ${hasAvatar ? '' : c.author.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <strong style="color: var(--accent-cyan);">${escapeHtml(authorDisplay)}:</strong>
+                  <span style="color: var(--text-main); margin-left: 4px;">${escapeHtml(c.comment_text)}</span>
+                </div>
+              </div>
+            `;
+          }).join('') || `<span style="font-size: 0.75rem; color: var(--text-muted);">No comments yet.</span>`;
         }
       }
     } catch (e) {

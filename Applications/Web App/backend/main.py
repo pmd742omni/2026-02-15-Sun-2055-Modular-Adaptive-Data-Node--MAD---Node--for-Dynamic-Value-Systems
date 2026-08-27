@@ -703,7 +703,7 @@ def require_elevated_admin(request: Request, admin = Depends(require_admin)):
 @app.get("/api/admin/users", dependencies=[Depends(require_admin)])
 async def list_users():
     db = get_db()
-    cursor = db.execute("SELECT id, username, role, status, created_at, last_login_at FROM users WHERE username != 'system_root'")
+    cursor = db.execute("SELECT id, username, full_name, phone, email, avatar_url, role, status, created_at, last_login_at FROM users WHERE username != 'system_root'")
     users = [dict(row) for row in cursor.fetchall()]
     db.close()
     return users

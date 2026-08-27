@@ -2346,15 +2346,20 @@ def create_social_post(post_type: str, author: str, content_text: str, media_url
 
 def list_social_posts(post_type: str = None, include_expired: bool = False) -> list:
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    query = "SELECT * FROM social_posts WHERE 1=1"
+    query = """
+        SELECT p.*, u.full_name as author_full_name, u.avatar_url as author_avatar
+        FROM social_posts p
+        LEFT JOIN users u ON p.author = u.username
+        WHERE 1=1
+    """
     params = []
     if post_type:
-        query += " AND post_type = ?"
+        query += " AND p.post_type = ?"
         params.append(post_type)
     if not include_expired:
-        query += " AND (expires_at_utc IS NULL OR expires_at_utc > ?)"
+        query += " AND (p.expires_at_utc IS NULL OR p.expires_at_utc > ?)"
         params.append(now_utc)
-    query += " ORDER BY created_at_utc DESC"
+    query += " ORDER BY p.created_at_utc DESC"
     with get_db() as db:
         cursor = db.execute(query, params)
         rows = [dict(r) for r in cursor.fetchall()]
@@ -2378,7 +2383,13 @@ def add_social_comment(post_id: str, author: str, comment_text: str) -> dict:
 
 def get_social_comments(post_id: str) -> list:
     with get_db() as db:
-        cursor = db.execute("SELECT * FROM social_comments WHERE post_id = ? ORDER BY created_at_utc ASC", (post_id,))
+        cursor = db.execute("""
+            SELECT c.*, u.full_name as author_full_name, u.avatar_url as author_avatar
+            FROM social_comments c
+            LEFT JOIN users u ON c.author = u.username
+            WHERE c.post_id = ?
+            ORDER BY c.created_at_utc ASC
+        """, (post_id,))
         rows = [dict(r) for r in cursor.fetchall()]
     return rows
 
