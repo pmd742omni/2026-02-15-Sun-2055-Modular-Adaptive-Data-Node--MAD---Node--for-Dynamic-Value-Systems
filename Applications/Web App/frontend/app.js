@@ -363,28 +363,28 @@ async function secureFetch(url, options = {}) {
 
 // --- FULLSCREEN CANVAS FIREWORK & PARTICLE EXPLOSION ENGINE ---
 function triggerLaunchExplosion(buttonEl) {
-  const authOverlay = document.getElementById('auth-overlay');
-  if (!authOverlay) return;
-
   const oldCanvas = document.getElementById('auth-explosion-canvas');
   if (oldCanvas) oldCanvas.remove();
 
   const canvas = document.createElement('canvas');
   canvas.id = 'auth-explosion-canvas';
   canvas.style.position = 'fixed';
-  canvas.style.top = '0';
-  canvas.style.left = '0';
+  canvas.style.top = '0px';
+  canvas.style.left = '0px';
   canvas.style.width = '100vw';
   canvas.style.height = '100vh';
   canvas.style.pointerEvents = 'none';
-  canvas.style.zIndex = '2800';
-  authOverlay.appendChild(canvas);
+  canvas.style.zIndex = '999999';
+  document.body.appendChild(canvas);
 
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   const ctx = canvas.getContext('2d');
 
-  const rect = buttonEl ? buttonEl.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0, height: 0 };
+  let rect = buttonEl ? buttonEl.getBoundingClientRect() : null;
+  if (!rect || (rect.width === 0 && rect.height === 0)) {
+    rect = { left: window.innerWidth / 2 - 60, top: window.innerHeight / 2 - 20, width: 120, height: 40 };
+  }
   const originX = rect.left + rect.width / 2;
   const originY = rect.top + rect.height / 2;
 
@@ -625,30 +625,87 @@ function initAuthSystem() {
       if (s2El) s2El.style.color = '#fff';
       if (iconEl) iconEl.innerText = '🌐';
       if (subEl) subEl.innerText = 'Connecting with your community... 🌐';
-      if (barEl) barEl.style.width = '60%';
+      if (barEl) barEl.style.width = '55%';
 
-      await new Promise(r => setTimeout(r, 220));
+      await new Promise(r => setTimeout(r, 260));
 
-      // Milestone 2 complete, advance to Milestone 3: Loading wallet & store
+      // Milestone 2 complete, advance to Milestone 3: Dynamically tailored to operator role & permissions!
+      const userRole = (data.role || 'guest').toLowerCase();
+      const displayName = data.full_name || data.username || 'Operator';
+
+      const roleProfiles = {
+        admin: {
+          step3Text: '3. Loading sovereign tri-node & ledger control 👑',
+          subtext: 'Loading sovereign tri-node & multi-currency ledgers... 👑',
+          icon: '👑',
+          toast: `Welcome, Administrator ${displayName}! Sovereign node active 👑✨`
+        },
+        agronomist: {
+          step3Text: '3. Loading fields, plantings & precision agriculture 🌾',
+          subtext: 'Loading your agricultural fields & harvest logs... 🌾',
+          icon: '🌾',
+          toast: `Welcome, Agronomist ${displayName}! Field tools active 🌾✨`
+        },
+        guard: {
+          step3Text: '3. Loading visitor gatekeeper & access registry 🛡️',
+          subtext: 'Preparing visitor registry & security logs... 🛡️',
+          icon: '🛡️',
+          toast: `Welcome, Officer ${displayName}! Gatekeeper ready 🛡️✨`
+        },
+        merchant: {
+          step3Text: '3. Loading store catalog & point-of-sale register 🏪',
+          subtext: 'Loading your store products & register... 🏪',
+          icon: '🏪',
+          toast: `Welcome, Merchant ${displayName}! Store POS ready 🏪✨`
+        },
+        customer: {
+          step3Text: '3. Loading digital wallet & customer vault 🏦',
+          subtext: 'Loading your digital wallet & payment receipts... 🏦',
+          icon: '🏦',
+          toast: `Welcome, ${displayName}! Digital banking ready 🏦✨`
+        },
+        guest: {
+          step3Text: '3. Loading community marketplace & nodes 🌐',
+          subtext: 'Loading community catalog & discovery mesh... 🌐',
+          icon: '🌐',
+          toast: `Welcome, ${displayName}! Community workspace ready 🌐✨`
+        },
+        operator: {
+          step3Text: '3. Loading terminal console & operations ⚙️',
+          subtext: 'Loading your assigned terminal modules... ⚙️',
+          icon: '⚙️',
+          toast: `Welcome, ${displayName}! Operator console ready ⚙️✨`
+        }
+      };
+
+      const profile = roleProfiles[userRole] || {
+        step3Text: '3. Preparing your workspace modules ✨',
+        subtext: 'Loading your workspace modules... ✨',
+        icon: '✨',
+        toast: `Welcome, ${displayName}! You're all set! ✨`
+      };
+
       const s3Icon = document.getElementById('journey-step-3-icon');
+      const s3Text = document.getElementById('journey-step-3-text');
       const s3El = document.getElementById('journey-step-3');
+
       if (s2Icon) s2Icon.innerText = '✅';
       if (s2El) s2El.style.color = '#10b981';
       if (s3Icon) s3Icon.innerText = '⏳';
       if (s3El) s3El.style.color = '#fff';
-      if (iconEl) iconEl.innerText = '🏪';
-      if (subEl) subEl.innerText = 'Loading your wallet & store... 🏪';
-      if (barEl) barEl.style.width = '85%';
+      if (s3Text) s3Text.innerText = profile.step3Text;
+      if (iconEl) iconEl.innerText = profile.icon;
+      if (subEl) subEl.innerText = profile.subtext;
+      if (barEl) barEl.style.width = '82%';
 
       loadAllSubsystemData();
 
-      await new Promise(r => setTimeout(r, 220));
+      await new Promise(r => setTimeout(r, 300));
 
       // Milestone 3 complete, Milestone 4: Ready to go!
       const s4Icon = document.getElementById('journey-step-4-icon');
       const s4El = document.getElementById('journey-step-4');
       const hlEl = document.getElementById('journey-headline');
-      const displayName = data.full_name || data.username || 'Friend';
 
       if (s3Icon) s3Icon.innerText = '✅';
       if (s3El) s3El.style.color = '#10b981';
@@ -656,14 +713,14 @@ function initAuthSystem() {
       if (s4El) s4El.style.color = '#38bdf8';
       if (iconEl) iconEl.innerText = '🚀';
       if (hlEl) hlEl.innerText = `Welcome, ${displayName}! 🎉`;
-      if (subEl) subEl.innerText = "You're all set! Let's build! 🌾✨";
+      if (subEl) subEl.innerText = "You're all set! Let's build! ✨";
       if (barEl) barEl.style.width = '100%';
 
-      await new Promise(r => setTimeout(r, 340));
+      await new Promise(r => setTimeout(r, 360));
 
       if (cardJourney) cardJourney.classList.remove('card-warp-in');
       hideLoginOverlay();
-      showSuccessToast(`Welcome back, ${displayName}! 🌾✨`, 4000);
+      showSuccessToast(profile.toast, 4500);
 
     } catch (e) {
       resetToLoginCard(e.message || "Network error. Server might be restarting.");
