@@ -50,13 +50,15 @@ flowchart TD
 1. **Authoritative Local Machine Timestamp**:
    - Acquired dynamically at runtime (`YYYY-MM-DD Day HHMM` / `YYYY-MM-DD HHMM`).
    - Example folder: `01_Documentation_and_Thesis/Chapters/YYYY-MM-DD Day HHMM Version YYYY-MM-DD Day HHMM/`.
-2. **Dynamic Change Propagation (`build_versioned_chapters.py`)**:
+2. **Edition Changelog Mandate (`EDITION_CHANGELOG.md`)**:
+   - Every new edition folder MUST include `EDITION_CHANGELOG.md` detailing all architectural advancements, design language modernizations (Sovereign Obsidian Glassmorphic Matrix), and performance benchmark gains.
+3. **Dynamic Change Propagation (`build_versioned_chapters.py`)**:
    - Discovers the latest previous versioned chapter folder automatically.
    - Extracts recent git commits, newly introduced endpoints, data models, and UI views.
    - Updates date strings, version numbers, and Ndebele codenames dynamically.
    - Dynamically updates empirical test counts and benchmark results in **Chapter 5 (Results, Testing & Analysis)**.
    - Propagates feature implementations, component integrations, challenges, and solutions into **Chapter 3 (Methodology)**, **Chapter 4 (Design & Prototype)**, and **Chapters 1-2**.
-   - Compiles unified chapter markdown documents.
+   - Compiles unified chapter markdown documents and synchronizes top-level chapter files.
 
 ---
 

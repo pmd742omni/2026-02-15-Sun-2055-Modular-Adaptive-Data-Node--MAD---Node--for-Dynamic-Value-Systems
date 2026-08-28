@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) — Operations Manual & User Guide
 
-**Document Version**: 1.19.11 (*Ukuzazi — Sovereign Operator Profile, Avatar Customization & VisionPro Form Shielding*)  
+**Document Version**: 1.19.55 (*Inyathelo — Modular Adaptive Component Architecture & Sovereign Obsidian Glassmorphic Matrix*)  
 **Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Portable Launcher**: `../start.py` (Relative to `Applications/Web App/`)  
 **Target Environment**: Edge Nodes (Raspberry Pi 4 / CM4, Linux / Windows / macOS Laptops & Mobile Tablets)
@@ -23,10 +23,10 @@
 
 ## 4. Multi-Enterprise Store Setup & Unified POS Register
 
-### 4.1 Store Setup Prerequisite
+### 4.1 In-Place Store Setup Workspace
 Before an operator can register inventory products or log crop harvests, at least one store must be created:
 1. Open the **`🏬 Business`** tab.
-2. If no stores exist, click **`+ Set Up Business Store`**.
+2. If no stores exist, click **`+ Set Up Your Store`**. The view instantly replaces the empty-state launchpad with the **In-Place Store Setup Workspace** (with fullscreen toggle support).
 3. Complete the mandatory fields:
    - **Business / Store Name**: e.g., *Umguza Valley Organics*
    - **Tagline**: e.g., *Fresh Soil-Grown Vegetables*

@@ -1,0 +1,122 @@
+<section class="view-section" id="view-security">
+        <!-- Subview 1: Visitor Check-In Form -->
+        <div class="glass-panel" id="sec-checkin-box" style="padding: 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">📝 Perimeter Visitor Gatekeeper Check-In</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Log physical entry of external visitors across defined facility environments.</p>
+            </div>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('sec-checkin-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
+
+          <form novalidate id="form-visitor-checkin" onsubmit="return false;" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">National ID / Passport</label>
+              <input type="text" id="vis-national-id" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. 63-198274-B-28" required>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Full Legal Name</label>
+              <input type="text" id="vis-full-name" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Tendai Moyo" required>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Destination Environment</label>
+              <select id="vis-destination-env" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                <option value="Main Office">Main Office</option>
+                <option value="Crop Silos">Crop Silos</option>
+                <option value="Farm Quadrant B">Farm Quadrant B</option>
+                <option value="Machine Shed">Machine Shed</option>
+                <option value="Solar Microgrid">Solar Microgrid</option>
+                <option value="Cold Storage Depot">Cold Storage Depot</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Escort Officer</label>
+              <input type="text" id="vis-escort-officer" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Officer Sibanda">
+            </div>
+            <div style="grid-column: span 2;">
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Purpose of Visit</label>
+              <input type="text" id="vis-purpose" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Bulk Grain Inspection & Quality Assay">
+            </div>
+            <div style="grid-column: span 2;">
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Notes / Items Carried</label>
+              <input type="text" id="vis-notes" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Carrying sampling probe and tool kit">
+            </div>
+            <div style="grid-column: span 2;">
+              <button class="btn-pill-primary" id="btn-submit-visitor-checkin" onclick="submitVisitorCheckin()" style="width: 100%;">Record Entry & Issue Access Token</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Subview 2: Real-time Active Visitor Registry -->
+        <div class="glass-panel" id="sec-active-box" style="padding: 28px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">🟢 Active Visitors On-Premises</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Live roll of visitors currently inside the perimeter with one-click departure check-out.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-pill-secondary" onclick="loadActiveVisitors()">Refresh Roster 🔄</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('sec-active-box')" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Visitor ID</th>
+                  <th>Full Name</th>
+                  <th>National ID</th>
+                  <th>Destination</th>
+                  <th>Entry Time</th>
+                  <th>Escort</th>
+                  <th>Status</th>
+                  <th style="text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="security-active-visitors-table-body">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 16px;">Loading active visitors...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subview 3: Historical Visitor Ledger -->
+        <div class="glass-panel" id="sec-history-box" style="padding: 28px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="margin: 0;">📋 Complete Visitor Access History Log</h3>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('sec-history-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
+          <div style="display: flex; gap: 10px; margin: 14px 0;">
+            <input type="text" id="vis-search-filter" class="search-input" style="flex-grow: 1; padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Search visitor by name or ID..." oninput="filterVisitorHistory()">
+            <select id="vis-env-filter" class="search-input" style="width: 180px; padding: 8px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" onchange="filterVisitorHistory()">
+              <option value="">All Destinations</option>
+              <option value="Main Office">Main Office</option>
+              <option value="Crop Silos">Crop Silos</option>
+              <option value="Farm Quadrant B">Farm Quadrant B</option>
+              <option value="Machine Shed">Machine Shed</option>
+              <option value="Solar Microgrid">Solar Microgrid</option>
+              <option value="Cold Storage Depot">Cold Storage Depot</option>
+            </select>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Visitor ID</th>
+                  <th>Full Name</th>
+                  <th>Destination</th>
+                  <th>Time In</th>
+                  <th>Time Out</th>
+                  <th>Purpose</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="security-history-visitors-table-body">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 16px;">Loading history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>

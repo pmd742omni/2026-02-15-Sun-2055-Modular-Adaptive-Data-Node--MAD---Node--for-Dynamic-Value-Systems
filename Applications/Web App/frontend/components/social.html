@@ -1,0 +1,28 @@
+<section class="view-section" id="view-social">
+        <!-- 24-Hour Ephemeral Stories Bubble Strip -->
+        <div class="glass-panel" style="padding: 16px 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">👻 24h Daily Stories</span>
+            <button class="btn-pill-small" onclick="openCreatePostModal('story')">+ Post Story</button>
+          </div>
+          <div class="social-stories-scroll" id="social-stories-container">
+            <!-- Populated dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- Post Action Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 4px 0;">
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-pill-secondary active" id="btn-tab-feed-all" onclick="filterSocialFeed(null)">All Feeds</button>
+            <button class="btn-pill-secondary" id="btn-tab-feed-threads" onclick="filterSocialFeed('thread')">💬 Threads</button>
+            <button class="btn-pill-secondary" id="btn-tab-feed-carousels" onclick="filterSocialFeed('carousel')">📸 Carousels</button>
+            <button class="btn-pill-secondary" id="btn-tab-feed-reels" onclick="filterSocialFeed('reel')">🎬 Reels</button>
+          </div>
+          <button class="btn-pill-primary" onclick="openCreatePostModal('thread')">+ Create Post</button>
+        </div>
+
+        <!-- Feed Stream Container -->
+        <div class="social-feed-container" id="social-feed-stream">
+          <!-- Populated dynamically in app.js -->
+        </div>
+      </section>

@@ -1,0 +1,123 @@
+<section class="view-section" id="view-banking">
+        <!-- Subview 1: Multi-Currency Digital Bank Account -->
+        <div class="glass-panel" id="bank-account-box" style="padding: 28px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <h3 style="margin: 0;">🏦 Multi-Currency Digital Bank Account</h3>
+                <span class="role-pill-badge role-badge-agronomist" style="font-size: 0.75rem;">VERIFIED WALLET</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Account No: <strong id="wallet-acc-num" style="font-family: monospace; color: var(--accent-cyan);">ACC-2026-INIT</strong> • Owner: <strong id="wallet-owner-name">customer</strong>
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <button class="btn-pill-primary" onclick="openTopupModal()" style="margin: 0;">➕ Deposit / Top-up</button>
+              <button class="btn-pill-secondary" onclick="openP2PModal()">↗️ P2P Transfer</button>
+              <button class="btn-pill-secondary" onclick="openDepositVoucherModal()">🎟️ Deposit Voucher</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('bank-account-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <!-- Currency Balance Cards Grid -->
+          <div id="wallet-balances-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <!-- Populated dynamically by app.js renderBankingBalances() -->
+          </div>
+        </div>
+
+        <!-- Subview: Enterprise Business Accounts & Settlement Wallets -->
+        <div class="glass-panel" id="bank-business-box" style="padding: 28px; position: relative; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <h3 style="margin: 0;">🏢 Enterprise Business Accounts & Settlement</h3>
+                <span class="role-pill-badge role-badge-admin" style="font-size: 0.75rem;">COMMERCIAL SETTLEMENT</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Dedicated banking accounts for operator stores receiving automated POS sales revenue credits.
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <button class="btn-pill-primary" onclick="openCreateBusinessModal()" style="margin: 0; background: linear-gradient(135deg, #10b981, #059669);">+ Register New Store</button>
+              <button class="btn-pill-secondary" onclick="loadBusinessBankingAccounts()">Refresh Accounts 🔄</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('bank-business-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <div id="business-accounts-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; margin-bottom: 24px;">
+            <!-- Populated dynamically by app.js loadBusinessBankingAccounts() -->
+          </div>
+        </div>
+
+        <!-- Subview 2: Personal Digital Receipt Vault -->
+        <div class="glass-panel" id="bank-receipts-box" style="padding: 28px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">🧾 Personal Digital Receipt Vault</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Permanent, tamper-evident digital receipts archived from all your node market purchases.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-pill-secondary" onclick="loadCustomerReceipts()">Refresh Vault 🔄</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('bank-receipts-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <input type="text" id="receipt-vault-search" class="search-input" style="width: 100%; padding: 10px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Search archived receipts by produce item, store name, or invoice number..." oninput="searchReceiptVault(this.value)">
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Date / Time</th>
+                  <th>Business</th>
+                  <th>Total Due</th>
+                  <th>Items Purchased</th>
+                  <th>Cryptographic Audit Hash</th>
+                  <th style="text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customer-receipts-tbody">
+                <tr><td colspan="7" style="text-align:center; padding:16px; color: var(--text-muted);">Loading archived receipts from vault...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subview 3: Cryptographic Statement & Ledger -->
+        <div class="glass-panel" id="bank-ledger-box" style="padding: 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">📊 Account Transaction Statement & Ledger</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Immutable double-entry ledger signed with node HMAC-SHA256 signatures.
+              </p>
+            </div>
+            <button class="btn-pill-secondary" onclick="loadWalletLedger()">Refresh Statement 🔄</button>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table" style="font-size: 0.82rem;">
+              <thead>
+                <tr>
+                  <th>TX Reference</th>
+                  <th>Timestamp</th>
+                  <th>Type</th>
+                  <th>Currency</th>
+                  <th>Amount</th>
+                  <th>Balance After</th>
+                  <th>Counterparty</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="wallet-ledger-tbody">
+                <tr><td colspan="8" style="text-align:center; padding:16px; color: var(--text-muted);">Loading account ledger statement...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>

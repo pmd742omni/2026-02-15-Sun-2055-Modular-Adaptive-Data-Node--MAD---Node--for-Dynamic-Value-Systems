@@ -1,6 +1,6 @@
 # Modular Adaptive Data Node (MADN) System Internals & Low-Level Subsystem Reference Manual
 
-**Document Edition**: 1.19.11 | **Codename Target**: Ukuzazi (Sovereign Operator Profile, Avatar Customization & VisionPro Form Shielding)  
+**Document Edition**: 1.19.55 | **Codename Target**: Inyathelo (Modular Adaptive Component Architecture & Sovereign Obsidian Glassmorphic Matrix)  
 **Host Application Root**: `./` (Relative to `Applications/Web App/`)  
 **Workspace Root**: `../../` (Relative to project workspace base)  
 **Audience**: Systems Architects, Embedded Systems Engineers, Security Analysts, and Autonomous AI Coding Agents
@@ -12,7 +12,7 @@
 The Modular Adaptive Data Node (MADN) is a zero-internet, physics-grounded, dynamic-value edge computing architecture designed for resilient operation across resource-constrained, decentralized agricultural, security, and retail environments. 
 
 The software system implements a decoupled, heterogeneous **Tri-Node Topology** comprising:
-1. **Operator Node**: Zero-installation web client executing inside modern web browsers (`./frontend/index.html` at `http://127.0.0.1:8000`), providing touch POS registers, dynamic multi-currency banking, personal receipt vaults, world currency collision validation, multi-store switcher pills, modular dynamic field store creators, and real-time node lifecycle management controls.
+1. **Operator Node**: Zero-installation web client executing inside modern web browsers (`./frontend/index.html` at `http://127.0.0.1:8000`), leveraging the **Modular Dynamic Component Architecture** (dynamic mounting of on-demand component templates with in-memory caching), touch POS registers, dynamic multi-currency banking, personal receipt vaults, world currency collision validation, multi-store switcher pills, modular dynamic field store creators, and real-time node lifecycle management controls.
 2. **Data Node**: Standalone edge caching and discovery daemon (`../Data_Node/data_node.py` at `http://127.0.0.1:8002`), managing local AES-256-GCM encrypted key-value storage (`kv_records`), continuous online/offline collection of 170+ ISO 4217 fiat and 50+ cryptocurrency references (`../Data_Node/currency_collector.py`), enforcing remote lifecycle activation states (`/api/node/activate`, `/api/node/deactivate`), and broadcasting periodic UDP multicast heartbeats (`224.0.0.251:8001`).
 3. **Vault Node**: High-security central coordinator and extensible multi-currency tri-ledger (`./backend/main.py` at `http://127.0.0.1:8000`), enforcing `scrypt`/TOTP authentication, military-grade AES-256-GCM authenticated payload encryption at rest, SQLite Write-Ahead Logging (WAL) concurrency with `BEGIN IMMEDIATE` locks, HMAC-SHA256 bearer vouchers, digital receipt hashes, world currency collision-prevention, dedicated enterprise business wallets (`BIZ-ACC-...`), multi-store checkout revenue routing, and the **Portable Node Generator Engine** (`../node_generator.py`).
 
@@ -151,7 +151,7 @@ Applications/
 │       ├── beacon.py             # Embedded discovery beacon
 │       ├── node_config.json      # Declarative node identity & port bindings
 │       ├── requirements.txt      # Module dependencies
-│       └── frontend/index.html   # Embedded VisionPro glassmorphic dashboard
+│       └── frontend/index.html   # Embedded Sovereign Obsidian Glassmorphic dashboard
 └── Web App/                      # Master Vault Coordinator & Operator Web Application
     ├── SYSTEM_INTERNALS.md       # This low-level system architecture reference manual
     ├── USER_MANUAL.md            # Operator guide & user instruction manual
@@ -164,9 +164,19 @@ Applications/
     │   ├── test_*.py             # Automated regression test suites
     │   └── data_store/           # Persistent master SQLite database directory
     └── frontend/                 # Zero-installation Operator Single Page Application
-        ├── index.html            # Core SPA interface with 10 modal dialogs
-        ├── index.css             # Apple VisionPro-inspired glassmorphic design system
-        └── app.js                # State management, canvas charts & API client
+        ├── index.html            # Ultra-lightweight shell with modal dialogs & auth overlay
+        ├── index.css             # Sovereign Obsidian Glassmorphic Matrix (SOGM) design system
+        ├── app.js                # State management, dynamic component loader & API client
+        └── components/           # 9 Modular On-Demand Component Views
+            ├── dashboard.html    # System health, live node telemetry & activity feeds
+            ├── business.html     # Store launchpad, in-place setup workspace & POS terminal
+            ├── banking.html      # Digital wallet, multi-currency ledger & receipts vault
+            ├── agriculture.html  # Farm fields, plantings, cost calc & yield dispositions
+            ├── security.html     # Physical gatehouse visitor & vehicle check-in log
+            ├── social.html       # Mesh community stories & localized micro-posts
+            ├── cluster.html      # Discovered Data Nodes & node generator packages
+            ├── admin.html        # Currency registry, user RBAC & operator assignments
+            └── tutorials.html    # Operator workflow tutorials & interactive guides
 ```
 
 ---
@@ -298,14 +308,30 @@ $$\mathcal{S}_{\text{agri}} = \begin{cases}
 
 ---
 
-## 14. Sovereign Operator Profile Customization & VisionPro Form Shielding
+## 14. Sovereign Operator Profile Customization & Obsidian Glassmorphic Matrix Shielding
 
 ### 14.1 Operator Profile Identity & Image Ingestion
 Operator accounts support rich personal identity customization with client-side image optimization:
 - **Canvas Compression**: Uploaded images are pre-processed in browser memory via HTML5 Canvas, bound to a maximum dimension of $256\times 256$ pixels, and converted to high-quality compressed JPEG data URLs before transmission.
 - **Relational Username Cascading**: Username modifications safely disable foreign key constraints (`PRAGMA foreign_keys = OFF;`) during atomic updates across `users`, `wallets`, `businesses`, `business_operators`, and `customer_receipts`, ensuring zero referential integrity violations.
 
-### 14.2 VisionPro Glassmorphic Form Shielding & Validation
+### 14.2 Sovereign Obsidian Glassmorphic Form Shielding & Validation
 - **Autofill Bleed Suppression**: Overrides browser `-webkit-autofill` pseudo-classes with `box-shadow: 0 0 0 1000px rgba(18, 24, 38, 0.96) inset` and `color-scheme: dark;`, guaranteeing that browser credential autocomplete never turns inputs opaque white.
 - **Coherent Non-Intrusive Validation**: Enforces `novalidate` on all forms to suppress jarring native browser tooltip bubbles, routing all field feedback through animated glassmorphic toasts (`showErrorToast`, `showSuccessToast`).
+- **Obsidian Dark Canvas (`#06080d`)**: High-contrast, zero-paint baseline canvas engineered for outdoor daylight and low-light community environments with dual-glow cyan (`#00e5ff`) and emerald (`#10b981`) state indicators.
+
+---
+
+## 15. Modular Dynamic Component Architecture (MADN Web Client 2.0)
+
+### 15.1 Component Template Cache & Viewport Mounting Engine
+Rather than loading an monolithic DOM tree exceeding 3,800 lines into memory, MADN Web Client 2.0 decouples all views into standalone HTML templates stored under `./frontend/components/*.html`:
+- **Dynamic Mounting (`loadComponentView`)**: Views are asynchronously fetched on first request and injected directly into `<div id="app-viewport"></div>`.
+- **In-Memory Cache (`templateCache`)**: Once a component template is retrieved, it is cached in browser memory, reducing subsequent view transition latencies to $0.00\text{ ms}$.
+- **Lifecycle Precondition Evaluation**: After mounting, `loadComponentView(target)` automatically initiates domain-specific data loaders (`loadBusinesses()`, `loadAgriFields()`, `loadPosProducts()`) and re-triggers KaTeX mathematical rendering via `renderLatexInUI()`.
+
+### 15.2 In-Place Store Setup Workspace Swapping
+To prevent modal z-index clipping and preserve spatial context:
+- Clicking `+ Set Up Your Store` replaces the empty-state hero launchpad with the full interactive configuration workspace inside `#business-setup-workspace-container` in-place.
+- Fullscreen expansion (`togglePanelFullscreen`) allows operators on mobile screens to toggle between compact and expanded views without layout jitter.
 

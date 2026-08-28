@@ -1,0 +1,197 @@
+<section class="view-section" id="view-tutorials" style="display: none;">
+        <!-- Header Capsule -->
+        <div class="glass-panel" style="padding: 28px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <h2 style="margin: 0; font-size: 1.5rem; color: #fff;">📖 Interactive System Guides & Tutorials</h2>
+                <span class="role-pill-badge role-badge-admin" style="font-size: 0.72rem;">PRODUCTION MASTERCLASS</span>
+              </div>
+              <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+                Master all operational subsystems, mathematical decay models, multi-currency settlement, and decentralized mesh topology.
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn-pill-primary" onclick="startInteractiveTour()" style="margin: 0; background: linear-gradient(135deg, #38bdf8, #0284c7);">🚀 Launch UI Spotlight Tour</button>
+            </div>
+          </div>
+
+          <!-- Tutorial Track Selector Bar -->
+          <div class="pill-tabs-bar" style="margin-top: 20px; overflow-x: auto; padding-bottom: 4px;">
+            <button class="tab-pill-btn active" id="btn-tut-track-arch" onclick="switchTutorialTrack('arch', this)">🏗️ Tri-Node Topology</button>
+            <button class="tab-pill-btn" id="btn-tut-track-rbac" onclick="switchTutorialTrack('rbac', this)">🏢 Multi-Business RBAC</button>
+            <button class="tab-pill-btn" id="btn-tut-track-agri" onclick="switchTutorialTrack('agri', this)">🌾 Precision Agri & Decay</button>
+            <button class="tab-pill-btn" id="btn-tut-track-pos" onclick="switchTutorialTrack('pos', this)">🪙 Point of Sale & Vouchers</button>
+            <button class="tab-pill-btn" id="btn-tut-track-bank" onclick="switchTutorialTrack('bank', this)">🏦 Digital Banking & Vault</button>
+            <button class="tab-pill-btn" id="btn-tut-track-export" onclick="switchTutorialTrack('export', this)">📦 Node Export & LAN</button>
+          </div>
+        </div>
+
+        <!-- Track 1: Tri-Node Architecture -->
+        <div class="glass-panel tutorial-track-pane" id="tut-pane-arch" style="padding: 28px;">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">🏗️ Track 1: Tri-Node Decentralized Architecture</h3>
+          <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            The Modular Adaptive Data Node (MADN) operates as an autonomous, self-healing tri-node cluster engineered for zero-internet environments and sovereign local edge execution.
+          </p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px;">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #38bdf8; margin: 0 0 8px 0;">1. Operator Node (Web UI :8000)</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Zero-installation web client executing inside modern browsers. Renders real-time telemetry, touch-friendly POS registers, social feeds, and digital customer wallets.
+              </p>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #34d399; margin: 0 0 8px 0;">2. Standalone Storage Hub (:8002)</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Autonomous storage hub. Automatically broadcasts on local Wi-Fi to keep records synchronized across devices without internet.
+              </p>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #fbbf24; margin: 0 0 8px 0;">3. Vault Coordinator (:8000)</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Security coordinator. Ensures zero-trust credential encryption, instant database updates, and tamper-proof digital receipts.
+              </p>
+            </div>
+          </div>
+          <button class="btn-pill-primary" onclick="switchView('cluster')">Explore Cluster Nodes View 📡</button>
+        </div>
+
+        <!-- Track 2: Composable RBAC & Multi-Business -->
+        <div class="glass-panel tutorial-track-pane" id="tut-pane-rbac" style="padding: 28px; display: none;">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">🏢 Track 2: Genesis Bootstrap Account & Sovereign Operator Hierarchy</h3>
+          <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            MADN utilizes a sovereign ownership lifecycle: clean node deployments start with a temporary genesis bootstrap credential that transforms into your permanent Sovereign Administrator upon first customization.
+          </p>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 16px; padding: 18px;">
+              <h4 style="color: var(--accent-cyan); margin: 0 0 8px 0;">1. Genesis Bootstrap Default</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
+                When MADN is provisioned on a new system or clean vault, it initializes with a temporary bootstrap account (<code>admin</code> / <code>Password123!</code>) to allow immediate offline operator login.
+              </p>
+              <span class="role-pill-badge" style="background: rgba(0, 229, 255, 0.1); color: var(--accent-cyan);">INITIAL SETUP ONLY</span>
+            </div>
+
+            <div style="background: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #10b981; margin: 0 0 8px 0;">2. Sovereign Admin Transformation</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
+                As soon as you customize your profile (setting your full name, personal username, password, or avatar), the bootstrap account morphs into the node's permanent <strong>Sovereign Administrator</strong>.
+              </p>
+              <span class="role-pill-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">PERMANENT OWNER</span>
+            </div>
+
+            <div style="background: rgba(124, 77, 255, 0.04); border: 1px solid rgba(124, 77, 255, 0.2); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #a78bfa; margin: 0 0 8px 0;">3. Operator Privilege Delegation</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 10px 0; line-height: 1.5;">
+                All other accounts in the system are Operators (Agronomists, Guards, Merchants, Customers, Guests). Privileges and store access are granted, managed, and revoked exclusively by the Sovereign Admin.
+              </p>
+              <span class="role-pill-badge" style="background: rgba(124, 77, 255, 0.1); color: #a78bfa;">SCOPED PERMISSIONS</span>
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px; margin-bottom: 20px;">
+            <h4 style="color: #fff; margin: 0 0 10px 0;">Enterprise Multi-Store RBAC:</h4>
+            <ol style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.8; margin: 0; padding-left: 20px;">
+              <li><strong>Live Store Switcher:</strong> Switch active context via the <code>STORE</code> dropdown in the top header without logging out.</li>
+              <li><strong>Store Operator Scoping:</strong> Assign staff to specific stores (e.g. Green Valley Farm vs. Sunrise Dairy) with distinct permissions.</li>
+              <li><strong>Zero Default Privilege Bleed:</strong> Subsystems (<code>agriculture</code>, <code>pos</code>, <code>security</code>, <code>banking</code>) are evaluated strictly against active operator grants.</li>
+            </ol>
+          </div>
+          <button class="btn-pill-primary" onclick="switchView('admin')">Manage Operators in Admin View ⚙</button>
+        </div>
+
+        <!-- Track 3: Fresh Produce Lifecycle & Smart Pricing -->
+        <div class="glass-panel tutorial-track-pane" id="tut-pane-agri" style="padding: 28px; display: none;">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">🌾 Track 3: Fresh Produce Lifecycle & Smart Freshness Pricing</h3>
+          <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            Fresh crops lose value as they sit on the shelf. The system automatically offers gradual discounts as produce nears its sell-by date to sell stock quickly and prevent food waste, while strictly ensuring the selling price never drops below what it cost the farmer to grow.
+          </p>
+          <div style="background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.2); border-radius: 16px; padding: 20px; margin-bottom: 20px;">
+            <h4 style="color: var(--accent-cyan); margin: 0 0 12px 0;">How Smart Freshness Pricing Works:</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+              <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                <strong style="color: #fff; font-size: 0.88rem; display: block; margin-bottom: 4px;">🌱 1. Fresh Harvest</strong>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Opens at standard retail price when freshly harvested.</p>
+              </div>
+              <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                <strong style="color: var(--accent-cyan); font-size: 0.88rem; display: block; margin-bottom: 4px;">⏳ 2. Automatic Discount</strong>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Gradually discounts over time to speed up inventory turnover.</p>
+              </div>
+              <div style="background: rgba(0,0,0,0.3); padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);">
+                <strong style="color: var(--success); font-size: 0.88rem; display: block; margin-bottom: 4px;">🛡️ 3. Guaranteed Floor</strong>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; line-height: 1.4;">Prices never drop below direct input costs, protecting farmer livelihood.</p>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn-pill-primary" onclick="openNewPlantingModal()">🌱 Add New Crop Planting</button>
+            <button class="btn-pill-secondary" onclick="switchView('agriculture')">Open Agriculture Dashboard 🌾</button>
+          </div>
+        </div>
+
+        <!-- Track 4: Multi-Currency POS & Bearer Vouchers -->
+        <div class="glass-panel tutorial-track-pane" id="tut-pane-pos" style="padding: 28px; display: none;">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">🪙 Track 4: Multi-Currency POS, Mixed Tender & Bearer Vouchers</h3>
+          <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            In multi-currency economies (USD, ZAR, ZWG), physical small change is often unavailable. MADN allows customers to tender mixed currencies and mints cryptographic offline bearer vouchers for remaining change.
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #38bdf8; margin: 0 0 8px 0;">Split Mixed Tender</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Pay with any combination of USD cash, ZAR notes, and digital wallet balance in a single checkout transaction.
+              </p>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #34d399; margin: 0 0 8px 0;">Offline QR Bearer Vouchers</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Unpaid change is minted as an HMAC-SHA256 signed QR voucher redeemable at any participating node or deposit to wallet.
+              </p>
+            </div>
+          </div>
+          <button class="btn-pill-primary" onclick="switchView('business')">Open Point of Sale Register 🪙</button>
+        </div>
+
+        <!-- Track 5: Digital Banking & Receipt Vault -->
+        <div class="glass-panel tutorial-track-pane" id="tut-pane-bank" style="padding: 28px; display: none;">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">🏦 Track 5: Customer Digital Banking & Receipt Vault</h3>
+          <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            Every customer account features a sovereign multi-currency digital wallet and an immutable receipt vault.
+          </p>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px; margin-bottom: 20px;">
+            <h4 style="color: #fff; margin: 0 0 10px 0;">Core Banking Operations:</h4>
+            <ul style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.8; margin: 0; padding-left: 20px;">
+              <li><strong>P2P Transfers:</strong> Instantly transfer USD, ZAR, or ZWG to any username across the local mesh network.</li>
+              <li><strong>Voucher Deposit:</strong> Convert physical paper/QR vouchers directly into liquid account balances.</li>
+              <li><strong>Receipt Vault:</strong> Access all historical thermal receipts signed with cryptographic audit hashes.</li>
+            </ul>
+          </div>
+          <button class="btn-pill-primary" onclick="switchView('banking')">Open Digital Banking View 🏦</button>
+        </div>
+
+        <!-- Track 6: Portable Node Export & LAN Access -->
+        <div class="glass-panel tutorial-track-pane" id="tut-pane-export" style="padding: 28px; display: none;">
+          <h3 style="margin: 0 0 12px 0; color: var(--accent-cyan);">📦 Track 6: Portable Node Generator & Wi-Fi LAN Access</h3>
+          <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;">
+            MADN systems are fully self-replicating. You can generate self-bootstrapping node packages and access the system from any mobile device on your local network.
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #38bdf8; margin: 0 0 8px 0;">Mobile Wi-Fi QR Access</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Click the <strong>LAN Access 📱</strong> badge in the top header to display a QR code that any smartphone or tablet can scan to connect.
+              </p>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px;">
+              <h4 style="color: #34d399; margin: 0 0 8px 0;">Portable Node Generator</h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                Generate standalone node folders with their own <code>start.py</code> bootstrapper, SQLite database, and web server.
+              </p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn-pill-primary" onclick="openNetworkQRModal()">📱 Open Mobile QR Access</button>
+            <button class="btn-pill-secondary" onclick="openGenerateNodeModal()">📦 Export Standalone Node</button>
+          </div>
+        </div>
+      </section>

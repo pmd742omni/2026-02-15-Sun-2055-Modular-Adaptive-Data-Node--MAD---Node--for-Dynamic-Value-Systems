@@ -1,4 +1,4 @@
-/* VisionPro Dark Glassmorphism Design System */
+/* Sovereign Obsidian Glassmorphic Matrix (SOGM) Design System */
 :root {
   /* Dark Glass & Smoked Background Tokens */
   --bg-app: #06080d;
@@ -44,7 +44,7 @@
   scrollbar-color: rgba(0, 229, 255, 0.25) transparent;
 }
 
-/* Universal Sleek Dark VisionPro Glass Scrollbars */
+/* Universal Sleek Sovereign Obsidian Glass Scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -124,7 +124,7 @@ body:not(.authenticated) .app-container {
   display: none !important;
 }
 
-/* VisionPro 3-Panel Layout Grid */
+/* Sovereign Spatial 3-Panel Layout Grid */
 .app-container {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr var(--right-panel-width);

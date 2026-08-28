@@ -1,0 +1,413 @@
+<section class="view-section" id="view-agriculture">
+        <!-- Subview 1: Farm Fields & Plots Management -->
+        <div class="glass-panel" id="agri-fields-box" style="padding: 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 220px;">
+              <h3 style="margin: 0 0 4px 0;">🏞️ Farm Fields & Plots Management</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Register and manage your land areas, greenhouses, and planting beds. All crop plans start by selecting a field.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-pill-primary" onclick="toggleFieldForm()">+ Add Farm Field</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-fields-box')" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <!-- New Field Form (collapsible) -->
+          <div id="new-field-form-container" class="glass-panel" style="display: none; padding: 20px; margin-bottom: 20px; background: rgba(255,255,255,0.03);">
+            <h4 style="margin-bottom: 14px; color: var(--accent-cyan);">Register New Farm Field or Plot</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Field / Plot Name *</label>
+                <input type="text" id="field-name-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Main Maize Field (Plot A)">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Field Code (Optional)</label>
+                <input type="text" id="field-code-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. FLD-01 or GH-A">
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 2;">
+                  <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Total Area Size *</label>
+                  <input type="number" id="field-area-size-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="2.5" step="0.1">
+                </div>
+                <div style="flex: 1;">
+                  <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Unit</label>
+                  <select id="field-area-unit-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                    <option value="hectares">hectares</option>
+                    <option value="acres">acres</option>
+                    <option value="sqm">m²</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Soil Type</label>
+                <select id="field-soil-type-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                  <option value="Loamy">Loamy (Fertile & balanced)</option>
+                  <option value="Sandy Loam">Sandy Loam (Good drainage)</option>
+                  <option value="Clay">Clay (High water retention)</option>
+                  <option value="Black Cotton">Black Cotton Soil (High fertility)</option>
+                  <option value="Silt">Silt</option>
+                </select>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Irrigation Method</label>
+                <select id="field-irrigation-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                  <option value="Drip Irrigation">Drip Irrigation</option>
+                  <option value="Center Pivot">Center Pivot Sprinkler</option>
+                  <option value="Sprinkler">Sprinkler System</option>
+                  <option value="Furrow / Flood">Furrow / Flood Irrigation</option>
+                  <option value="Rainfed">Rainfed (Seasonal)</option>
+                </select>
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Notes & Location Details</label>
+                <input type="text" id="field-notes-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. North valley section near borehole #2">
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+              <button class="btn-pill-secondary" onclick="toggleFieldForm()">Cancel</button>
+              <button class="btn-pill-primary" onclick="submitNewField()" style="margin: 0;">Save Farm Field</button>
+            </div>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Field ID</th>
+                  <th>Field Name</th>
+                  <th>Code</th>
+                  <th>Area Size</th>
+                  <th>Soil Type</th>
+                  <th>Irrigation</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="agri-fields-table-body">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 16px;">No farm fields registered yet. Click "+ Add Farm Field" above to start.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subview 2: Crop Plantings Lifecycle (Field-First) -->
+        <div class="glass-panel" id="agri-plantings-box" style="padding: 28px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 220px;">
+              <h3 style="margin: 0 0 4px 0;">🌱 Crop Plantings & Plans (Field-First)</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Plan and record crop plantings by choosing your target field first.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-pill-primary" onclick="togglePlantingForm()">+ New Planting Plan</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-plantings-box')" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <!-- New Planting Form (collapsible) -->
+          <div id="new-planting-form-container" class="glass-panel" style="display: none; padding: 20px; margin-bottom: 20px; background: rgba(255,255,255,0.03);">
+            <h4 style="margin-bottom: 14px; color: var(--accent-cyan);">Log New Crop Planting for Field</h4>
+            
+            <div id="planting-no-fields-warning" class="glass-panel" style="display: none; padding: 14px; margin-bottom: 14px; background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3);">
+              <span style="color: #facc15; font-size: 0.85rem;">⚠️ You don't have any registered farm fields yet. Please register a field first so you can assign this crop planting.</span>
+              <button class="btn-pill-small" style="margin-left: 10px; background: #eab308; color: #000; font-weight: 700;" onclick="toggleFieldForm(); document.getElementById('agri-fields-box').scrollIntoView({behavior:'smooth'});">+ Add Field First</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <!-- STEP 1: CHOOSE FIELD FIRST -->
+              <div style="grid-column: span 2; background: rgba(0,229,255,0.04); padding: 14px; border-radius: 16px; border: 1px dashed rgba(0,229,255,0.2);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan);">Step 1: Choose Target Farm Field / Plot *</label>
+                  <button type="button" class="btn-pill-small" style="background: rgba(255,255,255,0.1); font-size: 0.72rem;" onclick="toggleFieldForm()">+ New Field</button>
+                </div>
+                <select id="planting-field-select" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(0,229,255,0.3); border-radius: 9999px;" onchange="onPlantingFieldSelected()">
+                  <option value="">-- Select a registered farm field --</option>
+                </select>
+              </div>
+
+              <!-- STEP 2: CROP VARIETY -->
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Step 2: Crop Variety *</label>
+                <input type="text" id="planting-crop-variety" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. White Maize (SC719), Roma Tomatoes">
+              </div>
+
+              <!-- STEP 3: AREA UTILIZED -->
+              <div style="display: flex; gap: 8px;">
+                <div style="flex: 2;">
+                  <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Area Planted *</label>
+                  <input type="number" id="planting-area-utilized" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="1.0" step="0.1">
+                </div>
+                <div style="flex: 1;">
+                  <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Unit</label>
+                  <select id="planting-area-unit" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                    <option value="hectares">hectares</option>
+                    <option value="acres">acres</option>
+                    <option value="sqm">m²</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- STEP 4: DATES -->
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Planting Date</label>
+                <input type="date" id="planting-date-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+              </div>
+              <div>
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Expected Harvest / Maturity Date</label>
+                <input type="date" id="planting-maturity-date-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+              </div>
+
+              <!-- PRACTICAL NOTES & OPTIONAL METRICS -->
+              <div style="grid-column: span 2;">
+                <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Planting Notes (Compost, seed supplier, planting method)</label>
+                <input type="text" id="planting-notes" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Certified SC719 seed planted with kraal manure, drip irrigated">
+              </div>
+
+              <!-- Optional Technical Fields Collapsible -->
+              <div style="grid-column: span 2;">
+                <details style="font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
+                  <summary style="margin-bottom: 8px; color: var(--accent-cyan);">⚙️ Optional Technical Metrics (Density & Soil Moisture if known)</summary>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                    <div>
+                      <label style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">Seeding Density (seeds/m²)</label>
+                      <input type="number" id="planting-seeding-density" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="0.0" step="0.5">
+                    </div>
+                    <div>
+                      <label style="display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">Initial Soil Hydration (%)</label>
+                      <input type="number" id="planting-soil-hydration" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="0.0" step="1">
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+              <button class="btn-pill-secondary" onclick="togglePlantingForm()">Cancel</button>
+              <button class="btn-pill-primary" onclick="submitNewPlanting()" style="margin: 0;">Save Crop Planting</button>
+            </div>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Planting ID</th>
+                  <th>Farm Field</th>
+                  <th>Crop Variety</th>
+                  <th>Planting Date</th>
+                  <th>Target Harvest</th>
+                  <th>Area</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="agri-plantings-table-body">
+                <tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 16px;">No active crop plantings. Select a field and click "+ New Planting Plan" to log one.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subview 3: Itemized Cost Breakdown & Price Derivation Calculator -->
+        <div class="glass-panel" id="agri-cost-calc-box" style="padding: 28px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">💰 Production Cost Accounting & Price Derivation</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Calculate your total growing expenses, set aside food for family or farm consumption, and determine your break-even floor price and recommended retail selling price.</p>
+            </div>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-cost-calc-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
+
+          <!-- Step 1: Select Field Planting for Accounting -->
+          <div style="background: rgba(0,229,255,0.04); padding: 14px 18px; border-radius: 16px; border: 1px dashed rgba(0,229,255,0.25); margin-bottom: 20px;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px;">Select Field & Crop Planting to Itemize Costs *</label>
+            <select id="calc-planting-select" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(0,229,255,0.3); border-radius: 9999px;" onchange="onSelectPlantingForCosts()">
+              <option value="">-- Choose an active crop planting --</option>
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- Left Column: Itemized Production Expenses -->
+            <div class="glass-panel" style="padding: 20px; background: rgba(255,255,255,0.02);">
+              <h4 style="margin-bottom: 14px; color: var(--accent-cyan);">Itemized Production Expenses (USD)</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">🌱 Seeds & Seedlings ($)</label>
+                  <input type="number" id="calc-cost-seeds" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="20.00" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">🧪 Fertilizer & Compost ($)</label>
+                  <input type="number" id="calc-cost-fert" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="35.00" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">💧 Water & Pumping ($)</label>
+                  <input type="number" id="calc-cost-water" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="25.00" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">🧑‍🌾 Labor & Weeding ($)</label>
+                  <input type="number" id="calc-cost-labor" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="50.00" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">🛡️ Pest & Disease ($)</label>
+                  <input type="number" id="calc-cost-pest" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="10.00" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">📦 Packaging Crates ($)</label>
+                  <input type="number" id="calc-cost-pack" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="15.00" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">🚚 Logistics / Transport ($)</label>
+                  <input type="number" id="calc-cost-log" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="15.00" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">⚡ Overhead & Power ($)</label>
+                  <input type="number" id="calc-cost-over" class="search-input calc-cost-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="10.00" oninput="recalculateCosts()">
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <span style="color: var(--text-muted); font-weight: 600;">Total Production Costs:</span>
+                <span id="calc-total-cost-usd" style="font-size: 1.2rem; font-weight: 700; color: #fff;">$180.00</span>
+              </div>
+            </div>
+
+            <!-- Right Column: Harvest Mass Split & Price Derivation -->
+            <div class="glass-panel" style="padding: 20px; background: rgba(255,255,255,0.02);">
+              <h4 style="margin-bottom: 14px; color: var(--success);">Yield Allocation & Pricing Setup</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">Total Harvest Weight (kg)</label>
+                  <input type="number" id="calc-mass-harvest" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="500" oninput="recalculateCosts()">
+                </div>
+                <div>
+                  <label style="font-size: 0.72rem; color: var(--text-muted);">Reserved for Family / Farm Use (kg)</label>
+                  <input type="number" id="calc-mass-self" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="100" oninput="recalculateCosts()">
+                </div>
+                <div style="grid-column: span 2;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <label style="font-size: 0.72rem; color: var(--text-muted);">Target Profit Margin Markup</label>
+                    <span id="calc-markup-label" style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan);">100% (2.0x)</span>
+                  </div>
+                  <input type="range" id="calc-markup-slider" min="0.1" max="3.0" step="0.05" value="1.0" style="width: 100%; accent-color: var(--accent-cyan);" oninput="recalculateCosts()">
+                </div>
+              </div>
+
+              <!-- Output Cards -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px;">
+                <div class="glass-panel" style="padding: 12px; text-align: center; background: rgba(255,255,255,0.04);">
+                  <span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Marketable Crop Weight</span>
+                  <span id="calc-comm-mass-val" style="font-size: 1.1rem; font-weight: 700; color: #fff;">400 kg</span>
+                </div>
+                <div class="glass-panel" style="padding: 12px; text-align: center; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                  <span style="font-size: 0.7rem; color: #f87171; display: block;">Minimum Break-Even Price (Cost Floor)</span>
+                  <span id="calc-cost-floor-val" style="font-size: 1.1rem; font-weight: 700; color: #f87171;">$0.45 / kg</span>
+                </div>
+              </div>
+
+              <div class="glass-panel" style="margin-top: 10px; padding: 14px; text-align: center; background: rgba(0, 229, 255, 0.08); border-color: var(--accent-cyan);">
+                <span style="font-size: 0.75rem; color: var(--accent-cyan); display: block; font-weight: 700; text-transform: uppercase;">Recommended Store Opening Price</span>
+                <span id="calc-base-price-val" style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: #fff;">$0.90 / kg</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 2px;">Syncs with store POS and gradually discounts as crop ages</span>
+              </div>
+
+              <button class="btn-pill-primary" id="btn-save-production-costs" onclick="submitProductionCosts()" style="width: 100%; margin-top: 14px;">Save Expenses for this Crop Planting</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subview 4: Log Harvest Batch & Inventory Sync -->
+        <div class="glass-panel" id="agri-harvest-box" style="padding: 28px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0;">🚜 Harvest Batch Logger & Inventory Synchronizer</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Finalize harvest, lock cost accounting, split self-consumption, and push marketable yield directly to POS catalog.</p>
+            </div>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-harvest-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
+
+          <form novalidate id="form-log-harvest" onsubmit="return false;" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Select Source Planting</label>
+              <select id="harvest-planting-select" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                <option value="">Loading plantings...</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Crop Name</label>
+              <input type="text" id="harvest-crop-name" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Roma Tomatoes">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Total Harvest Mass (kg)</label>
+              <input type="number" id="harvest-total-mass" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="300" step="5">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Self-Consumption Mass (kg)</label>
+              <input type="number" id="harvest-self-mass" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="50" step="5">
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Quality Grade</label>
+              <select id="harvest-quality-grade" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                <option value="Grade A">Grade A (Premium Retail)</option>
+                <option value="Grade B">Grade B (Standard Market)</option>
+                <option value="Grade C">Grade C (Processing / Sauce)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.75rem; color: var(--text-muted);">Expected Freshness Window (Days before discount begins)</label>
+              <input type="number" id="harvest-half-life" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" value="2.5" step="0.5">
+            </div>
+            <div style="grid-column: span 2;">
+              <button class="btn-pill-primary" id="btn-submit-harvest" onclick="submitHarvest()" style="width: 100%;">Record Harvest & Sync with POS Catalog</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Subview 5: Yield Dispositions Ledger -->
+        <div class="glass-panel" id="agri-dispositions-box" style="padding: 28px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="margin: 0;">📦 Yield Dispositions Ledger</h3>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-dispositions-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
+          <div class="table-responsive-wrapper" style="margin-top: 14px;">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Disposition ID</th>
+                  <th>Harvest ID</th>
+                  <th>Type</th>
+                  <th>Quantity (kg)</th>
+                  <th>Destination</th>
+                  <th>Timestamp</th>
+                  <th>Logged By</th>
+                </tr>
+              </thead>
+              <tbody id="agri-dispositions-table-body">
+                <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 16px;">Loading dispositions...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subview 6: Bulawayo Climate -->
+        <div class="glass-panel" id="agri-climate-box" style="padding: 28px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="margin: 0;">🌤️ Bulawayo Historical Climate & Irrigation Engine</h3>
+            <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('agri-climate-box')" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 14px;">
+            <div>
+              <label for="agri-crop-select" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">Select Target Crop</label>
+              <select id="agri-crop-select" class="search-input" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                <option value="Maize">Maize (Corn)</option>
+                <option value="Sorghum">Sorghum</option>
+                <option value="Groundnuts">Groundnuts</option>
+                <option value="Vegetables">Leafy Vegetables</option>
+              </select>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button class="btn-pill-primary" id="btn-calculate-agri" style="margin: 0; width: 100%;">Calculate Schedule</button>
+            </div>
+          </div>
+          <div class="glass-panel" id="recommendation-output" style="margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.04);">
+            <p style="color: var(--text-muted); text-align: center;">Click Calculate Schedule to display irrigation advice.</p>
+          </div>
+        </div>
+      </section>

@@ -12,12 +12,36 @@ import sys
 import json
 import uuid
 import shutil
+import stat
 import datetime
 from typing import Dict, Any, Optional
 
 APPLICATIONS_DIR = os.path.dirname(os.path.abspath(__file__))
 EXPORTED_NODES_DIR = os.path.join(APPLICATIONS_DIR, "Exported_Nodes")
 DATA_NODE_SRC = os.path.join(APPLICATIONS_DIR, "Data_Node")
+
+
+def safe_write_file(filepath: str, content: str, encoding: str = "utf-8"):
+    """Safely write to a file, removing existing file if present to avoid Windows lock/permissions."""
+    if os.path.exists(filepath):
+        try:
+            os.chmod(filepath, stat.S_IWRITE | stat.S_IREAD)
+            os.remove(filepath)
+        except Exception:
+            pass
+    with open(filepath, "w", encoding=encoding) as f:
+        f.write(content)
+
+
+def safe_copy(src: str, dst: str):
+    """Safely copy a file, removing existing file if present to avoid Windows lock/permissions."""
+    if os.path.exists(dst):
+        try:
+            os.chmod(dst, stat.S_IWRITE | stat.S_IREAD)
+            os.remove(dst)
+        except Exception:
+            pass
+    shutil.copy2(src, dst)
 
 
 def generate_portable_node(
@@ -60,17 +84,16 @@ def generate_portable_node(
         "storage_quota_mb": storage_quota_mb,
         "parent_vault_url": parent_vault_url,
         "created_at_utc": now_utc,
-        "version": "1.19.1"
+        "version": "1.19.55"
     }
-    with open(os.path.join(bundle_dir, "node_config.json"), "w", encoding="utf-8") as f:
-        json.dump(config_data, f, indent=2)
+    safe_write_file(os.path.join(bundle_dir, "node_config.json"), json.dumps(config_data, indent=2))
 
     # 2. Copy or synthesize storage.py, beacon.py & tls_manager.py
-    shutil.copy2(os.path.join(DATA_NODE_SRC, "storage.py"), os.path.join(bundle_dir, "storage.py"))
-    shutil.copy2(os.path.join(DATA_NODE_SRC, "beacon.py"), os.path.join(bundle_dir, "beacon.py"))
+    safe_copy(os.path.join(DATA_NODE_SRC, "storage.py"), os.path.join(bundle_dir, "storage.py"))
+    safe_copy(os.path.join(DATA_NODE_SRC, "beacon.py"), os.path.join(bundle_dir, "beacon.py"))
     tls_src = os.path.join(APPLICATIONS_DIR, "tls_manager.py")
     if os.path.exists(tls_src):
-        shutil.copy2(tls_src, os.path.join(bundle_dir, "tls_manager.py"))
+        safe_copy(tls_src, os.path.join(bundle_dir, "tls_manager.py"))
 
     # 3. Write server.py (FastAPI Backend with Lifecycle Endpoints & Web UI Serving)
     server_py_content = f'''"""
@@ -269,8 +292,7 @@ if __name__ == "__main__":
 
     uvicorn.run(app, host="0.0.0.0", port=args.port, **ssl_kwargs)
 '''
-    with open(os.path.join(bundle_dir, "server.py"), "w", encoding="utf-8") as f:
-        f.write(server_py_content)
+    safe_write_file(os.path.join(bundle_dir, "server.py"), server_py_content)
 
     # 4. Write start.py for the portable bundle
     bundle_start_content = f'''#!/usr/bin/env python3
@@ -336,12 +358,10 @@ if __name__ == "__main__":
         cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
     subprocess.call(cmd)
 '''
-    with open(os.path.join(bundle_dir, "start.py"), "w", encoding="utf-8") as f:
-        f.write(bundle_start_content)
+    safe_write_file(os.path.join(bundle_dir, "start.py"), bundle_start_content)
 
     # 5. Write requirements.txt & README.md
-    with open(os.path.join(bundle_dir, "requirements.txt"), "w", encoding="utf-8") as f:
-        f.write("fastapi>=0.100.0\nuvicorn>=0.22.0\npydantic>=2.0.0\njinja2>=3.1.0\n")
+    safe_write_file(os.path.join(bundle_dir, "requirements.txt"), "fastapi>=0.100.0\nuvicorn>=0.22.0\npydantic>=2.0.0\njinja2>=3.1.0\n")
 
     readme_content = f"""# MADN Portable Node: {name}
 
@@ -367,8 +387,7 @@ This node can be discovered, activated, deactivated, and managed remotely by any
 - `POST /api/storage/put`
 - `GET /api/storage/get`
 """
-    with open(os.path.join(bundle_dir, "README.md"), "w", encoding="utf-8") as f:
-        f.write(readme_content)
+    safe_write_file(os.path.join(bundle_dir, "README.md"), readme_content)
 
     # 6. Write standalone glassmorphic frontend
     html_content = f"""<!DOCTYPE html>
@@ -599,8 +618,7 @@ This node can be discovered, activated, deactivated, and managed remotely by any
 </body>
 </html>
 """
-    with open(os.path.join(frontend_dir, "index.html"), "w", encoding="utf-8") as f:
-        f.write(html_content)
+    safe_write_file(os.path.join(frontend_dir, "index.html"), html_content)
 
     return {
         "status": "created",

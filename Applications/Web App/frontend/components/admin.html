@@ -1,0 +1,355 @@
+<section class="view-section" id="view-admin">
+        <div class="glass-panel" id="admin-roster-box" style="padding: 28px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 style="margin: 0;">👥 User Account Management & Role Roster</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 4px 0 0 0;">Provision operators, configure cryptographic privileges, and restore accounts from Recycle Bin</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" class="btn-pill-small" id="tab-btn-users-active" onclick="switchAdminUsersTab('active')" style="background: linear-gradient(135deg, var(--accent-cyan), #0284c7); color: #000; font-weight: 700;">
+                👥 Active Operators (<span id="count-active-users">0</span>)
+              </button>
+              <button type="button" class="btn-pill-small btn-pill-secondary" id="tab-btn-users-recycle" onclick="switchAdminUsersTab('recycle')" style="display: flex; align-items: center; gap: 6px;">
+                🗑️ Recycle Bin (<span id="count-recycle-users">0</span>)
+              </button>
+            </div>
+          </div>
+
+          <!-- Sub-view 1: Active Operators & Creation Form -->
+          <div id="admin-users-active-view" style="display: grid; grid-template-columns: 280px 1fr; gap: 20px;">
+            <div>
+              <h4 style="margin-bottom: 12px;">Create Operator Account</h4>
+              <form novalidate id="form-create-user" onsubmit="return false;">
+                <div style="margin-bottom: 12px;">
+                  <label for="create-username" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Username</label>
+                  <input type="text" id="create-username" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. operator2">
+                </div>
+                <div style="margin-bottom: 12px;">
+                  <label for="create-password" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Password (min 12 chars)</label>
+                  <input type="password" id="create-password" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="••••••••••••">
+                </div>
+                <div style="margin-bottom: 12px;">
+                  <label for="create-role" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">User Role</label>
+                  <select id="create-role" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;">
+                    <option value="admin">Administrator</option>
+                    <option value="agronomist">Agronomist</option>
+                    <option value="guard">Security Guard</option>
+                    <option value="merchant">Merchant</option>
+                    <option value="customer">Customer</option>
+                    <option value="guest">Guest</option>
+                  </select>
+                </div>
+                <button class="btn-pill-primary" id="btn-create-user-submit" style="width: 100%; margin-top: 6px;">Create User</button>
+              </form>
+            </div>
+            <div class="table-responsive-wrapper">
+              <table class="visitor-table">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th style="text-align: center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-table-body">
+                  <!-- Filled dynamically in app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Sub-view 2: Recycle Bin & Account Recovery Container -->
+          <div id="admin-users-recycle-view" style="display: none;">
+            <div style="background: rgba(239, 68, 68, 0.06); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <strong style="color: #fca5a5; font-size: 0.88rem;">🗑️ Operator Recycle Bin (Soft-Deleted Accounts)</strong>
+                <p style="font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 0 0;">Accounts here are locked out from logging in. You can restore them instantly or permanently erase their records.</p>
+              </div>
+            </div>
+            <div class="table-responsive-wrapper">
+              <table class="visitor-table">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Deleted Date</th>
+                    <th>Deleted By</th>
+                    <th style="text-align: center;">Recovery Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-recycle-table-body">
+                  <!-- Filled dynamically in app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subview: Currency & Virtual Token Manager -->
+        <div class="glass-panel" id="admin-currencies-box" style="padding: 28px; margin-bottom: 24px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <h3 style="margin: 0;">💱 Extensible Currency & Virtual Token Manager</h3>
+                <span class="role-pill-badge" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0, 229, 255, 0.3);">Multi-Asset Tri-Ledger</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Configure legal tender fiat currencies, gold-backed assets (Zimbabwe Gold - ZiG), and custom virtual community tokens with real-time world ISO 4217 & cryptocurrency collision prevention.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button type="button" class="btn-pill-secondary" onclick="syncGlobalCurrencyCatalog()" style="margin: 0;" title="Ingest latest ISO 4217 & crypto references from Data Node">Sync World Feeds 🌐</button>
+              <button type="button" class="btn-pill-secondary" onclick="loadCurrencies()" style="margin: 0;" title="Reload all local active and inactive currencies">Refresh 🔄</button>
+              <button type="button" class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('admin-currencies-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <!-- Segmented Sub-Tab Switcher -->
+          <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; flex-wrap: wrap;">
+            <button type="button" id="tab-btn-curr-active" class="btn-pill-secondary active" onclick="switchCurrencySubTab('active')" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 600;">
+              💳 Active Vault Currencies
+            </button>
+            <button type="button" id="tab-btn-curr-add" class="btn-pill-secondary" onclick="switchCurrencySubTab('add')" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 600;">
+              ➕ Add / Mint Currency or Token
+            </button>
+            <button type="button" id="tab-btn-curr-catalog" class="btn-pill-secondary" onclick="switchCurrencySubTab('catalog')" style="padding: 8px 16px; font-size: 0.85rem; font-weight: 600;">
+              🌐 World Catalog Explorer (170+ Fiats & Cryptos)
+            </button>
+          </div>
+
+          <!-- Sub-View 1: Active Currencies Table -->
+          <div id="curr-subview-active" class="curr-subview">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h4 style="font-size: 1rem; margin: 0; color: #fff;">Active Settlement & Ledger Currencies</h4>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">Base anchor: 1 USD</span>
+            </div>
+            <div class="table-responsive-wrapper" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden;">
+              <table class="visitor-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: rgba(255,255,255,0.03);">
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Symbol</th>
+                    <th>Rate to USD</th>
+                    <th>Classification</th>
+                    <th>Status</th>
+                    <th style="text-align: center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-currencies-table-body">
+                  <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading currencies...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Sub-View 2: Add / Mint Currency or Token Form -->
+          <div id="curr-subview-add" class="curr-subview" style="display: none;">
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 24px; max-width: 720px; margin: 0 auto;">
+              <div style="margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
+                <h4 style="margin: 0 0 4px 0; font-size: 1.1rem; color: #fff;">➕ Add or Mint New Currency / Virtual Token</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Specify custom parameters or adopt recognized world standard parameters with collision-prevention.</p>
+              </div>
+
+              <form novalidate id="form-create-currency" onsubmit="return false;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+                  <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                      <label for="new-curr-code" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Currency / Token Code</label>
+                      <span id="curr-collision-status-tag" style="font-size: 0.7rem; display: none;"></span>
+                    </div>
+                    <input type="text" id="new-curr-code" class="search-input" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px; text-transform: uppercase;" placeholder="e.g. ECO, AGRI, EUR, BTC" maxlength="12" oninput="handleCurrencyCodeInput(this.value)">
+                    <div id="curr-code-collision-msg" style="display: none; font-size: 0.75rem; margin-top: 6px; padding: 8px 12px; border-radius: 10px; line-height: 1.35;"></div>
+                    <button type="button" id="btn-adopt-official-standard" onclick="adoptMatchedOfficialCurrency()" style="display: none; width: 100%; margin-top: 8px; padding: 6px 12px; font-size: 0.8rem; background: rgba(0, 229, 255, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan); border-radius: 9999px; cursor: pointer; font-weight: 700;">
+                      Adopt Official Standard 🪄
+                    </button>
+                  </div>
+                  <div>
+                    <label for="new-curr-name" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Currency Name</label>
+                    <input type="text" id="new-curr-name" class="search-input" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="e.g. Eco Community Point">
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px;">
+                  <div>
+                    <label for="new-curr-symbol" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Display Symbol</label>
+                    <input type="text" id="new-curr-symbol" class="search-input" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="e.g. 🌱, 🪙, €, ZiG">
+                  </div>
+                  <div>
+                    <label for="new-curr-rate" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Units per 1 USD (Exchange Rate)</label>
+                    <input type="number" id="new-curr-rate" class="search-input" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="e.g. 10.0" min="0.00000001" step="any">
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                  <label for="new-curr-type" style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Classification Standard</label>
+                  <select id="new-curr-type" class="search-input" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;">
+                    <option value="virtual_token">🪙 Virtual Community Token (e.g. ECO, AGRI)</option>
+                    <option value="fiat">💵 Sovereign Fiat Currency (ISO 4217 standard)</option>
+                    <option value="gold_backed">🏆 Gold / Mineral Backed (e.g. Zimbabwe Gold - ZiG)</option>
+                    <option value="community_credit">🤝 Community Labor / Credit Point</option>
+                  </select>
+                </div>
+
+                <button class="btn-pill-primary" onclick="submitCreateCurrency()" style="width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; padding: 12px; font-size: 0.95rem; border-radius: 9999px;">
+                  Add Currency to Node 🚀
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Sub-View 3: World Reference Catalog Explorer -->
+          <div id="curr-subview-catalog" class="curr-subview" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <div>
+                <h4 style="margin: 0 0 4px 0; font-size: 1rem; color: var(--accent-cyan);">🌐 World Currencies & Cryptos Reference Catalog</h4>
+                <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Authoritative ISO 4217 & crypto registry continuously collected to prevent financial code collisions.</p>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="catalog-search-input" class="search-input" style="padding: 8px 14px; font-size: 0.82rem; border-radius: 9999px; width: 220px;" placeholder="Search currency or country..." oninput="searchGlobalCatalog(this.value)">
+                <select id="catalog-category-filter" class="search-input" style="padding: 8px 14px; font-size: 0.82rem; border-radius: 9999px;" onchange="searchGlobalCatalog(document.getElementById('catalog-search-input').value)">
+                  <option value="">All Categories</option>
+                  <option value="fiat">💵 Sovereign Fiat (ISO 4217)</option>
+                  <option value="gold_backed">🏆 Gold-Backed (ZiG)</option>
+                  <option value="crypto">🪙 Cryptocurrencies</option>
+                  <option value="stablecoin">⚖️ Stablecoins</option>
+                  <option value="commodity">📦 Commodities (Gold/Silver)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive-wrapper" style="border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; overflow: hidden; max-height: 480px; overflow-y: auto;">
+              <table class="visitor-table" style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+                <thead style="position: sticky; top: 0; background: #0c111a; z-index: 10;">
+                  <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Symbol</th>
+                    <th>Category</th>
+                    <th>Authority / Origin</th>
+                    <th style="text-align: center;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="global-catalog-table-body">
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Loading catalog reference data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subview: User Accounts & Global Role Privilege Matrix -->
+        <div class="glass-panel" id="admin-users-box" style="padding: 28px; margin-bottom: 24px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3>👥 User Directory & Role Privilege Management</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Review registered user accounts, elevate or modify global system roles, and manage account statuses.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-pill-secondary" onclick="loadAdminUsers()" style="margin: 0;">Refresh Users 🔄</button>
+              <button class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('admin-users-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Username</th>
+                  <th>Global Role</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                  <th style="text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body">
+                <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">Loading registered users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subview: Business Staff & Permissions Manager -->
+        <div class="glass-panel" id="admin-operators-box" style="padding: 28px; margin-bottom: 24px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3>🏢 Business Staff & Granular Subsystem Permissions</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                Manage operators and delegate fine-grained access to POS, Agriculture, Security, Social, and Voucher systems for <strong id="admin-current-biz-name" style="color: var(--accent-cyan);">No Active Business</strong>.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-pill-secondary" onclick="openCreateBusinessModal()" style="margin: 0; border-color: var(--accent-cyan); color: var(--accent-cyan);">Register Business 🏢</button>
+              <button class="btn-pill-primary" onclick="openAssignOperatorModal()" style="margin: 0;">Grant Operator Access ➕</button>
+              <button class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('admin-operators-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
+            </div>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Role in Business</th>
+                  <th>Granted Subsystem Permissions</th>
+                  <th>Assigned By</th>
+                  <th>Status</th>
+                  <th style="text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="business-operators-table-body">
+                <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">Loading business operators...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel" id="admin-devices-box" style="padding: 28px; margin-bottom: 24px; position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin: 0;">💻 Network Device Tracking & Access Control</h3>
+            <button class="btn-pill-secondary btn-panel-expand" onclick="togglePanelFullscreen('admin-devices-box')" style="margin: 0; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2);" title="Expand to Fullscreen">⛶ Expand</button>
+          </div>
+          <div class="table-responsive-wrapper" style="margin-top: 16px;">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Device IP</th>
+                  <th>Type</th>
+                  <th>User-Agent</th>
+                  <th>Last User</th>
+                  <th>Status</th>
+                  <th style="text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-devices-table-body">
+                <!-- Filled dynamically in app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel" id="admin-audit-box" style="padding: 28px;">
+          <h3>🔒 Tamper-Evident Chained Audit Log Trail</h3>
+          <div class="table-responsive-wrapper" style="margin-top: 16px; max-height: 300px; overflow-y: auto;">
+            <table class="visitor-table" style="font-family: monospace; font-size: 0.8rem;">
+              <thead>
+                <tr>
+                  <th>Seq</th>
+                  <th>Time</th>
+                  <th>Actor</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                  <th>Record Hash</th>
+                </tr>
+              </thead>
+              <tbody id="admin-audit-table-body">
+                <!-- Filled dynamically in app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>

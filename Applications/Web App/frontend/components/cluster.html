@@ -1,0 +1,72 @@
+<section class="view-section" id="view-cluster">
+        <div class="glass-panel" id="cluster-nodes-box" style="padding: 28px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3>📡 Discovered Mesh Data Nodes & Topology</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Autonomous edge nodes discovered via UDP Multicast (<code>224.0.0.251:8001</code>) with remote lifecycle activation controls.
+              </p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn-pill-primary" onclick="openGenerateNodeModal()" style="margin: 0; background: linear-gradient(135deg, #38bdf8, #0284c7);">📦 Export Portable Node Pack</button>
+              <button class="btn-pill-secondary" onclick="syncDataNodes()" style="margin: 0;">Sync Data Nodes 🔄</button>
+              <button class="btn-pill-secondary" onclick="loadDiscoveredClusterNodes()">Rescan Cluster 📡</button>
+            </div>
+          </div>
+
+          <div class="cluster-grid" id="cluster-nodes-grid">
+            <!-- Populated dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- Exported Standalone Node Packages Panel -->
+        <div class="glass-panel" id="cluster-exported-box" style="padding: 28px; margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3>📦 Generated Standalone Node Packages</h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                Self-bootstrapping node bundles residing in <code>Applications/Exported_Nodes/</code> ready to copy to any machine.
+              </p>
+            </div>
+            <button class="btn-pill-secondary" onclick="loadExportedNodePackages()">Refresh Packs 🔄</button>
+          </div>
+          <div class="table-responsive-wrapper">
+            <table class="visitor-table">
+              <thead>
+                <tr>
+                  <th>Node Name</th>
+                  <th>Role</th>
+                  <th>Port</th>
+                  <th>Bundle Location</th>
+                  <th>Quick Launch Command</th>
+                </tr>
+              </thead>
+              <tbody id="exported-nodes-table-body">
+                <tr><td colspan="5" style="text-align:center; color: var(--text-muted);">Scanning for exported packages...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-panel" id="cluster-multicast-box" style="padding: 28px; margin-top: 24px;">
+          <h3>🌐 UDP Multicast Beacon Specifications</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 14px;">
+            <div class="glass-panel" style="padding: 16px; background: rgba(255,255,255,0.02);">
+              <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Multicast IPv4 Address</span>
+              <strong style="color: var(--accent-cyan); font-size: 1.1rem; font-family: monospace;">224.0.0.251</strong>
+            </div>
+            <div class="glass-panel" style="padding: 16px; background: rgba(255,255,255,0.02);">
+              <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Beacon Broadcast Port</span>
+              <strong style="color: var(--success); font-size: 1.1rem; font-family: monospace;">UDP 8001</strong>
+            </div>
+            <div class="glass-panel" style="padding: 16px; background: rgba(255,255,255,0.02);">
+              <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Vault Hub REST Port</span>
+              <strong style="color: #fff; font-size: 1.1rem; font-family: monospace;">TCP 8000</strong>
+            </div>
+            <div class="glass-panel" style="padding: 16px; background: rgba(255,255,255,0.02);">
+              <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">Standalone Data Node Port</span>
+              <strong style="color: var(--warning); font-size: 1.1rem; font-family: monospace;">TCP 8002</strong>
+            </div>
+          </div>
+        </div>
+      </section>

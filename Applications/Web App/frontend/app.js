@@ -69,7 +69,7 @@ function togglePasswordVisibility(inputId, btnElement) {
 window.toggleFieldMasking = toggleFieldMasking;
 window.togglePasswordVisibility = togglePasswordVisibility;
 
-// --- VISIONPRO GLASSMORPHIC TOAST NOTIFICATION ENGINE ---
+// --- SOVEREIGN OBSIDIAN GLASSMORPHIC TOAST NOTIFICATION ENGINE ---
 function showToast(message, type = 'info', duration = 3500) {
   let toastContainer = document.getElementById('madn-toast-container');
   if (!toastContainer) {
@@ -457,35 +457,73 @@ function initAuthSystem() {
 
     if (errBox) errBox.style.display = 'none';
 
-    if (btnLogin) {
-      btnLogin.disabled = true;
-      btnLogin.innerHTML = `<span>Signing in...</span> 🚀`;
+    const cardLogin = document.getElementById('card-login');
+    const cardJourney = document.getElementById('card-journey');
+
+    // 1. Show card-journey immediately
+    if (cardLogin && cardJourney) {
+      cardLogin.style.display = 'none';
+      cardJourney.style.display = 'block';
+
+      // Reset journey elements
+      const iconEl = document.getElementById('journey-icon');
+      const hlEl = document.getElementById('journey-headline');
+      const subEl = document.getElementById('journey-subtext');
+      const barEl = document.getElementById('journey-progress-bar');
+      
+      if (iconEl) iconEl.innerText = '✨';
+      if (hlEl) hlEl.innerText = 'Opening your space... ✨';
+      if (subEl) subEl.innerText = 'Checking your credentials... 🔑';
+      if (barEl) barEl.style.width = '25%';
+
+      for (let i = 1; i <= 4; i++) {
+        const stepEl = document.getElementById(`journey-step-${i}`);
+        const sIcon = document.getElementById(`journey-step-${i}-icon`);
+        if (stepEl) stepEl.style.color = i === 1 ? '#fff' : 'var(--text-muted)';
+        if (sIcon) sIcon.innerText = i === 1 ? '⏳' : '⚪';
+      }
     }
+
+    const resetToLoginCard = (errorMsg) => {
+      if (cardJourney && cardLogin) {
+        cardJourney.style.display = 'none';
+        cardLogin.style.display = 'block';
+      }
+      if (errBox) {
+        errBox.style.display = 'block';
+        errBox.innerText = errorMsg || "Authentication failed.";
+      }
+      if (btnLogin) {
+        btnLogin.disabled = false;
+        btnLogin.innerHTML = `<span id="btn-login-text">Let's Go!</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.2rem;">🚀✨</span>`;
+      }
+      const pwInput = document.getElementById('login-password');
+      if (pwInput) pwInput.focus();
+    };
 
     try {
       const authBody = { username: u, password: p };
       if (mfa) authBody.totp_token = mfa;
 
-      const res = await fetch("/api/auth/login", {
+      // Start auth request in parallel
+      const authPromise = fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(authBody)
       });
 
+      // Stage 1: Checking credentials (~350ms)
+      await new Promise(r => setTimeout(r, 350));
+      const res = await authPromise;
+
       if (!res.ok) {
         const data = await res.json().catch(() => ({ detail: "Invalid credentials." }));
         if (data.detail && data.detail.includes("MFA code required")) {
           document.getElementById('login-mfa-group').style.display = 'block';
-          if (errBox) {
-            errBox.style.display = 'block';
-            errBox.innerText = "MFA Authenticator code required for this account.";
-          }
+          resetToLoginCard("MFA Authenticator code required for this account.");
           return;
         }
-        if (errBox) {
-          errBox.style.display = 'block';
-          errBox.innerText = data.detail || "Invalid username or password.";
-        }
+        resetToLoginCard(data.detail || "Invalid username or password.");
         return;
       }
 
@@ -494,18 +532,67 @@ function initAuthSystem() {
       state.currentRole = data.role;
       updateUserUI(data);
 
-      hideLoginOverlay();
-      ensureModulesInitialized();
+      // Stage 2: Connecting with community (~450ms)
+      const barEl = document.getElementById('journey-progress-bar');
+      const subEl = document.getElementById('journey-subtext');
+      const iconEl = document.getElementById('journey-icon');
+      const s1Icon = document.getElementById('journey-step-1-icon');
+      const s1El = document.getElementById('journey-step-1');
+      const s2Icon = document.getElementById('journey-step-2-icon');
+      const s2El = document.getElementById('journey-step-2');
+
+      if (s1Icon) s1Icon.innerText = '✅';
+      if (s1El) s1El.style.color = '#10b981';
+      if (s2Icon) s2Icon.innerText = '⏳';
+      if (s2El) s2El.style.color = '#fff';
+      if (iconEl) iconEl.innerText = '🌐';
+      if (subEl) subEl.innerText = 'Connecting with your community nodes... 🌐';
+      if (barEl) barEl.style.width = '55%';
+
+      await new Promise(r => setTimeout(r, 450));
+
+      // Stage 3: Preparing workspace (~450ms)
+      const userRole = (data.role || 'guest').toLowerCase();
+      const displayName = data.full_name || data.username || 'Friend';
+      
+      const s3Icon = document.getElementById('journey-step-3-icon');
+      const s3El = document.getElementById('journey-step-3');
+
+      if (s2Icon) s2Icon.innerText = '✅';
+      if (s2El) s2El.style.color = '#10b981';
+      if (s3Icon) s3Icon.innerText = '⏳';
+      if (s3El) s3El.style.color = '#fff';
+      if (iconEl) iconEl.innerText = '✨';
+      if (subEl) subEl.innerText = `Preparing your ${userRole} workspace... ✨`;
+      if (barEl) barEl.style.width = '80%';
+
+      // Preload subsystem data in background
       loadAllSubsystemData();
 
-      const displayName = data.full_name || data.username || 'Operator';
+      await new Promise(r => setTimeout(r, 450));
+
+      // Stage 4: Ready (~350ms)
+      const s4Icon = document.getElementById('journey-step-4-icon');
+      const s4El = document.getElementById('journey-step-4');
+      const hlEl = document.getElementById('journey-headline');
+
+      if (s3Icon) s3Icon.innerText = '✅';
+      if (s3El) s3El.style.color = '#10b981';
+      if (s4Icon) s4Icon.innerText = '🎉';
+      if (s4El) s4El.style.color = '#38bdf8';
+      if (iconEl) iconEl.innerText = '🚀';
+      if (hlEl) hlEl.innerText = `Welcome, ${displayName}! 🎉`;
+      if (subEl) subEl.innerText = "Everything is ready for you! ✨";
+      if (barEl) barEl.style.width = '100%';
+
+      await new Promise(r => setTimeout(r, 350));
+
+      hideLoginOverlay();
+      switchView(state.activeView || 'dashboard');
       showSuccessToast(`Welcome back, ${displayName}! 🚀✨`, 4000);
 
     } catch (e) {
-      if (errBox) {
-        errBox.style.display = 'block';
-        errBox.innerText = e.message || "Network error. Server might be restarting.";
-      }
+      resetToLoginCard(e.message || "Network error. Server might be restarting.");
     } finally {
       if (btnLogin) {
         btnLogin.disabled = false;
@@ -513,6 +600,7 @@ function initAuthSystem() {
       }
     }
   };
+  window.executeLogin = executeLogin;
 
   if (btnLogin) {
     btnLogin.addEventListener('click', (e) => {
@@ -528,18 +616,24 @@ function initAuthSystem() {
     });
   }
 
+  // Keyboard Enter listener for instant submit
+  ['login-username', 'login-password', 'login-mfa-token'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          executeLogin();
+        }
+      });
+    }
+  });
+
   const btnLogout = document.getElementById('btn-logout');
   if (btnLogout) {
-    btnLogout.addEventListener('click', async (e) => {
+    btnLogout.addEventListener('click', (e) => {
       e.preventDefault();
-      try {
-        await secureFetch("/api/auth/logout", { method: "POST" });
-      } catch (err) {
-        try {
-          await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-        } catch (e2) {}
-      }
-      showLoginOverlay();
+      executeLogout();
     });
   }
 
@@ -663,6 +757,8 @@ async function checkActiveSession() {
       state.currentRole = user.role;
       updateUserUI(user);
       hideLoginOverlay();
+      switchView(state.activeView || 'dashboard');
+      loadAllSubsystemData();
       return user;
     } else {
       showLoginOverlay();
@@ -675,6 +771,7 @@ async function checkActiveSession() {
 }
 
 function showLoginOverlay() {
+  document.body.classList.remove('authenticated');
   state.user = null;
   state.currentRole = 'guest';
 
@@ -715,11 +812,13 @@ function showLoginOverlay() {
   const cardJourney = document.getElementById('card-journey');
   const cardRegister = document.getElementById('card-register');
   const btnLogin = document.getElementById('btn-login-submit');
+  const appContainer = document.getElementById('app-main-container') || document.querySelector('.app-container');
 
   if (authOverlay) authOverlay.style.display = 'flex';
   if (cardLogin) cardLogin.style.display = 'block';
   if (cardJourney) cardJourney.style.display = 'none';
   if (cardRegister) cardRegister.style.display = 'none';
+  if (appContainer) appContainer.style.display = 'none';
 
   if (btnLogin) {
     btnLogin.disabled = false;
@@ -739,20 +838,15 @@ function hideLoginOverlay() {
   if (appContainer) appContainer.style.display = 'grid';
 }
 
-function showLoginOverlay() {
-  document.body.classList.remove('authenticated');
-  state.user = null;
-  const overlay = document.getElementById('auth-overlay');
-  if (overlay) overlay.style.display = 'flex';
-  const cardLogin = document.getElementById('card-login');
-  if (cardLogin) cardLogin.style.display = 'block';
-  const cardJourney = document.getElementById('card-journey');
-  if (cardJourney) cardJourney.style.display = 'none';
-  const cardRegister = document.getElementById('card-register');
-  if (cardRegister) cardRegister.style.display = 'none';
-  const appContainer = document.getElementById('app-main-container') || document.querySelector('.app-container');
-  if (appContainer) appContainer.style.display = 'none';
+function executeLogout() {
+  showLoginOverlay();
+  try {
+    fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
+  } catch (e) {}
 }
+window.executeLogout = executeLogout;
+window.showLoginOverlay = showLoginOverlay;
+window.hideLoginOverlay = hideLoginOverlay;
 
 function updateUserUI(user) {
   if (!user) return;
@@ -1256,7 +1350,7 @@ async function processStudioAvatarFile(file) {
     }
 
     // Step 3: Compress
-    setProgress(85, "VisionPro color grading & compression...", 2);
+    setProgress(85, "Obsidian matrix color grading & compression...", 2);
     await new Promise(r => setTimeout(r, 10));
 
     let finalDataUrl = canvas.toDataURL('image/webp', 0.88);
@@ -1738,12 +1832,31 @@ async function quickStartPresetStore() {
 window.quickStartPresetStore = quickStartPresetStore;
 
 function openCreateBusinessModal() {
-  document.querySelectorAll('.auth-card').forEach(m => m.style.display = 'none');
-  const overlay = document.getElementById('modal-overlay');
-  const modal = document.getElementById('modal-create-business');
-  if (overlay && modal) {
-    overlay.style.display = 'flex';
-    modal.style.display = 'block';
+  openCreateBusinessWorkspace();
+}
+
+function openCreateBusinessWorkspace() {
+  const launchpad = document.getElementById('business-no-store-container');
+  const workspace = document.getElementById('business-setup-workspace-container');
+
+  if (state.activeView !== 'business') {
+    if (typeof switchView === 'function') switchView('business');
+  }
+
+  // Check if launchpad was in fullscreen
+  const wasFullscreen = launchpad && launchpad.classList.contains('panel-fullscreen');
+
+  if (launchpad) {
+    launchpad.style.display = 'none';
+  }
+
+  if (workspace) {
+    workspace.style.display = 'block';
+    if (wasFullscreen) {
+      workspace.classList.add('panel-fullscreen');
+    } else {
+      workspace.classList.remove('panel-fullscreen');
+    }
 
     // Reset modular fields
     state.activeBizFields = {
@@ -1768,10 +1881,41 @@ function openCreateBusinessModal() {
     setTimeout(() => {
       const el = document.getElementById('new-biz-name');
       if (el) el.focus();
-    }, 100);
+    }, 50);
   }
 }
+
+function cancelBusinessSetupWorkspace() {
+  const workspace = document.getElementById('business-setup-workspace-container');
+  const launchpad = document.getElementById('business-no-store-container');
+
+  const wasFullscreen = workspace && workspace.classList.contains('panel-fullscreen');
+
+  if (workspace) {
+    workspace.style.display = 'none';
+    workspace.classList.remove('panel-fullscreen');
+  }
+
+  const numBusinesses = (state.businesses && state.businesses.length) || 0;
+  if (numBusinesses === 0) {
+    if (launchpad) {
+      launchpad.style.display = 'block';
+      if (wasFullscreen) {
+        launchpad.classList.add('panel-fullscreen');
+      }
+    }
+  } else {
+    // Show active subview
+    const currentSub = document.querySelector('.subnav-pill.active')?.dataset.subtarget || 'pos-terminal-box';
+    if (typeof switchSubView === 'function') {
+      switchSubView('business', currentSub);
+    }
+  }
+}
+
 window.openCreateBusinessModal = openCreateBusinessModal;
+window.openCreateBusinessWorkspace = openCreateBusinessWorkspace;
+window.cancelBusinessSetupWorkspace = cancelBusinessSetupWorkspace;
 
 function toggleBizField(fieldKey, forceState) {
   const el = document.getElementById(`biz-field-${fieldKey}`);
@@ -2619,54 +2763,116 @@ async function updateUIPermissions() {
   }
 }
 
-// --- NAVIGATION ---
+// --- COMPONENT TEMPLATE CACHE & DYNAMIC MOUNTING ENGINE ---
+const templateCache = {};
+
+async function loadComponentView(target) {
+  const viewport = document.getElementById('app-viewport');
+  if (!viewport) return;
+
+  // 1. Fetch template if not in cache
+  if (!templateCache[target]) {
+    try {
+      const res = await fetch(`./components/${target}.html?v=20260828_08`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      templateCache[target] = await res.text();
+    } catch (err) {
+      console.error(`Failed to load component ${target}:`, err);
+      viewport.innerHTML = `<div class="glass-panel" style="padding: 28px; text-align: center;">
+        <p style="color: var(--danger); margin-bottom: 12px;">Failed to load view component.</p>
+        <button class="btn-pill-primary" onclick="switchView('${target}')">Retry</button>
+      </div>`;
+      return;
+    }
+  }
+
+  // 2. Mount template directly into viewport
+  viewport.innerHTML = templateCache[target];
+
+  // 3. Make sure the mounted section is visible
+  const sec = viewport.querySelector('.view-section');
+  if (sec) {
+    sec.classList.add('active');
+    sec.style.display = 'block';
+  }
+
+  // 4. Update contextual subnav pills
+  if (typeof updateSubNav === 'function') {
+    updateSubNav(target);
+  }
+
+  // 5. Trigger view-specific data loading
+  if (target === 'agriculture') {
+    loadAgriFields();
+    loadPlantings();
+    loadHarvests();
+    loadDispositions();
+  } else if (target === 'business') {
+    loadBusinesses();
+    loadPosProducts();
+    loadMarketplaceCatalog();
+  } else if (target === 'admin') {
+    loadCurrencies();
+    loadAdminUsers();
+    loadBusinessOperators();
+  } else if (target === 'banking') {
+    loadCurrencies();
+    loadCustomerWallet();
+    loadCustomerReceipts();
+    loadWalletLedger();
+  } else if (target === 'cluster') {
+    loadDiscoveredClusterNodes();
+    loadExportedNodePackages();
+  } else if (target === 'security') {
+    loadActiveVisitors();
+  } else if (target === 'social') {
+    loadSocialStories();
+    loadSocialPosts();
+  }
+
+  // 6. Non-blocking LaTeX math rendering
+  setTimeout(() => {
+    renderLatexInUI();
+  }, 40);
+}
+
+function switchView(target, subtarget) {
+  state.activeView = target;
+
+  // Highlight active nav buttons
+  document.querySelectorAll('.nav-item-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.target === target);
+  });
+  document.querySelectorAll('.mobile-nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.target === target);
+  });
+
+  // Mount component view dynamically
+  loadComponentView(target).then(() => {
+    if (subtarget && typeof switchSubView === 'function') {
+      switchSubView(target, subtarget);
+    }
+  });
+}
+window.switchView = switchView;
+window.switchViewInternal = switchView;
+window.loadComponentView = loadComponentView;
+
 function initNavigation() {
-  window.switchViewInternal = function(target) {
-    state.activeView = target;
-    document.querySelectorAll('.nav-item-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.target === target);
+  // Bind sidebar nav clicks
+  document.querySelectorAll('.nav-item-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.target;
+      if (target) switchView(target);
     });
-    document.querySelectorAll('.mobile-nav-item').forEach(item => {
-      item.classList.toggle('active', item.dataset.target === target);
+  });
+  // Bind mobile bottom nav clicks
+  document.querySelectorAll('.mobile-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const target = item.dataset.target;
+      if (target) switchView(target);
     });
-    document.querySelectorAll('.view-section').forEach(sec => {
-      const isActive = (sec.id === `view-${target}`);
-      sec.classList.toggle('active', isActive);
-      sec.style.display = isActive ? 'block' : 'none';
-    });
-    if (typeof updateSubNav === 'function') {
-      updateSubNav(target);
-    }
-    if (target === 'agriculture') {
-      loadAgriFields();
-      loadPlantings();
-      loadHarvests();
-      loadDispositions();
-    }
-    if (target === 'business') {
-      loadPosProducts();
-      loadMarketplaceCatalog();
-    }
-    if (target === 'admin') {
-      loadCurrencies();
-      loadAdminUsers();
-      loadBusinessOperators();
-    }
-    if (target === 'banking') {
-      loadCurrencies();
-      loadCustomerWallet();
-      loadCustomerReceipts();
-      loadWalletLedger();
-    }
-    if (target === 'cluster') {
-      loadDiscoveredClusterNodes();
-      loadExportedNodePackages();
-    }
-    // Re-render LaTeX math formulas in active view
-    setTimeout(() => {
-      renderLatexInUI();
-    }, 50);
-  };
+  });
 }
 
 function handleQuickCTA() {
