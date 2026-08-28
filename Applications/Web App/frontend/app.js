@@ -440,10 +440,15 @@ function triggerLaunchExplosion(buttonEl) {
 function initAuthSystem() {
   const btnLogin = document.getElementById('btn-login-submit');
   const formLogin = document.getElementById('form-login');
+  let isAuthSubmitting = false;
 
   const executeLogin = async () => {
-    const u = document.getElementById('login-username').value.trim();
-    const p = document.getElementById('login-password').value;
+    if (isAuthSubmitting) return;
+
+    const uEl = document.getElementById('login-username');
+    const pEl = document.getElementById('login-password');
+    const u = uEl ? uEl.value.trim() : '';
+    const p = pEl ? pEl.value : '';
     const mfa = document.getElementById('login-mfa-token')?.value.trim() || '';
     const errBox = document.getElementById('login-error');
 
@@ -452,9 +457,12 @@ function initAuthSystem() {
         errBox.style.display = 'block';
         errBox.innerText = "Please enter both username and password.";
       }
+      if (!u && uEl) uEl.focus();
+      else if (!p && pEl) pEl.focus();
       return;
     }
 
+    isAuthSubmitting = true;
     if (errBox) errBox.style.display = 'none';
 
     const cardLogin = document.getElementById('card-login');
@@ -594,6 +602,7 @@ function initAuthSystem() {
     } catch (e) {
       resetToLoginCard(e.message || "Network error. Server might be restarting.");
     } finally {
+      isAuthSubmitting = false;
       if (btnLogin) {
         btnLogin.disabled = false;
         btnLogin.innerHTML = `<span id="btn-login-text">Let's Go!</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.2rem;">🚀✨</span>`;
@@ -616,13 +625,14 @@ function initAuthSystem() {
     });
   }
 
-  // Keyboard Enter listener for instant submit
+  // Keyboard Enter listener for instant submit across all authentication inputs
   ['login-username', 'login-password', 'login-mfa-token'].forEach(id => {
     const input = document.getElementById(id);
     if (input) {
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
+          e.stopPropagation();
           executeLogin();
         }
       });
@@ -761,36 +771,45 @@ async function checkActiveSession() {
       loadAllSubsystemData();
       return user;
     } else {
-      showLoginOverlay();
+      // Unauthenticated visitor - preserve whatever credentials user might already be typing
+      document.body.classList.remove('authenticated');
+      state.user = null;
+      state.currentRole = 'guest';
+      const authOverlay = document.getElementById('auth-overlay');
+      const cardLogin = document.getElementById('card-login');
+      if (authOverlay) authOverlay.style.display = 'flex';
+      if (cardLogin) cardLogin.style.display = 'block';
       return null;
     }
   } catch (e) {
-    showLoginOverlay();
     return null;
   }
 }
 
-function showLoginOverlay() {
+function showLoginOverlay(clearInputs = true) {
   document.body.classList.remove('authenticated');
   state.user = null;
   state.currentRole = 'guest';
 
-  // Securely clear all input fields (passwords, usernames, OTP tokens)
-  const pwInput = document.getElementById('login-password');
-  const userInput = document.getElementById('login-username');
-  const totpInput = document.getElementById('login-totp');
-  const regPw = document.getElementById('register-password');
-  const regConfirm = document.getElementById('register-confirm');
-  const regUser = document.getElementById('register-username');
+  // Securely clear all input fields (passwords, usernames, OTP tokens) only if requested
+  if (clearInputs) {
+    const pwInput = document.getElementById('login-password');
+    const userInput = document.getElementById('login-username');
+    const totpInput = document.getElementById('login-totp');
+    const regPw = document.getElementById('register-password');
+    const regConfirm = document.getElementById('register-confirm');
+    const regUser = document.getElementById('register-username');
+    if (pwInput) pwInput.value = '';
+    if (userInput) userInput.value = '';
+    if (totpInput) totpInput.value = '';
+    if (regPw) regPw.value = '';
+    if (regConfirm) regConfirm.value = '';
+    if (regUser) regUser.value = '';
+  }
+
   const errBox = document.getElementById('login-error');
   const mfaGroup = document.getElementById('login-mfa-group');
 
-  if (pwInput) pwInput.value = '';
-  if (userInput) userInput.value = '';
-  if (totpInput) totpInput.value = '';
-  if (regPw) regPw.value = '';
-  if (regConfirm) regConfirm.value = '';
-  if (regUser) regUser.value = '';
   if (errBox) { errBox.style.display = 'none'; errBox.innerText = ''; }
   if (mfaGroup) mfaGroup.style.display = 'none';
 
@@ -826,8 +845,6 @@ function showLoginOverlay() {
   }
 
   hideModals();
-
-  if (userInput) userInput.focus();
 }
 
 function hideLoginOverlay() {
