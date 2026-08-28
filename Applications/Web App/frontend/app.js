@@ -1681,18 +1681,25 @@ async function loadBusinesses() {
     const select = document.getElementById('header-business-select');
     const adminBizName = document.getElementById('admin-current-biz-name');
     const noStoreGate = document.getElementById('business-no-store-container');
+    const launchpadMode = document.getElementById('business-launchpad-mode');
     const workspace = document.getElementById('business-setup-workspace-container');
+    const titleText = document.getElementById('business-setup-title-text');
     const emptyPosBox = document.getElementById('pos-empty-store-container');
     const activePosBox = document.getElementById('pos-active-terminal-container');
 
     // Handle 0-Store Gatekeeper vs Active Store UI
     if (state.businesses.length === 0) {
-      if (state.isStoreSetupWorkspaceOpen) {
-        if (noStoreGate) noStoreGate.style.display = 'none';
-        if (workspace) workspace.style.display = 'block';
-      } else {
-        if (noStoreGate) noStoreGate.style.display = 'block';
-        if (workspace) workspace.style.display = 'none';
+      if (noStoreGate) {
+        noStoreGate.style.display = 'block';
+        if (state.isStoreSetupWorkspaceOpen) {
+          if (launchpadMode) launchpadMode.style.display = 'none';
+          if (workspace) workspace.style.display = 'block';
+          if (titleText) titleText.innerText = 'Set Up Sovereign Business / Store';
+        } else {
+          if (launchpadMode) launchpadMode.style.display = 'block';
+          if (workspace) workspace.style.display = 'none';
+          if (titleText) titleText.innerText = 'Store Setup Launchpad';
+        }
       }
       if (emptyPosBox) emptyPosBox.style.display = 'none';
       if (activePosBox) activePosBox.style.display = 'none';
@@ -1706,7 +1713,6 @@ async function loadBusinesses() {
     } else {
       state.isStoreSetupWorkspaceOpen = false;
       if (noStoreGate) noStoreGate.style.display = 'none';
-      if (workspace) workspace.style.display = 'none';
       if (!state.activeBusinessId || !state.businesses.find(b => b.id === state.activeBusinessId)) {
         state.activeBusinessId = state.businesses[0].id;
       }
@@ -1876,62 +1882,79 @@ async function openCreateBusinessWorkspace() {
     }
   }
 
-  const launchpad = document.getElementById('business-no-store-container');
+  const gate = document.getElementById('business-no-store-container');
+  const launchpadMode = document.getElementById('business-launchpad-mode');
   const workspace = document.getElementById('business-setup-workspace-container');
+  const titleText = document.getElementById('business-setup-title-text');
 
-  if (launchpad) {
-    launchpad.style.display = 'none';
+  if (gate) {
+    gate.style.display = 'block';
+    gate.classList.remove('is-collapsed');
+  }
+
+  if (launchpadMode) {
+    launchpadMode.style.display = 'none';
   }
 
   if (workspace) {
     workspace.style.display = 'block';
-    workspace.classList.remove('is-collapsed');
-
-    // Reset modular fields
-    state.activeBizFields = {
-      branding: false,
-      contact: false,
-      tax: false,
-      currency: false,
-      web: false,
-      hours: false,
-      policy: false,
-      receipt: false
-    };
-    Object.keys(state.activeBizFields).forEach(k => toggleBizField(k, false));
-
-    state.pendingBizLogo = '';
-    state.pendingBizBanner = '';
-    const logoPrev = document.getElementById('new-biz-logo-preview');
-    const bannerPrev = document.getElementById('new-biz-banner-preview');
-    if (logoPrev) logoPrev.style.display = 'none';
-    if (bannerPrev) bannerPrev.style.display = 'none';
-
-    setTimeout(() => {
-      const el = document.getElementById('new-biz-name');
-      if (el) el.focus();
-    }, 60);
   }
+
+  if (titleText) {
+    titleText.innerText = 'Set Up Sovereign Business / Store';
+  }
+
+  // Reset modular fields
+  state.activeBizFields = {
+    branding: false,
+    contact: false,
+    tax: false,
+    currency: false,
+    web: false,
+    hours: false,
+    policy: false,
+    receipt: false
+  };
+  Object.keys(state.activeBizFields).forEach(k => toggleBizField(k, false));
+
+  state.pendingBizLogo = '';
+  state.pendingBizBanner = '';
+  const logoPrev = document.getElementById('new-biz-logo-preview');
+  const bannerPrev = document.getElementById('new-biz-banner-preview');
+  if (logoPrev) logoPrev.style.display = 'none';
+  if (bannerPrev) bannerPrev.style.display = 'none';
+
+  setTimeout(() => {
+    const el = document.getElementById('new-biz-name');
+    if (el) el.focus();
+  }, 60);
 }
 
 function cancelBusinessSetupWorkspace() {
   state.isStoreSetupWorkspaceOpen = false;
+  const launchpadMode = document.getElementById('business-launchpad-mode');
   const workspace = document.getElementById('business-setup-workspace-container');
-  const launchpad = document.getElementById('business-no-store-container');
+  const titleText = document.getElementById('business-setup-title-text');
+  const gate = document.getElementById('business-no-store-container');
 
   if (workspace) {
     workspace.style.display = 'none';
-    workspace.classList.remove('panel-fullscreen');
-    workspace.classList.remove('is-collapsed');
   }
 
   const numBusinesses = (state.businesses && state.businesses.length) || 0;
   if (numBusinesses === 0) {
-    if (launchpad) {
-      launchpad.style.display = 'block';
-      launchpad.classList.remove('is-collapsed');
+    if (gate) {
+      gate.style.display = 'block';
+      gate.classList.remove('is-collapsed');
+    }
+    if (launchpadMode) {
+      launchpadMode.style.display = 'block';
+    }
+    if (titleText) {
+      titleText.innerText = 'Store Setup Launchpad';
     }
   } else {
+    if (gate) gate.style.display = 'none';
     // Show active subview
     const currentSub = document.querySelector('.subnav-pill.active')?.dataset.subtarget || 'pos-terminal-box';
     if (typeof switchSubView === 'function') {
@@ -2800,7 +2823,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260828_10`)
+      fetch(`./components/${v}.html?v=20260828_12`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -2815,7 +2838,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260828_10`);
+      const res = await fetch(`./components/${target}.html?v=20260828_12`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {

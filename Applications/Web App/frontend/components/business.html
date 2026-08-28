@@ -5,7 +5,7 @@
           <div class="store-launchpad-ctrl-bar">
             <div class="store-launchpad-ctrl-title">
               <span style="font-size: 0.95rem;">🏪</span>
-              <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">Store Setup Launchpad</span>
+              <span id="business-setup-title-text" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">Store Setup Launchpad</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('business-no-store-container')" title="Minimize to compact pill">▼</button>
@@ -13,8 +13,8 @@
             </div>
           </div>
 
-          <!-- Internal Body -->
-          <div class="store-launchpad-scroll-body">
+          <!-- Mode 1: Launchpad Overview Hero -->
+          <div id="business-launchpad-mode" class="store-launchpad-scroll-body" style="display: block;">
             <!-- Radiant Floating 3D Badge -->
             <div class="store-launchpad-badge-wrapper" style="width: 70px; height: 70px; margin: 0 auto 10px auto;">
               <div class="store-launchpad-glow-ring"></div>
@@ -70,23 +70,9 @@
               </button>
             </div>
           </div>
-        </div>
 
-        <!-- Store Setup Workspace Form (Replaces Launchpad when clicking '+ Set Up Your Store') -->
-        <div class="glass-panel widget-card" id="business-setup-workspace-container" style="display: none; padding: 28px 32px; margin-bottom: 20px; position: relative;">
-          <!-- Top Control Header Bar -->
-          <div class="store-launchpad-ctrl-bar">
-            <div class="store-launchpad-ctrl-title">
-              <span style="font-size: 0.95rem;">🏪</span>
-              <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">Set Up Sovereign Business / Store</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('business-setup-workspace-container')" title="Minimize">▼</button>
-              <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('business-setup-workspace-container')" title="Expand to Fullscreen">⛶</button>
-            </div>
-          </div>
-
-          <div class="widget-scroll-body" style="padding-top: 10px;">
+          <!-- Mode 2: Store Setup Workspace Form (Replaces Launchpad in-place when clicking '+ Set Up Your Store') -->
+          <div id="business-setup-workspace-container" class="widget-scroll-body" style="display: none; padding-top: 10px; width: 100%;">
             <div style="text-align: center; margin-bottom: 18px;">
               <h3 style="font-size: 1.35rem; margin-bottom: 4px; color: #fff;">🏪 Set Up Business / Store</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Configure your store identity, visual branding, and banking settlement</p>
