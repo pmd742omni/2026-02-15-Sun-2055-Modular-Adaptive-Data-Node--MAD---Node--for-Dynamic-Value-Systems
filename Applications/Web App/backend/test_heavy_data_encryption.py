@@ -22,7 +22,11 @@ from auth_utils import (
     encrypt_vault_payload,
     decrypt_vault_payload,
     is_payload_encrypted,
-    get_global_vault_key
+    get_global_vault_key,
+    unseal_vault_with_passphrase,
+    seal_vault,
+    is_vault_unsealed,
+    VaultSealedError
 )
 from storage import DataNodeStorage, encrypt_data_node_payload, decrypt_data_node_payload
 from database import (
@@ -40,6 +44,12 @@ from database import (
     get_user_profile
 )
 from main import app
+
+@pytest.fixture(autouse=True)
+def unseal_vault_for_tests():
+    """Ensures the Vault Node is unsealed in memory using operator credentials before each test."""
+    unseal_vault_with_passphrase("Password123!")
+    yield
 
 @pytest.fixture(scope="module")
 def auth_session():
@@ -296,4 +306,28 @@ def test_06_database_businesses_encryption_at_rest():
     assert retrieved["contact_phone"] == "+263 71 234 5678"
     assert retrieved["location_address"] == "Umguza Plot 24, Matabeleland North"
     assert retrieved["tax_id"] == "TAX-SOVEREIGN-2026-99"
+
+def test_07_vault_sealing_defense():
+    """Verify that when the Vault is sealed, all cryptographic decryption operations are mathematically blocked."""
+    # First verify unsealed state
+    unseal_vault_with_passphrase("Password123!")
+    assert is_vault_unsealed()
+    
+    enc = encrypt_vault_payload("Highly Classified Agricultural Ledger Entry")
+    assert is_payload_encrypted(enc)
+    assert decrypt_vault_payload(enc) == "Highly Classified Agricultural Ledger Entry"
+    
+    # Now explicitly SEAL the vault (wipe master key from volatile memory)
+    seal_vault()
+    assert not is_vault_unsealed()
+    
+    # Any attempt to decrypt or encrypt without operator unsealing MUST fail with VaultSealedError
+    with pytest.raises(VaultSealedError) as exc_info:
+        decrypt_vault_payload(enc)
+    assert "The Sovereign Vault Node is sealed" in str(exc_info.value)
+    
+    with pytest.raises(VaultSealedError) as exc_info_enc:
+        encrypt_vault_payload("New Secret Data")
+    assert "The Sovereign Vault Node is sealed" in str(exc_info_enc.value)
+
 

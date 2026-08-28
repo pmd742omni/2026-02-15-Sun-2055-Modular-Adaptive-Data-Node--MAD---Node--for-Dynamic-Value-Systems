@@ -64,6 +64,33 @@ def derive_vault_key_from_password(password: str, salt: bytes = None) -> tuple[b
     )
     return derived, salt
 
+class VaultSealedError(RuntimeError):
+    """Raised when an operation requires an unsealed Vault key, but the Vault is currently sealed."""
+    pass
+
+def is_vault_unsealed() -> bool:
+    """Returns True if the Vault Node has an active 256-bit encryption key in memory."""
+    global _GLOBAL_VAULT_KEY
+    return _GLOBAL_VAULT_KEY is not None
+
+def seal_vault() -> None:
+    """Locks the Vault by wiping the 256-bit encryption key from volatile memory."""
+    global _GLOBAL_VAULT_KEY
+    _GLOBAL_VAULT_KEY = None
+
+def unseal_vault_with_passphrase(passphrase: str, salt: bytes = None) -> bytes:
+    """
+    Unseals the Vault in volatile memory by deriving the 256-bit key from the operator's passphrase.
+    """
+    if not passphrase:
+        raise ValueError("Passphrase is required to unseal the Vault")
+    if salt is None:
+        env_salt = os.environ.get("VAULT_ENCRYPTION_SALT")
+        salt = env_salt.encode('utf-8') if env_salt else _DEFAULT_VAULT_SALT
+    key, _ = derive_vault_key_from_password(passphrase, salt)
+    set_global_vault_key(key)
+    return key
+
 def set_global_vault_key(key: bytes) -> None:
     """Sets the active master vault encryption key in memory."""
     global _GLOBAL_VAULT_KEY
@@ -74,17 +101,18 @@ def set_global_vault_key(key: bytes) -> None:
 def get_global_vault_key(fallback_password: str = None) -> bytes:
     """
     Retrieves the in-memory master vault key.
-    Prioritizes the operator's environment secret `VAULT_MASTER_PASSWORD` and custom salt `VAULT_ENCRYPTION_SALT`.
-    If not set in environment, falls back to the verified root operator credential for development.
+    Prioritizes the active in-memory key, followed by operator's explicit environment secret `VAULT_MASTER_PASSWORD`.
+    If no key exists in volatile memory and no unseal secret is provided, raises VaultSealedError.
     """
     global _GLOBAL_VAULT_KEY
     if _GLOBAL_VAULT_KEY is None:
         env_pass = os.environ.get("VAULT_MASTER_PASSWORD")
-        env_salt = os.environ.get("VAULT_ENCRYPTION_SALT")
-        salt_bytes = env_salt.encode('utf-8') if env_salt else _DEFAULT_VAULT_SALT
-        pwd = env_pass or fallback_password or "AdminPass123!"
-        k, _ = derive_vault_key_from_password(pwd, salt_bytes)
-        _GLOBAL_VAULT_KEY = k
+        if env_pass:
+            unseal_vault_with_passphrase(env_pass)
+        elif fallback_password:
+            unseal_vault_with_passphrase(fallback_password)
+        else:
+            raise VaultSealedError("The Sovereign Vault Node is sealed. Operator credentials or unseal passphrase required.")
     return _GLOBAL_VAULT_KEY
 
 def encrypt_vault_payload(plaintext: Union[str, bytes, dict, list, float, int], key: bytes = None, aad: bytes = b"MADN_VAULT_V1") -> str:

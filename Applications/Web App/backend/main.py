@@ -47,7 +47,10 @@ try:
         generate_totp_secret,
         encrypt_vault_payload,
         decrypt_vault_payload,
-        is_payload_encrypted
+        is_payload_encrypted,
+        unseal_vault_with_passphrase,
+        is_vault_unsealed,
+        seal_vault
     )
 except ImportError:
     from database import (
@@ -82,7 +85,10 @@ except ImportError:
         generate_totp_secret,
         encrypt_vault_payload,
         decrypt_vault_payload,
-        is_payload_encrypted
+        is_payload_encrypted,
+        unseal_vault_with_passphrase,
+        is_vault_unsealed,
+        seal_vault
     )
 
 # Add Applications root directory for node generator engine
@@ -388,6 +394,12 @@ async def login(payload: LoginPayload, request: Request, response: Response):
         WHERE id = ?
     """, (now, user["id"]))
     
+    # Unseal Sovereign Vault in volatile memory with verified operator passphrase
+    try:
+        unseal_vault_with_passphrase(password)
+    except Exception as e:
+        pass
+
     # 5. Create Session
     session_token = generate_session_token()
     token_hash = hash_session_token(session_token)
@@ -501,10 +513,43 @@ async def logout(request: Request, response: Response):
     response.delete_cookie("madn_session", path="/", samesite="lax", secure=is_secure)
     response.delete_cookie("csrf_token", path="/", samesite="lax", secure=is_secure)
     response.delete_cookie("madn_session", path="/", samesite="lax", secure=False)
-    response.delete_cookie("csrf_token", path="/", samesite="lax", secure=False)
     response.delete_cookie("madn_session", path="/", samesite="strict")
     response.delete_cookie("csrf_token", path="/", samesite="strict")
     return {"status": "success", "message": "Logged out successfully."}
+
+@app.get("/api/vault/status")
+def get_vault_status():
+    """Returns the cryptographic sealed/unsealed status of the Sovereign Vault Node."""
+    return {
+        "status": "success",
+        "unsealed": is_vault_unsealed(),
+        "sealed": not is_vault_unsealed(),
+        "algorithm": "AES-256-GCM + scrypt (N=16384, r=8, p=1)",
+        "aad": "MADN_VAULT_V1"
+    }
+
+@app.post("/api/vault/unseal")
+async def unseal_vault_endpoint(request: Request):
+    """Unseals the Sovereign Vault Node in volatile memory with operator's master passphrase."""
+    body = await request.json()
+    passphrase = body.get("passphrase", "").strip()
+    if not passphrase:
+        raise HTTPException(status_code=400, detail="Passphrase is required to unseal Vault Node.")
+    try:
+        unseal_vault_with_passphrase(passphrase)
+        write_audit_log("system", "VAULT_UNSEALED", "Sovereign Vault Node unsealed in volatile memory.")
+        return {"status": "success", "message": "Sovereign Vault Node unsealed successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Unsealing failed: {str(e)}")
+
+@app.post("/api/vault/seal", dependencies=[Depends(get_current_user)])
+def seal_vault_endpoint(current_user = Depends(get_current_user)):
+    """Locks and seals the Sovereign Vault Node, purging the master key from memory."""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only Administrator can seal the Vault Node.")
+    seal_vault()
+    write_audit_log(current_user["username"], "VAULT_SEALED", "Sovereign Vault Node emergency sealed by administrator.")
+    return {"status": "success", "message": "Sovereign Vault Node is now sealed."}
 
 _CACHED_NETWORK_DATA = None
 _CACHED_NETWORK_TIME = 0.0
