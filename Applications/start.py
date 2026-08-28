@@ -63,11 +63,10 @@ class PreflightManager:
 
     @staticmethod
     def ensure_dependencies():
+        import importlib.util
         missing = []
         for pkg in REQUIRED_PACKAGES:
-            try:
-                __import__(pkg)
-            except ImportError:
+            if importlib.util.find_spec(pkg) is None:
                 missing.append(pkg)
 
         if missing:
@@ -89,6 +88,7 @@ class PreflightManager:
         ips = set()
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.settimeout(0.05)
                 s.connect(("8.8.8.8", 80))
                 primary_ip = s.getsockname()[0]
                 if primary_ip and not primary_ip.startswith("127."):
@@ -109,20 +109,20 @@ class PreflightManager:
 
 
 def launch_browser_when_ready(port: int, use_https: bool = False, path: str = ""):
-    """Spawns a daemon thread that waits for the web server to start, then launches the web browser."""
+    """Spawns a daemon thread that waits for the web server to start, then launches the web browser with zero lag."""
     def _worker():
         protocol = "https" if use_https else "http"
         url = f"{protocol}://127.0.0.1:{port}{path}"
-        for _ in range(30):
+        for _ in range(60):
             if PreflightManager.is_port_in_use(port):
-                time.sleep(0.6)  # brief pause for router initialization
+                time.sleep(0.1)  # fast-path ready
                 print(f"\n[+] Opening web browser to Vault Node Sign-in: {url}")
                 try:
                     webbrowser.open(url)
                 except Exception as e:
                     print(f"[!] Note: Could not auto-launch browser ({e}). Please navigate to: {url}")
                 return
-            time.sleep(0.5)
+            time.sleep(0.1)
         print(f"[!] Timed out waiting for port {port} to become active.")
 
     thread = threading.Thread(target=_worker, daemon=True)
@@ -241,35 +241,12 @@ def create_portable_node_cli(name: str, node_type: str, port: int, output_dir: O
 
 def prompt_transport_protocol(cli_https: bool, cli_http: bool) -> bool:
     """
-    Prompts the operator in the terminal to select HTTP or HTTPS if no CLI flag was passed.
     Returns True for HTTPS, False for HTTP.
+    Defaults immediately to zero-friction HTTP without blocking startup.
     """
     if cli_https:
         return True
-    if cli_http:
-        return False
-
-    # Non-interactive fallback (e.g. background automation, pipes, or tests)
-    if not sys.stdin.isatty():
-        return False
-
-    print("\n-------------------------------------------------------")
-    print("             SELECT TRANSPORT PROTOCOL                 ")
-    print("-------------------------------------------------------")
-    print("  [1] HTTP  - Recommended for Localhost / Zero Browser Warnings (Default)")
-    print("  [2] HTTPS - Encrypted TLS 1.3 for LAN / Multi-device Wi-Fi Mesh")
-    print("-------------------------------------------------------")
-    
-    try:
-        choice = input("Select protocol [1/2] (Press Enter for HTTP): ").strip()
-        if choice in ("2", "https", "HTTPS", "s", "S"):
-            print("[*] Selected: HTTPS Mode (Encrypted TLS)")
-            return True
-        print("[*] Selected: HTTP Mode (Zero-Friction Localhost)")
-        return False
-    except (EOFError, KeyboardInterrupt):
-        print("\n[*] Defaulting to HTTP Mode.")
-        return False
+    return False
 
 
 def main():

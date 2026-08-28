@@ -111,9 +111,14 @@ GLOBAL_AUTHORITATIVE_CATALOG = [
     {"code": "TON", "name": "The Open Network", "symbol": "TON", "category": "crypto", "country_or_issuer": "TON Foundation", "is_iso4217": 0, "default_decimals": 9, "rate_to_usd": 0.18}
 ]
 
+_DB_INITIALIZED = False
+
 def init_db():
-    """Create database tables, seed bootstrap admin, and verify audit log integrity."""
-    global FORENSIC_MODE
+    """Create database tables, seed bootstrap admin, and verify audit log integrity (Fast-path optimized)."""
+    global FORENSIC_MODE, _DB_INITIALIZED
+    if _DB_INITIALIZED:
+        return
+
     db = get_db()
     
     # 1. Create tables if not exist
@@ -944,6 +949,7 @@ def init_db():
 
     # 3. Verify audit log integrity with external anchor file
     verify_audit_log_integrity()
+    _DB_INITIALIZED = True
 
 def write_audit_log_raw(db, actor: str, action: str, details: str):
     """Internal log function to insert records during table initializations."""
