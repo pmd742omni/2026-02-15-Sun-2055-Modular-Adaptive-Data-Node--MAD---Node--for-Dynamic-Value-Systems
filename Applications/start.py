@@ -279,12 +279,20 @@ def main():
     parser.add_argument("--data-only", action="store_true", help="Launch only Data Node (:8002)")
     parser.add_argument("--status", action="store_true", help="Check status of all local node ports")
     parser.add_argument("--no-browser", action="store_true", help="Do not automatically open web browser on startup")
+    parser.add_argument("--headless", "--cli", action="store_true", help="Run headlessly and launch the interactive Sovereign Terminal Shell (cli.py)")
+    parser.add_argument("--mesh-monitor", action="store_true", help="Launch the headless real-time UDP multicast mesh discovery monitor")
     parser.add_argument("--https", action="store_true", help="Enforce HTTPS TLS encryption (Self-signed X.509 certificates)")
     parser.add_argument("--http", action="store_true", help="Launch in clean HTTP mode for zero-friction browser access (Default)")
     parser.add_argument("--separate-terminals", action="store_true", default=True, help="Launch Data Nodes in dedicated tracking terminal windows (Default on Windows)")
     parser.add_argument("--single-terminal", action="store_true", help="Run all node services within this single unified terminal window")
     parser.add_argument("--create-node", nargs=3, metavar=("NAME", "TYPE", "PORT"), help="Generate a new standalone portable node package (e.g. --create-node Alpha data_node 8005)")
     args = parser.parse_args()
+
+    # CLI command: Mesh Monitor
+    if args.mesh_monitor:
+        mesh_script = os.path.join(DATA_NODE_DIR, "mesh_monitor.py")
+        subprocess.run([sys.executable, mesh_script])
+        return
 
     # Preflight validation
     PreflightManager.check_python_version()
@@ -315,8 +323,14 @@ def main():
     # Terminal tracking mode determination
     use_separate_terminals = (sys.platform == "win32") and not args.single_terminal
 
+    # Headless mode suppresses browser launch
+    no_browser = args.no_browser or args.headless
+
     # Protocol selection (Interactive prompt if neither --http nor --https was explicitly passed)
-    use_https = prompt_transport_protocol(cli_https=args.https, cli_http=args.http)
+    if args.headless:
+        use_https = args.https
+    else:
+        use_https = prompt_transport_protocol(cli_https=args.https, cli_http=args.http)
     scheme = "https" if use_https else "http"
     os.environ["MADN_HTTPS_ENABLED"] = "1" if use_https else "0"
 
@@ -357,7 +371,7 @@ def main():
         if use_https and cert_file and key_file:
             vault_cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
         supervisor.start_process("Vault-Node", vault_cmd, cwd=BACKEND_DIR, port=v_port, launch_in_new_terminal=False)
-        if not args.no_browser:
+        if not no_browser:
             launch_browser_when_ready(v_port, use_https=use_https)
 
     if start_data:
@@ -396,6 +410,20 @@ def main():
         print("[!] Note: When using HTTPS on localhost, Chrome/Edge may show a self-signed warning.")
         print("    -> To bypass: click 'Advanced' > 'Proceed to 127.0.0.1 (unsafe)' or type 'thisisunsafe'")
         print("    -> Or launch in clean HTTP mode: python start.py")
+    
+    if args.headless:
+        print("\n[*] Initializing Sovereign Headless Terminal Shell...")
+        time.sleep(1.2)
+        try:
+            from cli import MadnClient, start_repl_shell
+            client = MadnClient(vault_url=f"{scheme}://127.0.0.1:{v_port}", data_url=f"{scheme}://127.0.0.1:{d_port}")
+            start_repl_shell(client)
+        except Exception as e:
+            print(f"[!] CLI Shell error: {e}")
+        finally:
+            supervisor.stop_all()
+            return
+
     print("\n[*] Press Ctrl+C at any time to gracefully stop all node services.\n")
 
     # Process monitor loop
