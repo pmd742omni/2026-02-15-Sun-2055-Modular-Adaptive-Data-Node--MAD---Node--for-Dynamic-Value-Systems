@@ -194,12 +194,13 @@ const climateData = [
   { month: "December", rainfall: 90, temp: 22.1, rainyDays: 10 }
 ];
 
-// --- UNIVERSAL LATEX & MATHEMATICAL EQUATION RENDERER ---
+// --- UNIVERSAL LATEX & MATHEMATICAL EQUATION RENDERER (FAST SCOPED EXECUTION) ---
 function renderLatexInUI(rootEl) {
-  const container = rootEl || document.querySelector('.view-section.active') || document.body;
+  // Only target active visible section to avoid heavy global DOM traversals
+  const container = rootEl || document.querySelector('.view-section.active');
   if (!container) return;
 
-  // 1. If KaTeX Auto-Renderer is available, run it
+  // 1. If KaTeX Auto-Renderer is available, run it on active view
   if (typeof window.renderMathInElement === 'function') {
     try {
       window.renderMathInElement(container, {
@@ -209,7 +210,7 @@ function renderLatexInUI(rootEl) {
           { left: '$', right: '$', display: false },
           { left: '\\(', right: '\\)', display: false }
         ],
-        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"],
+        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option", "input"],
         throwOnError: false
       });
       return;
@@ -219,7 +220,7 @@ function renderLatexInUI(rootEl) {
   }
 
   // 2. High-Fidelity Standalone Fallback Parser for offline/instant rendering
-  const mathTargets = container.querySelectorAll ? container.querySelectorAll('p, span, h1, h2, h3, h4, li, td, th, div') : [container];
+  const mathTargets = container.querySelectorAll ? container.querySelectorAll('p, span, h1, h2, h3, h4, li, td, th') : [container];
   const textNodes = [];
   mathTargets.forEach(el => {
     if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'OPTION'].includes(el.tagName)) return;
@@ -235,7 +236,6 @@ function renderLatexInUI(rootEl) {
     let raw = textNode.nodeValue;
     if (!raw) return;
 
-    // Convert \( ... \) and $ ... $ LaTeX syntax into formatted HTML
     let transformed = raw.replace(/\\?\(([\s\S]*?)\\?\)|(?:\$([^\$]+?)\$)/g, (match, p1, p2) => {
       let eq = (p1 !== undefined ? p1 : p2).trim();
       return formatLatexToHtml(eq);
@@ -282,27 +282,33 @@ window.handleStudioAvatarFileSelected = handleStudioAvatarFileSelected;
 window.submitStudioAvatarSave = submitStudioAvatarSave;
 window.openAvatarLightbox = openAvatarLightbox;
 
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-  initAuthSystem();
-  initLoginPossibilitiesTicker();
-  initNavigation();
+let _modulesInitialized = false;
+function ensureModulesInitialized() {
+  if (_modulesInitialized) return;
+  _modulesInitialized = true;
   initAgriModule();
   initSecurityModule();
   initSocialModule();
   initPOSModule();
   initClusterModule();
+}
 
-  // Initial Mathematical LaTeX Rendering pass
-  renderLatexInUI();
+// --- INITIALIZATION (LIGHTWEIGHT ZERO-BLOCKING BOOTSTRAP) ---
+document.addEventListener('DOMContentLoaded', () => {
+  initAuthSystem();
+  initLoginPossibilitiesTicker();
+  initNavigation();
 
-  // Discover local network addresses in background
-  fetchNetworkInfo();
-  pingDataNodeTelemetry();
+  // Discover local network addresses in non-blocking background task
+  setTimeout(() => {
+    fetchNetworkInfo();
+    pingDataNodeTelemetry();
+  }, 50);
 
   // Check active session & load data ONLY if user is authenticated
   checkActiveSession().then((user) => {
     if (user) {
+      ensureModulesInitialized();
       loadAllSubsystemData();
       renderLatexInUI();
     }
@@ -314,7 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
       loadPosProducts();
       loadMarketplaceCatalog();
     }
-    pingDataNodeTelemetry();
+    if (state.user) {
+      pingDataNodeTelemetry();
+    }
   }, 10000);
 });
 

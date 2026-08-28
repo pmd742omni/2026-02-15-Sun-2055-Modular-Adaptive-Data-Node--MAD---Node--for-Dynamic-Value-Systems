@@ -489,14 +489,22 @@ async def logout(request: Request, response: Response):
     response.delete_cookie("csrf_token", path="/", samesite="strict")
     return {"status": "success", "message": "Logged out successfully."}
 
+_CACHED_NETWORK_DATA = None
+_CACHED_NETWORK_TIME = 0.0
+
 @app.get("/api/network/info")
 def get_network_info(request: Request):
-    """Returns local network adapter IP addresses and reachable LAN URLs with HTTPS support."""
+    """Returns local network adapter IP addresses and reachable LAN URLs with HTTPS support (Cached in RAM)."""
+    global _CACHED_NETWORK_DATA, _CACHED_NETWORK_TIME
+    now = time.time()
+    if _CACHED_NETWORK_DATA and (now - _CACHED_NETWORK_TIME < 60.0):
+        return _CACHED_NETWORK_DATA
+
     import socket
     ips = set()
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.settimeout(0.2)
+            s.settimeout(0.05)
             s.connect(("8.8.8.8", 80))
             primary_ip = s.getsockname()[0]
             if primary_ip and not primary_ip.startswith("127."):
@@ -521,7 +529,7 @@ def get_network_info(request: Request):
     network_urls = [f"{scheme}://{ip}:8000" for ip in local_ips]
     primary_url = network_urls[0] if network_urls else f"{scheme}://127.0.0.1:8000"
 
-    return {
+    _CACHED_NETWORK_DATA = {
         "hostname": socket.gethostname(),
         "scheme": scheme,
         "localhost_url": f"{scheme}://127.0.0.1:8000",
@@ -532,6 +540,8 @@ def get_network_info(request: Request):
         "data_node_port": 8002,
         "beacon_multicast": "224.0.0.251:8001"
     }
+    _CACHED_NETWORK_TIME = now
+    return _CACHED_NETWORK_DATA
 
 @app.post("/api/auth/change-password")
 async def change_password(request: Request, current_user = Depends(get_current_user)):
