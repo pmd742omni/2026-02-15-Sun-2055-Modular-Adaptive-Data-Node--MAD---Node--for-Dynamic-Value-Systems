@@ -2325,14 +2325,34 @@ def list_dispositions(harvest_id: str = None) -> list:
 # STAGE 1 CORE: SECURITY VISITOR GATEKEEPER CRUD
 # =====================================================================
 
+def _decrypt_visitor_record(v: dict) -> Optional[dict]:
+    """Transparently decrypts encrypted security visitor fields for authenticated security personnel."""
+    if not v:
+        return v
+    d = dict(v)
+    for field in ["national_id", "full_name", "destination_env", "purpose", "escort_officer", "notes"]:
+        if field in d and d[field]:
+            d[field] = decrypt_vault_payload(d[field])
+    return d
+
+
 def checkin_visitor(national_id: str, full_name: str, destination_env: str, purpose: str, escort_officer: str, logged_by: str, notes: str = "") -> dict:
+    """Logs a facility visitor with AES-256-GCM encrypted national ID, full name, and destination details."""
     vis_id = f"vis-{uuid.uuid4().hex[:8]}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+    enc_national_id = encrypt_vault_payload(national_id)
+    enc_full_name = encrypt_vault_payload(full_name)
+    enc_destination_env = encrypt_vault_payload(destination_env)
+    enc_purpose = encrypt_vault_payload(purpose)
+    enc_escort_officer = encrypt_vault_payload(escort_officer)
+    enc_notes = encrypt_vault_payload(notes or "")
+
     with get_db() as db:
         db.execute("""
             INSERT INTO security_visitor_logs (id, national_id, full_name, time_in_utc, destination_env, purpose, escort_officer, status, notes, logged_by)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'Active', ?, ?)
-        """, (vis_id, national_id, full_name, now_utc, destination_env, purpose, escort_officer, notes, logged_by))
+        """, (vis_id, enc_national_id, enc_full_name, now_utc, enc_destination_env, enc_purpose, enc_escort_officer, enc_notes, logged_by))
         db.commit()
     return {"id": vis_id, "national_id": national_id, "full_name": full_name, "time_in_utc": now_utc, "status": "Active"}
 
@@ -2350,22 +2370,27 @@ def checkout_visitor(visitor_id: str, logged_by: str) -> dict:
 
 
 def list_visitors(search: str = None, destination: str = None, status: str = None) -> list:
+    """Retrieves visitor logs with transparent decryption for authorized views."""
     query = "SELECT * FROM security_visitor_logs WHERE 1=1"
     params = []
-    if search:
-        query += " AND (full_name LIKE ? OR national_id LIKE ?)"
-        params.extend([f"%{search}%", f"%{search}%"])
-    if destination:
-        query += " AND destination_env = ?"
-        params.append(destination)
     if status:
         query += " AND status = ?"
         params.append(status)
     query += " ORDER BY time_in_utc DESC"
     with get_db() as db:
         cursor = db.execute(query, params)
-        rows = [dict(r) for r in cursor.fetchall()]
-    return rows
+        raw_rows = [dict(r) for r in cursor.fetchall()]
+        
+    decrypted_rows = [_decrypt_visitor_record(r) for r in raw_rows]
+    
+    # In-memory filtering after transparent decryption to support encrypted field searches
+    if search:
+        s_lower = search.lower()
+        decrypted_rows = [r for r in decrypted_rows if s_lower in r.get("full_name", "").lower() or s_lower in r.get("national_id", "").lower()]
+    if destination:
+        decrypted_rows = [r for r in decrypted_rows if r.get("destination_env") == destination]
+
+    return decrypted_rows
 
 
 def get_active_visitors() -> list:
@@ -2477,27 +2502,27 @@ def compute_voucher_hmac(vid: str, business_id: str, value_amount: float, curren
     return hmac.new(secret.encode("utf-8"), msg.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def create_business(
-    name: str, 
-    category: str = "General", 
-    tagline: str = "",
-    description: str = "",
-    logo_url: str = "",
-    banner_url: str = "",
-    contact_phone: str = "", 
-    contact_email: str = "",
-    location_address: str = "", 
-    tax_id: str = "", 
-    website_url: str = "",
-    operating_hours: str = "",
-    return_policy: str = "",
-    receipt_header: str = "", 
-    receipt_footer_note: str = "", 
-    currency_preference: str = "USD", 
-    owner_username: str = "admin",
-    extra_attributes: any = None
-) -> dict:
-    """Creates a new business entity for multi-tenant enterprise operations and provisions dedicated banking accounts."""
+def _decrypt_business_record(biz: dict) -> Optional[dict]:
+    """Transparently decrypts encrypted business fields for authenticated application use."""
+    if not biz:
+        return biz
+    d = dict(biz)
+    for field in [
+        "tagline", "description", "contact_phone", "contact_email",
+        "location_address", "tax_id", "operating_hours", "return_policy",
+        "receipt_header", "receipt_footer_note"
+    ]:
+        if field in d and d[field]:
+            d[field] = decrypt_vault_payload(d[field])
+    return d
+
+
+def create_business(name: str, owner_username: str, category: str = "General", tagline: str = "", description: str = "",
+                    logo_url: str = "", banner_url: str = "", contact_phone: str = "", contact_email: str = "",
+                    location_address: str = "", tax_id: str = "", website_url: str = "", operating_hours: str = "",
+                    return_policy: str = "", receipt_header: str = "", receipt_footer_note: str = "",
+                    currency_preference: str = "USD", extra_attributes: dict = None) -> dict:
+    """Creates a new business entity for multi-tenant enterprise operations with AES-256-GCM encrypted fields."""
     biz_id = f"biz-{uuid.uuid4().hex[:8]}"
     now_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     bank_account_number = f"BIZ-ACC-{biz_id[4:].upper()}"
@@ -2507,6 +2532,18 @@ def create_business(
         receipt_footer_note = "Thank you for supporting our business!"
     
     extras_str = json.dumps(extra_attributes) if isinstance(extra_attributes, (dict, list)) else str(extra_attributes or "{}")
+
+    # Heavy data-at-rest encryption (AES-256-GCM)
+    enc_tagline = encrypt_vault_payload(tagline or "")
+    enc_description = encrypt_vault_payload(description or "")
+    enc_contact_phone = encrypt_vault_payload(contact_phone or "")
+    enc_contact_email = encrypt_vault_payload(contact_email or "")
+    enc_location_address = encrypt_vault_payload(location_address or "")
+    enc_tax_id = encrypt_vault_payload(tax_id or "")
+    enc_operating_hours = encrypt_vault_payload(operating_hours or "")
+    enc_return_policy = encrypt_vault_payload(return_policy or "")
+    enc_receipt_header = encrypt_vault_payload(receipt_header or "")
+    enc_receipt_footer_note = encrypt_vault_payload(receipt_footer_note or "")
 
     with get_db() as db:
         db.execute("""
@@ -2519,10 +2556,10 @@ def create_business(
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
         """, (
-            biz_id, name, category or "General", tagline or "", description or "", logo_url or "", banner_url or "",
-            contact_phone or "", contact_email or "", location_address or "", tax_id or "", website_url or "",
-            operating_hours or "", return_policy or "", bank_account_number, receipt_header,
-            receipt_footer_note, currency_preference or "USD", owner_username, extras_str,
+            biz_id, name, category or "General", enc_tagline, enc_description, logo_url or "", banner_url or "",
+            enc_contact_phone, enc_contact_email, enc_location_address, enc_tax_id, website_url or "",
+            enc_operating_hours, enc_return_policy, bank_account_number, enc_receipt_header,
+            enc_receipt_footer_note, currency_preference or "USD", owner_username, extras_str,
             now_utc
         ))
 
@@ -2570,18 +2607,18 @@ def create_business(
 
 
 def get_all_businesses() -> list:
-    """Retrieves list of all active businesses."""
+    """Retrieves list of all active businesses with transparent decryption."""
     with get_db() as db:
         cursor = db.execute("SELECT * FROM businesses WHERE is_active = 1 ORDER BY created_at_utc ASC")
-        return [dict(row) for row in cursor.fetchall()]
+        return [_decrypt_business_record(dict(row)) for row in cursor.fetchall()]
 
 
-def get_business_by_id(biz_id: str) -> dict:
-    """Retrieves business profile by ID."""
+def get_business_by_id(biz_id: str) -> Optional[dict]:
+    """Retrieves business profile by ID with transparent decryption."""
     with get_db() as db:
         cursor = db.execute("SELECT * FROM businesses WHERE id = ?", (biz_id,))
         row = cursor.fetchone()
-        return dict(row) if row else None
+        return _decrypt_business_record(dict(row)) if row else None
 
 
 def get_business_banking_accounts(owner_username: str = None) -> list:
@@ -3467,8 +3504,19 @@ def purge_mock_data():
 # OPERATOR PROFILE & INTER-CLUSTER NODE SECURITY KEYS
 # =====================================================================
 
+def _decrypt_user_record(u: dict) -> Optional[dict]:
+    """Transparently decrypts encrypted user profile PII fields for authenticated application sessions."""
+    if not u:
+        return u
+    d = dict(u)
+    for field in ["full_name", "phone", "email", "avatar_url"]:
+        if field in d and d[field]:
+            d[field] = decrypt_vault_payload(d[field])
+    return d
+
+
 def get_user_profile(user_id_or_username) -> Optional[dict]:
-    """Retrieves full operator profile including contact details and multi-currency digital accounts."""
+    """Retrieves full operator profile with transparent decryption of confidential contact details."""
     with get_db() as db:
         if isinstance(user_id_or_username, int) or (isinstance(user_id_or_username, str) and user_id_or_username.isdigit()):
             cursor = db.execute("SELECT * FROM users WHERE id = ?", (int(user_id_or_username),))
@@ -3478,7 +3526,7 @@ def get_user_profile(user_id_or_username) -> Optional[dict]:
         if not user:
             return None
         
-        user_dict = dict(user)
+        user_dict = _decrypt_user_record(dict(user))
         username = user_dict["username"]
         
         # Query wallet balances
@@ -3517,7 +3565,7 @@ def get_user_profile(user_id_or_username) -> Optional[dict]:
 
 
 def update_user_profile(user_id: int, full_name: str = None, phone: str = None, email: str = None, new_username: str = None, pin: str = None, avatar_url: str = None) -> dict:
-    """Updates operator profile fields, profile picture, and safely cascades username modifications."""
+    """Updates operator profile with AES-256-GCM encrypted PII fields and cascades username modifications."""
     now = int(time.time())
     db = get_db()
     try:
@@ -3554,16 +3602,16 @@ def update_user_profile(user_id: int, full_name: str = None, phone: str = None, 
         params = []
         if full_name is not None:
             updates.append("full_name = ?")
-            params.append(full_name.strip())
+            params.append(encrypt_vault_payload(full_name.strip()))
         if phone is not None:
             updates.append("phone = ?")
-            params.append(phone.strip())
+            params.append(encrypt_vault_payload(phone.strip()))
         if email is not None:
             updates.append("email = ?")
-            params.append(email.strip())
+            params.append(encrypt_vault_payload(email.strip()))
         if avatar_url is not None:
             updates.append("avatar_url = ?")
-            params.append(avatar_url.strip())
+            params.append(encrypt_vault_payload(avatar_url.strip()))
         if pin is not None:
             clean_pin = pin.strip()
             if clean_pin and (len(clean_pin) != 4 or not clean_pin.isdigit()):

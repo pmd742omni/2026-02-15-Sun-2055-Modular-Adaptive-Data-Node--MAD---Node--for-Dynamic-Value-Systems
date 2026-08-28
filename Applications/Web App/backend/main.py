@@ -44,7 +44,10 @@ try:
         verify_totp,
         generate_session_token,
         hash_session_token,
-        generate_totp_secret
+        generate_totp_secret,
+        encrypt_vault_payload,
+        decrypt_vault_payload,
+        is_payload_encrypted
     )
 except ImportError:
     from database import (
@@ -76,7 +79,10 @@ except ImportError:
         verify_totp,
         generate_session_token,
         hash_session_token,
-        generate_totp_secret
+        generate_totp_secret,
+        encrypt_vault_payload,
+        decrypt_vault_payload,
+        is_payload_encrypted
     )
 
 # Add Applications root directory for node generator engine
@@ -208,29 +214,32 @@ async def get_current_user(request: Request):
         db.close()
         raise HTTPException(status_code=401, detail="Session invalid or expired")
         
-    # Check session timeout/expiry
-    # (Optional: check last_seen_at for idle session timeouts - e.g. 15 minutes)
+    session_dict = dict(session)
+    dec_ua = decrypt_vault_payload(session_dict.get("user_agent", ""))
+    dec_subnet = decrypt_vault_payload(session_dict.get("ip_subnet", ""))
+    session_dict["full_name"] = decrypt_vault_payload(session_dict.get("full_name", ""))
+    session_dict["avatar_url"] = decrypt_vault_payload(session_dict.get("avatar_url", ""))
     
     # Session Fingerprint Validation (UA and /24 Subnet check)
     ua = request.headers.get("User-Agent", "")
     ip = request.client.host if request.client else "127.0.0.1"
     subnet = ".".join(ip.split(".")[:3])  # Coarse /24 IPv4
     
-    if session["user_agent"] != ua or session["ip_subnet"] != subnet:
+    if dec_ua != ua or dec_subnet != subnet:
         # User fingerprint mismatch: invalidate session to prevent hijacking
         db.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
         db.commit()
         db.close()
-        write_audit_log(session["username"], "HIJACK_ALERT", f"Fingerprint mismatch: UA '{ua}' / Subnet '{subnet}' vs Session '{session['user_agent']}' / '{session['ip_subnet']}'. Session terminated.")
+        write_audit_log(session_dict["username"], "HIJACK_ALERT", f"Fingerprint mismatch: UA '{ua}' / Subnet '{subnet}' vs Session '{dec_ua}' / '{dec_subnet}'. Session terminated.")
         raise HTTPException(status_code=401, detail="Session fingerprint mismatch. Please log in again.")
         
     # Check status
-    if session["status"] != "active":
+    if session_dict["status"] != "active":
         db.close()
         raise HTTPException(status_code=403, detail="Account is disabled or pending approval")
         
     db.close()
-    return session
+    return session_dict
 
 # Health Check Endpoint
 @app.get("/api/health")
@@ -390,10 +399,13 @@ async def login(payload: LoginPayload, request: Request, response: Response):
     # Session lifespan: 8 hours
     expires_at = now + 8 * 60 * 60
     
+    enc_ua = encrypt_vault_payload(ua)
+    enc_subnet = encrypt_vault_payload(subnet)
+    
     db.execute("""
         INSERT INTO sessions (token_hash, user_id, user_agent, ip_subnet, created_at, last_seen_at)
         VALUES (?, ?, ?, ?, ?, ?)
-    """, (token_hash, user["id"], ua, subnet, now, now))
+    """, (token_hash, user["id"], enc_ua, enc_subnet, now, now))
     db.commit()
     db.close()
     
@@ -422,8 +434,8 @@ async def login(payload: LoginPayload, request: Request, response: Response):
     write_audit_log(username, "LOGIN", "Successful login session created.")
     return {
         "username": user["username"],
-        "full_name": user["full_name"] or user["username"],
-        "avatar_url": user["avatar_url"] or "",
+        "full_name": decrypt_vault_payload(user["full_name"]) or user["username"],
+        "avatar_url": decrypt_vault_payload(user["avatar_url"]) or "",
         "role": user["role"],
         "must_change_password": user["must_change_password"],
         "mfa_enrolled": bool(user["mfa_secret"])

@@ -31,7 +31,13 @@ from database import (
     archive_customer_receipt,
     get_customer_receipts,
     create_business,
-    add_inventory_item
+    get_business_by_id,
+    get_all_businesses,
+    add_inventory_item,
+    checkin_visitor,
+    list_visitors,
+    update_user_profile,
+    get_user_profile
 )
 from main import app
 
@@ -39,10 +45,10 @@ from main import app
 def auth_session():
     client = TestClient(app)
     # Perform standard operator login
-    login_res = client.post("/api/auth/login", json={"username": "admin", "password": "AdminPass123!"})
+    login_res = client.post("/api/auth/login", json={"username": "admin", "password": "Password123!"})
     assert login_res.status_code == 200
-    token = login_res.json()["session_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+    csrf = login_res.cookies.get("csrf_token", "")
+    headers = {"X-CSRF-Token": csrf}
     return client, headers
 
 def test_01_scrypt_master_key_derivation():
@@ -176,3 +182,118 @@ def test_04_data_node_storage_aes_256_gcm_encryption_at_rest(tmp_path):
     parsed = json.loads(retrieved)
     assert parsed["secret_supplier"] == "Harare Solar Distributors"
     assert parsed["wholesale_cost"] == 1250.00
+
+def test_05_database_operator_profiles_and_visitors_encryption_at_rest():
+    """Verify operator profile PII and visitor records are encrypted at rest with AES-256-GCM in SQLite."""
+    # 1. Update user profile with confidential PII
+    update_user_profile(
+        user_id=1,
+        full_name="Peter Mthokozisi Dube",
+        phone="+263 77 987 6543",
+        email="peter.dube@sovereign-node.zw",
+        avatar_url="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ"
+    )
+    
+    # Direct raw disk inspection of SQLite users table
+    with get_db() as db:
+        raw_user = db.execute("SELECT full_name, phone, email, avatar_url FROM users WHERE id = 1").fetchone()
+        assert raw_user is not None
+        
+        # Raw columns in SQLite MUST be ciphertext with ENC: prefix
+        assert raw_user["full_name"].startswith("ENC:")
+        assert raw_user["phone"].startswith("ENC:")
+        assert raw_user["email"].startswith("ENC:")
+        assert raw_user["avatar_url"].startswith("ENC:")
+        
+        # Plaintext must NOT exist in raw SQLite storage
+        assert "Peter Mthokozisi Dube" not in raw_user["full_name"]
+        assert "+263 77 987 6543" not in raw_user["phone"]
+        assert "peter.dube@sovereign-node.zw" not in raw_user["email"]
+
+    # Authenticated retrieval via get_user_profile must transparently decrypt
+    profile = get_user_profile(1)
+    assert profile["full_name"] == "Peter Mthokozisi Dube"
+    assert profile["phone"] == "+263 77 987 6543"
+    assert profile["email"] == "peter.dube@sovereign-node.zw"
+    
+    # 2. Check in a security visitor with confidential national ID and purpose
+    vis = checkin_visitor(
+        national_id="ZW-63-987123-K-44",
+        full_name="Nomathemba Ndlovu",
+        destination_env="Data Center Vault Alpha",
+        purpose="Hardware Security Key Provisioning",
+        escort_officer="Officer Sibanda",
+        logged_by="admin",
+        notes="Classified security auditor entry"
+    )
+    vis_id = vis["id"]
+    
+    # Direct raw disk inspection of security_visitor_logs table
+    with get_db() as db:
+        raw_vis = db.execute("SELECT national_id, full_name, destination_env, purpose, escort_officer, notes FROM security_visitor_logs WHERE id = ?", (vis_id,)).fetchone()
+        assert raw_vis is not None
+        
+        # Raw values MUST be ciphertext
+        assert raw_vis["national_id"].startswith("ENC:")
+        assert raw_vis["full_name"].startswith("ENC:")
+        assert raw_vis["destination_env"].startswith("ENC:")
+        assert raw_vis["purpose"].startswith("ENC:")
+        assert raw_vis["notes"].startswith("ENC:")
+        
+        # Plaintext must NOT appear in raw database file
+        assert "ZW-63-987123-K-44" not in raw_vis["national_id"]
+        assert "Nomathemba Ndlovu" not in raw_vis["full_name"]
+        assert "Classified security auditor entry" not in raw_vis["notes"]
+        
+    # Authenticated retrieval via list_visitors
+    visitors = list_visitors(search="Nomathemba")
+    assert len(visitors) >= 1
+    found_vis = next(v for v in visitors if v["id"] == vis_id)
+    assert found_vis["national_id"] == "ZW-63-987123-K-44"
+    assert found_vis["full_name"] == "Nomathemba Ndlovu"
+    assert found_vis["destination_env"] == "Data Center Vault Alpha"
+
+def test_06_database_businesses_encryption_at_rest():
+    """Verify business store operational and contact details are encrypted at rest in SQLite."""
+    biz = create_business(
+        name="Umguza Sovereign Agro Hub",
+        owner_username="admin",
+        tagline="Certified Organic Superfood Node",
+        description="Encrypted Agro Farm Data",
+        contact_phone="+263 71 234 5678",
+        contact_email="vault@umguza.zw",
+        location_address="Umguza Plot 24, Matabeleland North",
+        tax_id="TAX-SOVEREIGN-2026-99",
+        receipt_header="Umguza Certified Sovereign Vault",
+        receipt_footer_note="Confidential Node Receipt"
+    )
+    biz_id = biz["id"]
+    
+    # Direct raw disk inspection of businesses table
+    with get_db() as db:
+        raw_biz = db.execute("SELECT tagline, description, contact_phone, contact_email, location_address, tax_id, receipt_header, receipt_footer_note FROM businesses WHERE id = ?", (biz_id,)).fetchone()
+        assert raw_biz is not None
+        
+        # Raw fields in SQLite on disk MUST be ciphertext
+        assert raw_biz["tagline"].startswith("ENC:")
+        assert raw_biz["description"].startswith("ENC:")
+        assert raw_biz["contact_phone"].startswith("ENC:")
+        assert raw_biz["contact_email"].startswith("ENC:")
+        assert raw_biz["location_address"].startswith("ENC:")
+        assert raw_biz["tax_id"].startswith("ENC:")
+        assert raw_biz["receipt_header"].startswith("ENC:")
+        assert raw_biz["receipt_footer_note"].startswith("ENC:")
+        
+        # Plaintext must NOT appear in raw database file
+        assert "Certified Organic Superfood Node" not in raw_biz["tagline"]
+        assert "+263 71 234 5678" not in raw_biz["contact_phone"]
+        assert "Umguza Plot 24" not in raw_biz["location_address"]
+        assert "TAX-SOVEREIGN-2026-99" not in raw_biz["tax_id"]
+        
+    # Authenticated retrieval
+    retrieved = get_business_by_id(biz_id)
+    assert retrieved["tagline"] == "Certified Organic Superfood Node"
+    assert retrieved["contact_phone"] == "+263 71 234 5678"
+    assert retrieved["location_address"] == "Umguza Plot 24, Matabeleland North"
+    assert retrieved["tax_id"] == "TAX-SOVEREIGN-2026-99"
+
