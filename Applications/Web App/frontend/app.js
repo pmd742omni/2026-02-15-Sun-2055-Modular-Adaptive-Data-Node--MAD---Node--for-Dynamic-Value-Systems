@@ -280,6 +280,7 @@ function ensureModulesInitialized() {
 document.addEventListener('DOMContentLoaded', () => {
   initAuthSystem();
   initLoginPossibilitiesTicker();
+  initDynamicPlaceholderRotation();
   initNavigation();
 
   // Check active session & load data ONLY if user is authenticated
@@ -1814,18 +1815,216 @@ function handleLiveBusinessSwitch(bizId) {
   updateUIPermissions();
 }
 
-async function quickStartPresetStore() {
-  showSuccessToast("Launching Green Valley Farm & Market preset... 🏪🌱", 3000);
+const MULTI_INDUSTRY_PRESETS = {
+  solar_tech: {
+    label: "⚡ Solar & Electronics Lab",
+    biz: {
+      name: "Apex Solar & Clean Energy Lab",
+      tagline: "Enterprise off-grid solar equipment & smart lithium storage",
+      description: "Specialized retail emporium delivering enterprise solar inverters, lithium battery packs, and sovereign IoT mesh hardware.",
+      category: "Electronics, Solar & Hardware",
+      settlement_currency: "USD",
+      physical_address: "Stall 14, Apex Technology Center, Bulawayo",
+      phone: "+263 77 987 6543",
+      email: "orders@apexsolar.co.zw",
+      website: "https://apexsolar.co.zw",
+      tax_id: "ZW-2026-SOLAR-01",
+      operating_hours: "Mon - Fri: 08:00 - 17:30, Sat: 08:00 - 14:00",
+      return_policy: "14-day direct hardware replacement with receipt and intact warranty seal.",
+      receipt_header: "Apex Solar & Hardware Solutions",
+      receipt_footer: "Thank you for supporting sovereign local clean energy!"
+    },
+    sampleProducts: [
+      { name: "Pure Sine Wave Inverter 5kVA 48V", category: "Solar Power", price: 580.00, cost_price: 420.00, unit: "pcs", stock_qty: 8, brand: "Apex Solar", allow_decay: 0 },
+      { name: "Lithium LiFePO4 Battery 48V 100Ah", category: "Energy Storage", price: 950.00, cost_price: 720.00, unit: "pcs", stock_qty: 6, brand: "Apex Lithium", allow_decay: 0 },
+      { name: "Gigabit 16-Port PoE+ Managed Switch", category: "Networking", price: 145.00, cost_price: 95.00, unit: "pcs", stock_qty: 15, brand: "ByteWave IoT", allow_decay: 0 }
+    ]
+  },
+  retail_fashion: {
+    label: "🛍️ Fashion & Retail Boutique",
+    biz: {
+      name: "Matopos Urban Apparel & Boots",
+      tagline: "Rugged handcrafted boots & durable canvas workwear",
+      description: "Sovereign lifestyle retailer offering heavy-gauge cotton tees, raw selvedge denim, and authentic leather boots.",
+      category: "Consumer Retail & Apparel",
+      settlement_currency: "USD",
+      physical_address: "Shop 4, Pioneer Mall, 8th Avenue, Bulawayo",
+      phone: "+263 71 234 5678",
+      email: "orders@matoposapparel.zw",
+      website: "https://matoposapparel.zw",
+      tax_id: "ZW-2026-RETAIL-44",
+      operating_hours: "Mon - Sat: 08:30 - 18:00",
+      return_policy: "Full refund or exchange on unworn garments with tags within 14 days.",
+      receipt_header: "Matopos Sovereign Outfitters",
+      receipt_footer: "Authentic local craft. Siyabonga kakhulu!"
+    },
+    sampleProducts: [
+      { name: "Handcrafted Safari Leather Boots", category: "Footwear", price: 85.00, cost_price: 45.00, unit: "pcs", stock_qty: 18, brand: "Matopos Boots", allow_decay: 0 },
+      { name: "Raw Selvedge Denim Work Jacket", category: "Outerwear", price: 65.00, cost_price: 32.00, unit: "pcs", stock_qty: 24, brand: "Matopos Denim", allow_decay: 0 },
+      { name: "Heavyweight Cotton Tee 240GSM (Black)", category: "Apparel", price: 18.00, cost_price: 8.50, unit: "pcs", stock_qty: 50, brand: "Matopos Casual", allow_decay: 0 }
+    ]
+  },
+  food_bakery: {
+    label: "☕ Artisan Bakery & Cafe",
+    biz: {
+      name: "Khumalo Artisan Bakery & Espresso",
+      tagline: "Fresh stone-ground sourdough & specialty espresso bar",
+      description: "Boutique bakery crafting wild fermentation sourdough loaves, morning croissants, and single-origin roast coffees.",
+      category: "Food, Bakery & Specialty Dining",
+      settlement_currency: "USD",
+      physical_address: "88 Jason Moyo Avenue, Bulawayo",
+      phone: "+263 78 444 8921",
+      email: "hello@khumalobakery.zw",
+      website: "https://khumalobakery.zw",
+      tax_id: "ZW-2026-FOOD-88",
+      operating_hours: "Daily: 06:30 - 20:00",
+      return_policy: "Freshness guarantee: Freshly baked daily, instant exchange on request.",
+      receipt_header: "Khumalo Artisan Bakery & Kitchen",
+      receipt_footer: "Baked with natural spring water and wild yeast. Siyabonga!"
+    },
+    sampleProducts: [
+      { name: "Artisan Sourdough Country Loaf 800g", category: "Artisan Bread", price: 2.50, cost_price: 0.90, unit: "pcs", stock_qty: 35, brand: "Khumalo Bakery", allow_decay: 1, decay_half_life_hours: 24, min_decay_price: 1.25 },
+      { name: "Single-Origin Arabica Whole Beans 1kg", category: "Specialty Coffee", price: 18.00, cost_price: 10.50, unit: "bags", stock_qty: 20, brand: "Highland Roast", allow_decay: 0 },
+      { name: "All-Butter Flaky Croissant (2-Pack)", category: "Pastries", price: 3.00, cost_price: 1.10, unit: "packs", stock_qty: 25, brand: "Khumalo Bakery", allow_decay: 1, decay_half_life_hours: 18, min_decay_price: 1.50 }
+    ]
+  },
+  tech_services: {
+    label: "🛠️ Professional & Tech Services",
+    biz: {
+      name: "Bulawayo Precision Tech & Diagnostics",
+      tagline: "On-demand mobile diagnostics, hydraulic maintenance & repair",
+      description: "Engineering services group providing solar power audits, IoT telemetry setup, and commercial equipment diagnostics.",
+      category: "Professional & Technical Services",
+      settlement_currency: "USD",
+      physical_address: "Unit 7, Innovation Industrial Park, Belmont",
+      phone: "+263 77 555 3322",
+      email: "service@byotechdiagnostics.zw",
+      website: "https://byotechdiagnostics.zw",
+      tax_id: "ZW-2026-ENG-12",
+      operating_hours: "Mon - Fri: 08:00 - 17:00, 24/7 Emergency Dispatch",
+      return_policy: "30-day service quality workmanship guarantee.",
+      receipt_header: "Bulawayo Precision Engineering",
+      receipt_footer: "Certified professional engineering & diagnostics."
+    },
+    sampleProducts: [
+      { name: "Solar Array Efficiency & Thermal Audit", category: "Technical Consulting", price: 60.00, cost_price: 20.00, unit: "hours", stock_qty: 100, brand: "Byo Diagnostics", allow_decay: 0 },
+      { name: "Commercial POS & Mesh Network Setup", category: "IT Services", price: 85.00, cost_price: 30.00, unit: "hours", stock_qty: 100, brand: "Byo Diagnostics", allow_decay: 0 },
+      { name: "Hydraulic Pump Inspection & Service Kit", category: "Field Services", price: 120.00, cost_price: 55.00, unit: "pcs", stock_qty: 12, brand: "HydraTech", allow_decay: 0 }
+    ]
+  },
+  agro_produce: {
+    label: "🌾 Organic Farm & Harvest Store",
+    biz: {
+      name: "Umguza Valley Fresh Organics",
+      tagline: "Pure Fresh Organic Crops & Farm Produce Direct from Soil",
+      description: "Certified agro-ecological farm distributing organic heirloom vegetables, stone-milled grains, and cold-pressed honey.",
+      category: "Horticulture & Fresh Produce",
+      settlement_currency: "USD",
+      physical_address: "Plot 12, Umguza Valley Agro Cluster, Bulawayo",
+      phone: "+263 77 234 5678",
+      email: "depot@umguzaorganics.zw",
+      website: "https://umguzaorganics.zw",
+      tax_id: "ZW-8841-HORT",
+      operating_hours: "Mon - Sat: 07:00 - 18:00",
+      return_policy: "Fresh produce guaranteed. Returns accepted within 24 hours.",
+      receipt_header: "Umguza Valley Fresh Organics",
+      receipt_footer: "Sustainably grown with organic compost. Siyabonga!"
+    },
+    sampleProducts: [
+      { name: "Organic Roma Tomatoes 1kg", category: "Fresh Produce", price: 1.50, cost_price: 0.60, unit: "kg", stock_qty: 50, brand: "Umguza Organics", allow_decay: 1, decay_half_life_hours: 48, min_decay_price: 0.75 },
+      { name: "Stone-Ground White Maize Meal 10kg", category: "Grains & Milling", price: 6.80, cost_price: 4.50, unit: "bags", stock_qty: 80, brand: "Umguza Millers", allow_decay: 0 },
+      { name: "Fresh Crisp Spinach Bundle", category: "Leafy Greens", price: 1.00, cost_price: 0.40, unit: "bundle", stock_qty: 35, brand: "Umguza Organics", allow_decay: 1, decay_half_life_hours: 24, min_decay_price: 0.50 }
+    ]
+  }
+};
+
+function applyStoreInspiration(industryKey) {
+  const preset = MULTI_INDUSTRY_PRESETS[industryKey];
+  if (!preset || !preset.biz) return;
+  const b = preset.biz;
+
+  const nameInput = document.getElementById('new-biz-name');
+  const tagInput = document.getElementById('new-biz-tagline');
+  const descInput = document.getElementById('new-biz-desc');
+  const phoneInput = document.getElementById('new-biz-phone');
+  const emailInput = document.getElementById('new-biz-email');
+  const addrInput = document.getElementById('new-biz-address');
+  const catInput = document.getElementById('new-biz-category');
+  const currInput = document.getElementById('new-biz-currency');
+  const webInput = document.getElementById('new-biz-website');
+  const hoursInput = document.getElementById('new-biz-hours');
+  const polInput = document.getElementById('new-biz-policy');
+  const headInput = document.getElementById('new-biz-header');
+  const footInput = document.getElementById('new-biz-footer');
+
+  if (nameInput) nameInput.value = b.name;
+  if (tagInput) tagInput.value = b.tagline;
+  if (descInput) descInput.value = b.description;
+
+  if (b.phone || b.email || b.physical_address) {
+    toggleBizField('contact', true);
+    if (phoneInput) phoneInput.value = b.phone || '';
+    if (emailInput) emailInput.value = b.email || '';
+    if (addrInput) addrInput.value = b.physical_address || '';
+  }
+
+  if (b.category) {
+    toggleBizField('tax', true);
+    if (catInput) catInput.value = b.category;
+    const taxInput = document.getElementById('new-biz-tax-id');
+    if (taxInput) taxInput.value = b.tax_id || '';
+  }
+
+  if (b.settlement_currency) {
+    toggleBizField('currency', true);
+    if (currInput) currInput.value = b.settlement_currency;
+  }
+
+  if (b.website) {
+    toggleBizField('web', true);
+    if (webInput) webInput.value = b.website;
+  }
+
+  if (b.operating_hours) {
+    toggleBizField('hours', true);
+    if (hoursInput) hoursInput.value = b.operating_hours;
+  }
+
+  if (b.return_policy) {
+    toggleBizField('policy', true);
+    if (polInput) polInput.value = b.return_policy;
+  }
+
+  if (b.receipt_header || b.receipt_footer) {
+    toggleBizField('receipt', true);
+    if (headInput) headInput.value = b.receipt_header || '';
+    if (footInput) footInput.value = b.receipt_footer || '';
+  }
+
+  showSuccessToast(`Form loaded with ${preset.label} details ✨`, 3000);
+}
+window.applyStoreInspiration = applyStoreInspiration;
+
+async function quickStartPresetStore(presetKey = 'solar_tech') {
+  const preset = MULTI_INDUSTRY_PRESETS[presetKey] || MULTI_INDUSTRY_PRESETS.solar_tech;
+  const b = preset.biz;
+  showSuccessToast(`Launching ${preset.label} preset... 🏪✨`, 3000);
   try {
     const payload = {
-      name: "Green Valley Farm & Market",
-      category: "agriculture",
-      settlement_currency: "USD",
-      physical_address: "Plot 12, Umguza Valley, Bulawayo",
-      phone: "+263 77 234 5678",
-      tax_id: "ZW-8841-HORT",
-      return_policy: "Fresh produce guaranteed. Returns accepted within 24 hours.",
-      receipt_footer: "Sustainably grown with organic compost. Siyabonga!"
+      name: b.name,
+      tagline: b.tagline,
+      description: b.description,
+      category: b.category,
+      settlement_currency: b.settlement_currency || "USD",
+      physical_address: b.physical_address || "",
+      contact_phone: b.phone || "",
+      contact_email: b.email || "",
+      website_url: b.website || "",
+      tax_id: b.tax_id || "",
+      operating_hours: b.operating_hours || "",
+      return_policy: b.return_policy || "",
+      receipt_header: b.receipt_header || "",
+      receipt_footer_note: b.receipt_footer || ""
     };
     
     const res = await secureFetch("/api/businesses", {
@@ -1840,12 +2039,20 @@ async function quickStartPresetStore() {
     
     const newBiz = await res.json();
     
-    // Add sample fresh produce items to populate POS immediately!
-    const sampleProducts = [
-      { name: "Organic Roma Tomatoes", category: "Vegetables", price: 1.50, unit: "kg", stock_qty: 45, allow_decay: 1, decay_half_life_hours: 48, min_decay_price: 0.75, business_id: newBiz.id },
-      { name: "Sweet White Maize (SC719)", category: "Grains", price: 0.80, unit: "kg", stock_qty: 120, allow_decay: 0, min_decay_price: 0.80, business_id: newBiz.id },
-      { name: "Fresh Crisp Spinach", category: "Leafy Greens", price: 1.00, unit: "bundle", stock_qty: 30, allow_decay: 1, decay_half_life_hours: 24, min_decay_price: 0.50, business_id: newBiz.id }
-    ];
+    // Add sample items to populate POS immediately!
+    const sampleProducts = (preset.sampleProducts || []).map(p => ({
+      name: p.name,
+      category: p.category,
+      price: p.price,
+      cost_price: p.cost_price || (p.price * 0.6),
+      unit: p.unit || "pcs",
+      stock_qty: p.stock_qty || 20,
+      brand: p.brand || "",
+      allow_decay: p.allow_decay || 0,
+      decay_half_life_hours: p.decay_half_life_hours || 48,
+      min_decay_price: p.min_decay_price || p.price,
+      business_id: newBiz.id
+    }));
     
     for (const prod of sampleProducts) {
       await secureFetch("/api/pos/products", {
@@ -1861,7 +2068,7 @@ async function quickStartPresetStore() {
     if (launchpad) launchpad.style.display = 'none';
     await loadBusinesses();
     switchBusiness(newBiz.id);
-    showSuccessToast("Green Valley Farm Store is Live! POS register and fresh crops active 🏪🎉", 5000);
+    showSuccessToast(`${b.name} is Live! POS register and initial inventory active 🏪🎉`, 5000);
   } catch (err) {
     showErrorToast(err.message || "Failed to launch quick store preset");
   }
@@ -3623,6 +3830,171 @@ function addProductSpecRow(key = '', val = '') {
   container.appendChild(row);
   toggleProductField('specs', true);
 }
+
+const PRODUCT_INSPIRATION_TEMPLATES = {
+  inverter_5kva: {
+    name: "Pure Sine Wave Solar Inverter 5kVA 48V",
+    cost: 420.00,
+    price: 580.00,
+    qty: 8,
+    unit: "pcs",
+    category: "Electronics",
+    subcategory: "Solar Inverters & Batteries",
+    brand: "Apex Solar Power",
+    barcode: "6009802491823",
+    desc: "High-frequency MPPT solar inverter with 98% peak efficiency and built-in lithium battery communication.",
+    specs: [
+      { key: "Continuous Output", val: "5000W / 48V DC" },
+      { key: "MPPT Operating Range", val: "120V - 450V DC" },
+      { key: "Warranty", val: "3 Years Manufacturer" }
+    ]
+  },
+  denim_jacket: {
+    name: "Raw Selvedge Denim Work Jacket",
+    cost: 32.00,
+    price: 65.00,
+    qty: 20,
+    unit: "pcs",
+    category: "Retail",
+    subcategory: "Apparel & Outerwear",
+    brand: "Matopos Outfitters",
+    barcode: "6009804819201",
+    desc: "14oz unwashed Japanese shuttle-loom denim. Triple-needle chain stitching with custom brass buttons.",
+    specs: [
+      { key: "Material", val: "100% Cotton 14oz Denim" },
+      { key: "Fit", val: "Regular Tailored Workwear" },
+      { key: "Care", val: "Cold hand wash, hang dry" }
+    ]
+  },
+  sourdough_bread: {
+    name: "Artisan Stone-Ground Sourdough Country Loaf 800g",
+    cost: 0.90,
+    price: 2.50,
+    qty: 30,
+    unit: "pcs",
+    category: "Bakery",
+    subcategory: "Artisan Sourdough & Pastry",
+    brand: "Khumalo Artisan Bakery",
+    barcode: "6009803184912",
+    desc: "Naturally fermented 36-hour sourdough loaf baked on refractory stone. Crispy blistered crust with airy crumb.",
+    specs: [
+      { key: "Ingredients", val: "Stone-Ground Flour, Spring Water, Wild Starter, Sea Salt" },
+      { key: "Fermentation", val: "36 Hours Cold Proof" }
+    ]
+  },
+  solar_audit_service: {
+    name: "Solar Array Efficiency & Thermal Audit",
+    cost: 20.00,
+    price: 60.00,
+    qty: 50,
+    unit: "hours",
+    category: "Services",
+    subcategory: "Diagnostics & Maintenance",
+    brand: "Bulawayo Precision Tech",
+    barcode: "6009808941029",
+    desc: "On-site thermodynamic and electrical string audit with high-resolution infrared thermal imaging report.",
+    specs: [
+      { key: "Service Scope", val: "String Voltage, Thermal Hotspots, Inverter Log Analysis" },
+      { key: "Deliverable", val: "PDF Certificate & Yield Optimization Plan" }
+    ]
+  },
+  maize_meal_10kg: {
+    name: "Stone-Ground Super Roller Maize Meal 10kg",
+    cost: 4.50,
+    price: 6.80,
+    qty: 80,
+    unit: "bags",
+    category: "Produce",
+    subcategory: "Grains & Mill Feeds",
+    brand: "Khumalo Millers",
+    barcode: "6009805521938",
+    desc: "Grade 1 fortified white maize meal milled from sustainably farmed non-GMO harvest in Matabeleland.",
+    specs: [
+      { key: "Grade", val: "Super Roller Meal Fortified" },
+      { key: "Net Weight", val: "10.0 kg" },
+      { key: "Origin", val: "Umguza Valley, Zimbabwe" }
+    ]
+  },
+  energy_drink_can: {
+    name: "Switch Energy Drink 500ml",
+    cost: 0.65,
+    price: 1.20,
+    qty: 120,
+    unit: "cans",
+    category: "Drinks",
+    subcategory: "Energy & Beverages",
+    brand: "Switch Energy",
+    barcode: "6009801124890",
+    desc: "Carbonated energy drink with taurine, caffeine, and B-complex vitamins for sustained mental alertness.",
+    specs: [
+      { key: "Volume", val: "500 ml Aluminium Can" },
+      { key: "Serving", val: "Best Served Chilled" }
+    ]
+  }
+};
+
+function applyProductInspiration(templateKey) {
+  const t = PRODUCT_INSPIRATION_TEMPLATES[templateKey];
+  if (!t) return;
+  
+  const nameInput = document.getElementById('store-product-name-input');
+  const costInput = document.getElementById('store-product-cost-input');
+  const priceInput = document.getElementById('store-product-price-input');
+  const qtyInput = document.getElementById('store-product-qty-input');
+  const unitInput = document.getElementById('store-product-unit-input');
+  const barcodeInput = document.getElementById('store-product-barcode-input');
+  const catInput = document.getElementById('store-product-category-input');
+  const subInput = document.getElementById('store-product-subcategory-input');
+  const brandInput = document.getElementById('store-product-brand-input');
+  const descInput = document.getElementById('store-product-desc-input');
+  const wholesaleInput = document.getElementById('store-product-wholesale-price');
+
+  if (nameInput) nameInput.value = t.name;
+  if (costInput) costInput.value = t.cost.toFixed(2);
+  if (priceInput) priceInput.value = t.price.toFixed(2);
+  if (qtyInput) qtyInput.value = t.qty;
+  if (unitInput) unitInput.value = t.unit;
+
+  if (t.barcode) {
+    if (barcodeInput) barcodeInput.value = t.barcode;
+    toggleProductField('barcode', true);
+  }
+
+  if (t.category) {
+    if (catInput) catInput.value = t.category;
+    if (subInput) subInput.value = t.subcategory || '';
+    toggleProductField('category', true);
+    updateCatBreadcrumb();
+  }
+
+  if (t.brand) {
+    if (brandInput) brandInput.value = t.brand;
+    toggleProductField('brand', true);
+  }
+
+  if (t.desc) {
+    if (descInput) descInput.value = t.desc;
+    toggleProductField('specs', true);
+  }
+
+  if (t.specs && Array.isArray(t.specs)) {
+    const container = document.getElementById('store-product-specs-rows');
+    if (container) {
+      container.innerHTML = '';
+      t.specs.forEach(s => addProductSpecRow(s.key, s.val));
+      toggleProductField('specs', true);
+    }
+  }
+
+  if (wholesaleInput && t.cost && t.price) {
+    wholesaleInput.value = ((t.cost + t.price) / 2).toFixed(2);
+    toggleProductField('wholesale', true);
+  }
+
+  updateSystemSkuPreview();
+  showSuccessToast(`Applied inspiration: ${t.name} ✨`, 2500);
+}
+window.applyProductInspiration = applyProductInspiration;
 
 async function submitAddStoreProduct() {
   const bizId = document.getElementById('store-product-business-select')?.value || state.activeBusinessId || (state.businesses[0] ? state.businesses[0].id : '');
@@ -6225,4 +6597,166 @@ function startInteractiveTour() {
 
   showStep(0);
 }
+
+// --- MULTI-INDUSTRY DYNAMIC PLACEHOLDER ROTATION ENGINE ---
+const DYNAMIC_FIELD_ROTATOR_CONFIG = {
+  // Store / Business Fields
+  store_name: [
+    "Apex Solar & Clean Energy Lab",
+    "Khumalo Artisan Bakery & Cafe",
+    "Umguza Valley Fresh Organics",
+    "Matopos Outdoor Apparel & Boots",
+    "ByteWave Mesh Routers & IoT",
+    "Highland Micro-Roasters & Coffee",
+    "Bulawayo Precision Engineering & Hydraulics",
+    "Sovereign Botanical Health & Dispensary"
+  ],
+  store_tagline: [
+    "Enterprise off-grid solar equipment & smart lithium storage",
+    "Fresh stone-ground sourdough & specialty espresso bar",
+    "Organic farm-to-table produce & cold-pressed juices",
+    "Rugged handcrafted boots & durable canvas workwear",
+    "High-speed decentralized mesh networking & satellite terminals",
+    "Direct-trade micro-lot coffee beans & artisan brewing gear",
+    "On-demand mobile diagnostics, hydraulic maintenance & repair",
+    "Pure organic botanical remedies & essential wellness minerals"
+  ],
+  store_desc: [
+    "Specialized retail emporium delivering enterprise solar inverters, lithium batteries, and sovereign IoT hardware.",
+    "Boutique artisan bakery crafting natural fermentation sourdough breads, gourmet pastries, and specialty espresso.",
+    "Certified agro-ecological farm distributing organic heirloom vegetables, stone-milled grains, and cold-pressed honey.",
+    "Sovereign lifestyle & apparel retailer offering handcrafted leather boots, raw denim, and weatherproof canvas gear.",
+    "Technical engineering service provider delivering high-reliability wireless mesh networks, solar audits, and diagnostics."
+  ],
+  store_phone: [
+    "+263 77 987 6543",
+    "+263 71 234 5678",
+    "+27 82 555 0192",
+    "+263 78 444 8921"
+  ],
+  store_email: [
+    "orders@apexsolar.co.zw",
+    "hello@khumalobakery.zw",
+    "depot@umguzaorganics.zw",
+    "support@bytewave.co.zw",
+    "service@matoposapparel.zw"
+  ],
+  store_address: [
+    "Stall 14, Apex Technology Center, Bulawayo",
+    "88 Jason Moyo Avenue, Artisan Quarter, Bulawayo",
+    "Plot 24, Umguza Valley Agro Cluster, Mat North",
+    "Unit 7, Innovation Industrial Park, Belmont",
+    "Stall 3, Pioneer Green Market, Harare"
+  ],
+  store_website: [
+    "https://apexsolar.co.zw",
+    "https://khumalobakery.zw",
+    "wa.me/263779876543",
+    "https://matoposapparel.zw",
+    "https://bytewave.co.zw"
+  ],
+  store_hours: [
+    "Mon - Fri: 08:00 - 17:30, Sat: 08:00 - 14:00",
+    "Daily: 06:30 - 20:00 (Bakery & Espresso Bar)",
+    "Mon - Sat: 07:00 - 18:00 (Depot & Field Pickup)",
+    "24/7 Remote Monitoring & Dispatch"
+  ],
+  store_policy: [
+    "14-day direct hardware replacement with receipt and unbroken warranty seal.",
+    "Freshness guarantee: Freshly baked daily, refund or exchange within 24h.",
+    "Full refund or credit voucher on unused sealed items within 30 days.",
+    "100% organic guarantee: Exchange or voucher for any produce concern."
+  ],
+  store_receipt_header: [
+    "Apex Solar & Hardware Solutions",
+    "Khumalo Artisan Bakery & Kitchen",
+    "Umguza Valley Fresh Organics",
+    "ByteWave Decentralized Mesh Hub",
+    "Matopos Sovereign Outfitters"
+  ],
+  store_receipt_footer: [
+    "Thank you for supporting sovereign local clean energy!",
+    "Siyabonga! Baked with natural spring water and wild yeast.",
+    "Direct from soil to your table. Siyabonga kakhulu!",
+    "Sovereign node verified. Tamper-evident receipt.",
+    "Empowering decentralized commerce worldwide."
+  ],
+  
+  // Product Fields
+  product_name: [
+    "Pure Sine Wave Solar Inverter 5kVA 48V",
+    "Artisan Stone-Ground Sourdough Country Loaf 800g",
+    "Heavyweight Organic Cotton Graphic Tee (Black - L)",
+    "Single-Origin Arabica Espresso Whole Beans 1kg",
+    "Gigabit 16-Port PoE+ Managed Network Switch",
+    "Solar Array Infrared Diagnostic & Efficiency Audit (hr)",
+    "Stone-Ground Super Roller Maize Meal 10kg",
+    "High-Tensile Galvanized Farm Fencing Wire 50kg",
+    "Hydroponic Sweet Cherry Tomatoes 500g Punnet",
+    "Natural Cold-Pressed Baobab Seed Oil 100ml",
+    "Type-C 100W GaN Fast Charger with Digital Display",
+    "Raw Unfiltered Wildflower Forest Honey 500g Jar"
+  ],
+  product_brand: [
+    "Apex Solar Power",
+    "Khumalo Artisan Millers",
+    "Matopos Outfitters",
+    "Blue Mountain Coffee",
+    "ByteWave IoT",
+    "Seed Co Agro",
+    "Dube Leathercraft",
+    "Anker PowerTech"
+  ],
+  product_desc: [
+    "High-frequency MPPT solar inverter with 98% peak efficiency and built-in lithium battery communication.",
+    "Naturally fermented 36-hour sourdough loaf baked on refractory stone. Crispy blistered crust with airy crumb.",
+    "100% ringspun organic combed cotton 240 GSM. Pre-shrunk with reinforced collar and double-stitched hem.",
+    "Grade-A specialty Arabica beans washed and medium-roasted. Notes of dark chocolate, berry, and caramel.",
+    "Layer-2 managed gigabit switch with 16 PoE+ ports supplying up to 250W total power budget for mesh nodes.",
+    "Comprehensive on-site thermodynamic and electrical string audit with high-resolution thermal imaging.",
+    "Grade 1 fortified white maize meal milled from sustainably farmed non-GMO harvest in Matabeleland."
+  ],
+  barcode: [
+    "6009802491823",
+    "6009804819201",
+    "6009803184912",
+    "6009808941029",
+    "6009805521938",
+    "6009801124890"
+  ]
+};
+
+let dynamicPlaceholderTimer = null;
+let dynamicPlaceholderIndex = 0;
+
+function initDynamicPlaceholderRotation() {
+  if (dynamicPlaceholderTimer) clearInterval(dynamicPlaceholderTimer);
+
+  const rotate = () => {
+    dynamicPlaceholderIndex++;
+    
+    // Dynamic fields with data-dynamic-field attribute
+    document.querySelectorAll('[data-dynamic-field]').forEach(el => {
+      // Don't rotate if user is actively focusing or has typed a value
+      if (document.activeElement === el || (el.value && el.value.trim().length > 0)) {
+        return;
+      }
+      const fieldKey = el.dataset.dynamicField;
+      const list = DYNAMIC_FIELD_ROTATOR_CONFIG[fieldKey];
+      if (list && list.length > 0) {
+        const nextVal = list[dynamicPlaceholderIndex % list.length];
+        el.placeholder = (fieldKey === 'store_name' || fieldKey === 'product_name' || fieldKey === 'store_tagline' || fieldKey === 'product_brand')
+          ? `e.g. ${nextVal}`
+          : nextVal;
+      }
+    });
+  };
+
+  // Initial cycle
+  rotate();
+  // Rotate smoothly every 3.6 seconds
+  dynamicPlaceholderTimer = setInterval(rotate, 3600);
+}
+window.initDynamicPlaceholderRotation = initDynamicPlaceholderRotation;
+
 

@@ -59,19 +59,30 @@
               </div>
             </div>
 
-            <!-- Primary Action & Quick-Start Buttons -->
-            <div class="store-launchpad-actions">
-              <button type="button" class="btn-pill-primary glow-launch-btn" onclick="openCreateBusinessWorkspace()" style="padding: 10px 24px; font-size: 0.9rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #0284c7); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); cursor: pointer;">
-                <span>+ Set Up Your Store</span>
-                <span>🏪✨</span>
-              </button>
-              <button type="button" class="btn-quickstart-preset" onclick="quickStartPresetStore()">
-                <span>⚡ Quick-Start Farm Store (1-Click)</span>
-              </button>
+            <!-- Primary Action & Multi-Industry Quick-Start Inspiration Presets -->
+            <div class="store-launchpad-actions" style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
+              <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                <button type="button" class="btn-pill-primary glow-launch-btn" onclick="openCreateBusinessWorkspace()" style="padding: 10px 24px; font-size: 0.9rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #0284c7); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); cursor: pointer;">
+                  <span>+ Set Up Custom Store</span>
+                  <span>🏪✨</span>
+                </button>
+              </div>
+
+              <!-- Multi-Industry Quick-Launch Inspiration Bar -->
+              <div style="margin-top: 6px; text-align: center; width: 100%;">
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">⚡ 1-Click Instant Industry Presets:</div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
+                  <button type="button" class="btn-pill-small" style="background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.3); color: #00e5ff;" onclick="quickStartPresetStore('solar_tech')">⚡ Solar & Electronics</button>
+                  <button type="button" class="btn-pill-small" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc;" onclick="quickStartPresetStore('retail_fashion')">🛍️ Fashion & Retail</button>
+                  <button type="button" class="btn-pill-small" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24;" onclick="quickStartPresetStore('food_bakery')">☕ Artisan Bakery & Cafe</button>
+                  <button type="button" class="btn-pill-small" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa;" onclick="quickStartPresetStore('tech_services')">🛠️ Professional Services</button>
+                  <button type="button" class="btn-pill-small" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399;" onclick="quickStartPresetStore('agro_produce')">🌾 Organic Farm Store</button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Mode 2: Store Setup Workspace Form (Replaces Launchpad in-place when clicking '+ Set Up Your Store') -->
+          <!-- Mode 2: Store Setup Workspace Form (Replaces Launchpad in-place when clicking '+ Set Up Custom Store') -->
           <div id="business-setup-workspace-container" class="store-setup-form-wrapper" style="display: none; padding-top: 10px; width: 100%;">
             <div style="text-align: center; margin-bottom: 18px;">
               <h3 style="font-size: 1.35rem; margin-bottom: 4px; color: #fff;">🏪 Set Up Business / Store</h3>
@@ -81,23 +92,33 @@
             <form novalidate id="form-create-business" onsubmit="event.preventDefault(); submitCreateBusiness(); return false;">
               <!-- Mandatory Core Section -->
               <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 14px;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
-                  📌 Core Store Details (Mandatory)
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+                  <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">
+                    📌 Core Store Details (Mandatory)
+                  </div>
+                  <div style="display: flex; gap: 4px; align-items: center;">
+                    <span style="font-size: 0.68rem; color: var(--text-muted);">Inspire Form:</span>
+                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(0,229,255,0.1); color: #00e5ff;" onclick="applyStoreInspiration('solar_tech')">⚡ Electronics</button>
+                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(168,85,247,0.1); color: #c084fc;" onclick="applyStoreInspiration('retail_fashion')">🛍️ Retail</button>
+                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(245,158,11,0.1); color: #fbbf24;" onclick="applyStoreInspiration('food_bakery')">☕ Food & Cafe</button>
+                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(59,130,246,0.1); color: #60a5fa;" onclick="applyStoreInspiration('tech_services')">🛠️ Services</button>
+                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(16,185,129,0.1); color: #34d399;" onclick="applyStoreInspiration('agro_produce')">🌾 Agriculture</button>
+                  </div>
                 </div>
 
                 <div style="margin-bottom: 10px;">
                   <label for="new-biz-name" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Business / Store Name *</label>
-                  <input type="text" id="new-biz-name" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Umguza Valley Fresh Farm Depot" required>
+                  <input type="text" id="new-biz-name" class="search-input" data-dynamic-field="store_name" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Apex Solar & Clean Energy Lab" required>
                 </div>
 
                 <div style="margin-bottom: 10px;">
                   <label for="new-biz-tagline" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Tagline (Brief Overview) *</label>
-                  <input type="text" id="new-biz-tagline" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Pure Fresh Organic Crops & Farm Produce Direct from Soil" required>
+                  <input type="text" id="new-biz-tagline" class="search-input" data-dynamic-field="store_tagline" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Enterprise off-grid solar equipment & smart lithium storage" required>
                 </div>
 
                 <div>
                   <label for="new-biz-desc" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Detailed Store Description</label>
-                  <textarea id="new-biz-desc" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; height: 65px; resize: vertical;" placeholder="Comprehensive overview of products, farming practices, and store services..."></textarea>
+                  <textarea id="new-biz-desc" class="search-input" data-dynamic-field="store_desc" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; height: 65px; resize: vertical;" placeholder="Specialized retail emporium delivering enterprise solar inverters, lithium batteries, and sovereign IoT hardware..."></textarea>
                 </div>
               </div>
 
@@ -159,16 +180,16 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
                   <div>
                     <label for="new-biz-phone" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Phone Number</label>
-                    <input type="text" id="new-biz-phone" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="+263 77 123 4567">
+                    <input type="text" id="new-biz-phone" class="search-input" data-dynamic-field="store_phone" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="+263 77 987 6543">
                   </div>
                   <div>
                     <label for="new-biz-email" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Email Address</label>
-                    <input type="email" id="new-biz-email" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="orders@umguzafarm.co.zw">
+                    <input type="email" id="new-biz-email" class="search-input" data-dynamic-field="store_email" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="orders@apexsolar.co.zw">
                   </div>
                 </div>
                 <div>
                   <label for="new-biz-address" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Physical Address / Plot / Stall #</label>
-                  <input type="text" id="new-biz-address" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Plot 14, Umguza Valley, Bulawayo">
+                  <input type="text" id="new-biz-address" class="search-input" data-dynamic-field="store_address" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Stall 14, Apex Technology Center, Bulawayo">
                 </div>
               </div>
 
@@ -182,12 +203,14 @@
                   <div>
                     <label for="new-biz-category" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Industry Category</label>
                     <select id="new-biz-category" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; color: #fff;">
-                      <option value="Horticulture & Fresh Produce">Horticulture & Fresh Produce</option>
-                      <option value="Grain Milling & Feeds">Grain Milling & Feeds</option>
-                      <option value="Dairy & Livestock">Dairy & Livestock</option>
-                      <option value="Community Wholesale & Retail">Community Wholesale & Retail</option>
-                      <option value="Agronomic Supplies & Nursery">Agronomic Supplies & Nursery</option>
-                      <option value="Hardware & Farm Machinery">Hardware & Farm Machinery</option>
+                      <option value="Electronics, Solar & Hardware">⚡ Electronics, Solar & Hardware</option>
+                      <option value="Consumer Retail & Apparel">🛍️ Consumer Retail & Apparel</option>
+                      <option value="Food, Bakery & Specialty Dining">🍽️ Food, Bakery & Specialty Dining</option>
+                      <option value="Professional & Technical Services">🛠️ Professional & Technical Services</option>
+                      <option value="Horticulture & Fresh Produce">🌾 Horticulture & Fresh Produce</option>
+                      <option value="Grain Milling & Animal Feeds">🌽 Grain Milling & Animal Feeds</option>
+                      <option value="Health, Wellness & Pharmacy">💊 Health, Wellness & Pharmacy</option>
+                      <option value="Community Wholesale & General Supply">📦 Community Wholesale & General Supply</option>
                     </select>
                   </div>
                   <div>
@@ -221,7 +244,7 @@
                 </div>
                 <div>
                   <label for="new-biz-website" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Website URL / WhatsApp Channel</label>
-                  <input type="text" id="new-biz-website" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="https://umguzafarm.co.zw or wa.me/263771234567">
+                  <input type="text" id="new-biz-website" class="search-input" data-dynamic-field="store_website" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="https://apexsolar.co.zw or wa.me/263779876543">
                 </div>
               </div>
 
@@ -233,7 +256,7 @@
                 </div>
                 <div>
                   <label for="new-biz-hours" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Trading Schedule</label>
-                  <input type="text" id="new-biz-hours" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Mon-Fri: 07:30 - 17:30, Sat: 08:00 - 14:00">
+                  <input type="text" id="new-biz-hours" class="search-input" data-dynamic-field="store_hours" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Mon-Fri: 08:00 - 17:30, Sat: 08:00 - 14:00">
                 </div>
               </div>
 
@@ -245,7 +268,7 @@
                 </div>
                 <div>
                   <label for="new-biz-policy" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Customer Return Terms</label>
-                  <input type="text" id="new-biz-policy" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Produce replacement guarantee within 24 hours with receipt.">
+                  <input type="text" id="new-biz-policy" class="search-input" data-dynamic-field="store_policy" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="14-day direct replacement with receipt and warranty seal.">
                 </div>
               </div>
 
@@ -258,11 +281,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                   <div>
                     <label for="new-biz-header" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Receipt Top Header</label>
-                    <input type="text" id="new-biz-header" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Farm Fresh Direct">
+                    <input type="text" id="new-biz-header" class="search-input" data-dynamic-field="store_receipt_header" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Apex Solar & Hardware Solutions">
                   </div>
                   <div>
                     <label for="new-biz-footer" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Receipt Bottom Footer</label>
-                    <input type="text" id="new-biz-footer" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Siyabonga! Thank you!">
+                    <input type="text" id="new-biz-footer" class="search-input" data-dynamic-field="store_receipt_footer" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Thank you for supporting sovereign local clean energy!">
                   </div>
                 </div>
               </div>
