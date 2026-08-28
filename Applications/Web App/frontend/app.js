@@ -1667,6 +1667,7 @@ state.activeBizFields = {
 };
 state.pendingBizLogo = '';
 state.pendingBizBanner = '';
+state.isStoreSetupWorkspaceOpen = false;
 state.businessAccounts = [];
 
 // --- MULTI-BUSINESS & MODULAR STORE SETUP HANDLERS ---
@@ -1680,12 +1681,19 @@ async function loadBusinesses() {
     const select = document.getElementById('header-business-select');
     const adminBizName = document.getElementById('admin-current-biz-name');
     const noStoreGate = document.getElementById('business-no-store-container');
+    const workspace = document.getElementById('business-setup-workspace-container');
     const emptyPosBox = document.getElementById('pos-empty-store-container');
     const activePosBox = document.getElementById('pos-active-terminal-container');
 
     // Handle 0-Store Gatekeeper vs Active Store UI
     if (state.businesses.length === 0) {
-      if (noStoreGate) noStoreGate.style.display = 'block';
+      if (state.isStoreSetupWorkspaceOpen) {
+        if (noStoreGate) noStoreGate.style.display = 'none';
+        if (workspace) workspace.style.display = 'block';
+      } else {
+        if (noStoreGate) noStoreGate.style.display = 'block';
+        if (workspace) workspace.style.display = 'none';
+      }
       if (emptyPosBox) emptyPosBox.style.display = 'none';
       if (activePosBox) activePosBox.style.display = 'none';
       ['pos-terminal-box', 'biz-catalog-box', 'biz-marketplace-box', 'biz-inventory-box'].forEach(id => {
@@ -1696,7 +1704,9 @@ async function loadBusinesses() {
       state.activeBusinessId = null;
       if (adminBizName) adminBizName.innerText = "No Registered Business";
     } else {
+      state.isStoreSetupWorkspaceOpen = false;
       if (noStoreGate) noStoreGate.style.display = 'none';
+      if (workspace) workspace.style.display = 'none';
       if (!state.activeBusinessId || !state.businesses.find(b => b.id === state.activeBusinessId)) {
         state.activeBusinessId = state.businesses[0].id;
       }
@@ -1729,7 +1739,7 @@ async function loadBusinesses() {
         state.businesses.map(b => `<option value="${b.id}" ${b.id === curVal ? 'selected' : ''}>🏢 ${b.name}</option>`).join('');
     }
 
-    // Refresh Analytics and Business Banking Accounts
+    // Refresh Analytics and Business Banking Accounts in background
     loadBusinessAnalytics(state.selectedPosBusinessId || 'all');
     loadBusinessBankingAccounts();
   } catch (e) {
@@ -1839,6 +1849,11 @@ async function quickStartPresetStore() {
       }).catch(() => {});
     }
     
+    state.isStoreSetupWorkspaceOpen = false;
+    const workspace = document.getElementById('business-setup-workspace-container');
+    const launchpad = document.getElementById('business-no-store-container');
+    if (workspace) workspace.style.display = 'none';
+    if (launchpad) launchpad.style.display = 'none';
     await loadBusinesses();
     switchBusiness(newBiz.id);
     showSuccessToast("Green Valley Farm Store is Live! POS register and fresh crops active 🏪🎉", 5000);
@@ -1852,16 +1867,17 @@ function openCreateBusinessModal() {
   openCreateBusinessWorkspace();
 }
 
-function openCreateBusinessWorkspace() {
-  const launchpad = document.getElementById('business-no-store-container');
-  const workspace = document.getElementById('business-setup-workspace-container');
+async function openCreateBusinessWorkspace() {
+  state.isStoreSetupWorkspaceOpen = true;
 
   if (state.activeView !== 'business') {
-    if (typeof switchView === 'function') switchView('business');
+    if (typeof switchView === 'function') {
+      await switchView('business');
+    }
   }
 
-  // Check if launchpad was in fullscreen
-  const wasFullscreen = launchpad && launchpad.classList.contains('panel-fullscreen');
+  const launchpad = document.getElementById('business-no-store-container');
+  const workspace = document.getElementById('business-setup-workspace-container');
 
   if (launchpad) {
     launchpad.style.display = 'none';
@@ -1869,11 +1885,7 @@ function openCreateBusinessWorkspace() {
 
   if (workspace) {
     workspace.style.display = 'block';
-    if (wasFullscreen) {
-      workspace.classList.add('panel-fullscreen');
-    } else {
-      workspace.classList.remove('panel-fullscreen');
-    }
+    workspace.classList.remove('is-collapsed');
 
     // Reset modular fields
     state.activeBizFields = {
@@ -1898,28 +1910,26 @@ function openCreateBusinessWorkspace() {
     setTimeout(() => {
       const el = document.getElementById('new-biz-name');
       if (el) el.focus();
-    }, 50);
+    }, 60);
   }
 }
 
 function cancelBusinessSetupWorkspace() {
+  state.isStoreSetupWorkspaceOpen = false;
   const workspace = document.getElementById('business-setup-workspace-container');
   const launchpad = document.getElementById('business-no-store-container');
-
-  const wasFullscreen = workspace && workspace.classList.contains('panel-fullscreen');
 
   if (workspace) {
     workspace.style.display = 'none';
     workspace.classList.remove('panel-fullscreen');
+    workspace.classList.remove('is-collapsed');
   }
 
   const numBusinesses = (state.businesses && state.businesses.length) || 0;
   if (numBusinesses === 0) {
     if (launchpad) {
       launchpad.style.display = 'block';
-      if (wasFullscreen) {
-        launchpad.classList.add('panel-fullscreen');
-      }
+      launchpad.classList.remove('is-collapsed');
     }
   } else {
     // Show active subview
@@ -2081,9 +2091,12 @@ async function submitCreateBusiness() {
 
     if (res.ok) {
       const data = await res.json();
+      state.isStoreSetupWorkspaceOpen = false;
       hideModals();
       const workspace = document.getElementById('business-setup-workspace-container');
+      const launchpad = document.getElementById('business-no-store-container');
       if (workspace) workspace.style.display = 'none';
+      if (launchpad) launchpad.style.display = 'none';
       document.getElementById('form-inline-create-business')?.reset();
       document.getElementById('form-create-business')?.reset();
       await loadBusinesses();
@@ -2783,6 +2796,18 @@ async function updateUIPermissions() {
 // --- COMPONENT TEMPLATE CACHE & DYNAMIC MOUNTING ENGINE ---
 const templateCache = {};
 
+async function preloadAllViewTemplates() {
+  const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
+  for (const v of views) {
+    if (!templateCache[v]) {
+      fetch(`./components/${v}.html?v=20260828_10`)
+        .then(r => r.ok ? r.text() : '')
+        .then(html => { if (html) templateCache[v] = html; })
+        .catch(() => {});
+    }
+  }
+}
+
 async function loadComponentView(target) {
   const viewport = document.getElementById('app-viewport');
   if (!viewport) return;
@@ -2790,7 +2815,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260828_08`);
+      const res = await fetch(`./components/${target}.html?v=20260828_10`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
@@ -2818,33 +2843,21 @@ async function loadComponentView(target) {
     updateSubNav(target);
   }
 
-  // 5. Trigger view-specific data loading
+  // 5. Trigger view-specific data loading asynchronously in parallel
   if (target === 'agriculture') {
-    loadAgriFields();
-    loadPlantings();
-    loadHarvests();
-    loadDispositions();
+    Promise.all([loadAgriFields(), loadPlantings(), loadHarvests(), loadDispositions()]).catch(() => {});
   } else if (target === 'business') {
-    loadBusinesses();
-    loadPosProducts();
-    loadMarketplaceCatalog();
+    Promise.all([loadBusinesses(), loadPosProducts(), loadMarketplaceCatalog()]).catch(() => {});
   } else if (target === 'admin') {
-    loadCurrencies();
-    loadAdminUsers();
-    loadBusinessOperators();
+    Promise.all([loadCurrencies(), loadAdminUsers(), loadBusinessOperators()]).catch(() => {});
   } else if (target === 'banking') {
-    loadCurrencies();
-    loadCustomerWallet();
-    loadCustomerReceipts();
-    loadWalletLedger();
+    Promise.all([loadCurrencies(), loadCustomerWallet(), loadCustomerReceipts(), loadWalletLedger()]).catch(() => {});
   } else if (target === 'cluster') {
-    loadDiscoveredClusterNodes();
-    loadExportedNodePackages();
+    Promise.all([loadDiscoveredClusterNodes(), loadExportedNodePackages()]).catch(() => {});
   } else if (target === 'security') {
     loadActiveVisitors();
   } else if (target === 'social') {
-    loadSocialStories();
-    loadSocialPosts();
+    Promise.all([loadSocialStories(), loadSocialPosts()]).catch(() => {});
   }
 
   // 6. Non-blocking LaTeX math rendering
@@ -2874,8 +2887,11 @@ function switchView(target, subtarget) {
 window.switchView = switchView;
 window.switchViewInternal = switchView;
 window.loadComponentView = loadComponentView;
+window.preloadAllViewTemplates = preloadAllViewTemplates;
 
 function initNavigation() {
+  preloadAllViewTemplates();
+
   // Bind sidebar nav clicks
   document.querySelectorAll('.nav-item-btn').forEach(btn => {
     btn.addEventListener('click', () => {

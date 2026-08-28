@@ -1700,18 +1700,17 @@ input:focus, select:focus, textarea:focus {
 
 /* --- STORE LAUNCHPAD HERO & EMPTY STATES --- */
 .store-launchpad-hero {
-  padding: 16px 20px 20px 20px;
+  padding: 20px 24px 26px 24px;
   text-align: center;
   border-radius: 28px;
   background: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.1) 0%, rgba(16, 185, 129, 0.04) 50%, rgba(12, 18, 32, 0.96) 100%) !important;
   border: 1px solid rgba(0, 229, 255, 0.28) !important;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.25);
   position: relative;
-  overflow: hidden;
-  max-height: 490px !important;
+  overflow: visible !important;
   display: flex !important;
   flex-direction: column !important;
-  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease !important;
+  transition: padding 0.3s ease !important;
 }
 
 .store-launchpad-ctrl-bar {
@@ -1719,24 +1718,21 @@ input:focus, select:focus, textarea:focus {
   align-items: center !important;
   justify-content: space-between !important;
   width: 100% !important;
-  margin-bottom: 6px !important;
+  margin-bottom: 8px !important;
   flex-shrink: 0 !important;
   z-index: 10 !important;
 }
 
 .store-launchpad-scroll-body {
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow: visible !important;
   flex-grow: 1 !important;
-  padding: 8px 12px 18px 12px !important;
+  padding: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: flex-start !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(0, 229, 255, 0.4) transparent !important;
 }
 
 .store-launchpad-scroll-body::-webkit-scrollbar {
