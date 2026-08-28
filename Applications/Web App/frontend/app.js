@@ -2278,16 +2278,16 @@ async function submitCreateBusiness() {
   const desc = (document.getElementById('new-biz-desc')?.value || '').trim();
 
   if (!name) {
-    alert("Please enter a Business / Store Name.");
+    showErrorToast("Please enter a Business / Store Name.");
     return;
   }
   if (!tagline) {
-    alert("Please enter a Brief Tagline for your store.");
+    showErrorToast("Please enter a Brief Tagline for your store.");
     return;
   }
 
   // Gather optional modular fields
-  const category = document.getElementById('new-biz-category')?.value || 'Horticulture & Fresh Produce';
+  const category = document.getElementById('new-biz-category')?.value || 'General Retail & Wholesale';
   const currency = document.getElementById('new-biz-currency')?.value || 'USD';
   const phone = (document.getElementById('new-biz-phone')?.value || '').trim();
   const email = (document.getElementById('new-biz-email')?.value || '').trim();
@@ -2327,8 +2327,15 @@ async function submitCreateBusiness() {
       body: JSON.stringify(payload)
     });
 
+    const text = await res.text();
+    let data = {};
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      data = { detail: text || `HTTP ${res.status} ${res.statusText}` };
+    }
+
     if (res.ok) {
-      const data = await res.json();
       state.isStoreSetupWorkspaceOpen = false;
       hideModals();
       const workspace = document.getElementById('business-setup-workspace-container');
@@ -2341,13 +2348,12 @@ async function submitCreateBusiness() {
       if (data.business && data.business.id) {
         handleLiveBusinessSwitch(data.business.id);
       }
-      showSuccessToast(`Store "${name}" created with dedicated Banking Settlement Account! 🏪`);
+      showSuccessToast(`Store "${name}" created with dedicated Banking Settlement Account! 🏪🎉`, 5000);
     } else {
-      const err = await res.json();
-      alert("Failed to create store: " + (err.detail || "Unknown error"));
+      showErrorToast("Failed to create store: " + (data.detail || "Unknown error"));
     }
   } catch (e) {
-    alert("Network error creating store: " + e.message);
+    showErrorToast("Network error creating store: " + (e.message || "Connection failed"));
   }
 }
 
@@ -2611,7 +2617,7 @@ async function submitAssignOperator() {
   if (document.getElementById('perm-reports')?.checked) perms.push('reports');
 
   if (!username) {
-    alert("Please select an operator username.");
+    showErrorToast("Please select an operator username.");
     return;
   }
 
@@ -2627,34 +2633,32 @@ async function submitAssignOperator() {
 
     const data = await res.json();
     if (res.ok && data.status === 'success') {
-      alert(`Operator @${username} granted ${role} access with permissions: ${perms.join(', ')}`);
+      showSuccessToast(`Operator @${username} granted ${role} access with permissions: ${perms.join(', ')}`);
       hideModals();
       loadBusinessOperators();
     } else {
-      alert("Failed to assign operator: " + (data.detail || "Error occurred"));
+      showErrorToast("Failed to assign operator: " + (data.detail || "Error occurred"));
     }
   } catch (e) {
-    alert("Assignment error: " + e.message);
+    showErrorToast("Assignment error: " + e.message);
   }
 }
 
 async function revokeOperator(username) {
-  if (!confirm(`Are you sure you want to revoke access for @${username} in this business?`)) return;
-
   try {
     const res = await secureFetch(`/api/businesses/${state.activeBusinessId}/operators/${username}`, {
       method: "DELETE"
     });
 
     if (res.ok) {
-      alert(`Access revoked for @${username}`);
+      showSuccessToast(`Access revoked for @${username}`);
       loadBusinessOperators();
     } else {
       const data = await res.json();
-      alert("Revocation failed: " + (data.detail || "Error"));
+      showErrorToast("Revocation failed: " + (data.detail || "Error"));
     }
   } catch (e) {
-    alert("Revocation error: " + e.message);
+    showErrorToast("Revocation error: " + e.message);
   }
 }
 
