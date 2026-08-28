@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Discover local network addresses in background
   fetchNetworkInfo();
+  pingDataNodeTelemetry();
 
   // Check active session & load data ONLY if user is authenticated
   checkActiveSession().then((user) => {
@@ -307,14 +308,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Ticker for continuous decay update every 10 seconds
+  // Ticker for continuous decay update and Data Node live telemetry sync
   setInterval(() => {
     if (state.activeView === 'business' && state.user) {
       loadPosProducts();
       loadMarketplaceCatalog();
     }
+    pingDataNodeTelemetry();
   }, 10000);
 });
+
+async function pingDataNodeTelemetry() {
+  try {
+    fetch("http://127.0.0.1:8002/api/node/status", { mode: "cors" }).catch(() => {});
+  } catch (e) {}
+}
 
 // --- CORE SECURE FETCH HELPERS ---
 function getCookie(name) {
@@ -389,108 +397,45 @@ function triggerLaunchExplosion(buttonEl) {
   const originY = rect.top + rect.height / 2;
 
   const particles = [];
-  const colors = ['#00e5ff', '#10b981', '#fbbf24', '#f43f5e', '#a855f7', '#38bdf8', '#ffffff'];
-  const emojis = ['🚀', '✨', '⚡', '💥', '🌟', '🎉', '💫', '💎', '🔥'];
+  const colors = ['#00e5ff', '#10b981', '#fbbf24', '#38bdf8', '#ffffff'];
 
-  // 1. Expanding Shockwaves
-  const shockwaves = [
-    { radius: 10, maxRadius: 380, alpha: 1, color: '#00e5ff', width: 8 },
-    { radius: 5, maxRadius: 280, alpha: 1, color: '#10b981', width: 5 }
-  ];
-
-  // 2. 90 High-Velocity Firework Sparks
-  for (let i = 0; i < 90; i++) {
+  // Lightweight high-speed sparks (zero shadowBlur for 120fps hardware acceleration)
+  for (let i = 0; i < 36; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const speed = 5 + Math.random() * 14;
+    const speed = 4 + Math.random() * 10;
     particles.push({
       x: originX,
       y: originY,
       vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 2.5,
+      vy: Math.sin(angle) * speed - 2,
       color: colors[Math.floor(Math.random() * colors.length)],
-      radius: 2.5 + Math.random() * 4.5,
+      radius: 2 + Math.random() * 3,
       alpha: 1,
-      decay: 0.014 + Math.random() * 0.018,
-      gravity: 0.22,
-      type: 'spark'
-    });
-  }
-
-  // 3. 28 Cosmic Emojis Bursting
-  for (let i = 0; i < 28; i++) {
-    const angle = (i / 28) * Math.PI * 2 + (Math.random() * 0.3 - 0.15);
-    const speed = 6 + Math.random() * 10;
-    particles.push({
-      x: originX,
-      y: originY,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 3.5,
-      emoji: emojis[i % emojis.length],
-      size: 20 + Math.random() * 16,
-      alpha: 1,
-      decay: 0.016 + Math.random() * 0.014,
-      rotation: Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() * 0.35 - 0.175),
-      gravity: 0.2,
-      type: 'emoji'
+      decay: 0.03 + Math.random() * 0.02,
+      gravity: 0.18
     });
   }
 
   const startTime = performance.now();
-  const duration = 1400;
+  const duration = 650;
 
   function animate(currentTime) {
     const elapsed = currentTime - startTime;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw shockwaves
-    for (const sw of shockwaves) {
-      if (sw.alpha > 0.01) {
-        ctx.beginPath();
-        ctx.arc(originX, originY, sw.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = sw.color;
-        ctx.lineWidth = sw.width * sw.alpha;
-        ctx.globalAlpha = sw.alpha;
-        ctx.shadowColor = sw.color;
-        ctx.shadowBlur = 24;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        sw.radius += (sw.maxRadius - sw.radius) * 0.11 + 3;
-        sw.alpha *= 0.92;
-      }
-    }
-
-    // Draw particles
     for (const p of particles) {
-      if (p.alpha <= 0.01) continue;
-
+      if (p.alpha <= 0.02) continue;
       p.x += p.vx;
       p.y += p.vy;
       p.vy += p.gravity;
-      p.vx *= 0.97;
+      p.vx *= 0.96;
       p.alpha -= p.decay;
 
       ctx.globalAlpha = Math.max(0, p.alpha);
-
-      if (p.type === 'spark') {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 14;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      } else if (p.type === 'emoji') {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        p.rotation += p.rotSpeed;
-        ctx.rotate(p.rotation);
-        ctx.font = `${p.size}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(p.emoji, 0, 0);
-        ctx.restore();
-      }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
     }
 
     ctx.globalAlpha = 1;

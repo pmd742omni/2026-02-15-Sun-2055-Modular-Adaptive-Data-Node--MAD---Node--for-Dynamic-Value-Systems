@@ -2553,66 +2553,75 @@
       <!-- SECTION 5: BUSINESS & STORE MANAGEMENT -->
       <section class="view-section" id="view-business">
         <!-- Store Setup Required Gatekeeper (When 0 businesses registered) -->
-        <div class="glass-panel store-launchpad-hero" id="business-no-store-container" style="display: none; margin-bottom: 20px; position: relative;">
-          <!-- Top Right Maximize / Minimize Controls -->
-          <div style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 6px; z-index: 20;">
-            <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('business-no-store-container')" title="Minimize to compact pill">▼</button>
-            <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('business-no-store-container')" title="Expand to Fullscreen">⛶</button>
-          </div>
-
-          <!-- Radiant Floating 3D Badge -->
-          <div class="store-launchpad-badge-wrapper">
-            <div class="store-launchpad-glow-ring"></div>
-            <div class="store-launchpad-dashed-ring"></div>
-            <div class="store-launchpad-icon">🏪</div>
-          </div>
-
-          <div class="inline-pill-badge mb-2">
-            <span class="live-pulse-dot"></span>
-            <span>READY TO START SELLING</span>
-          </div>
-
-          <h2 class="store-launchpad-title">Launch Your Sovereign Store & Register</h2>
-          <p class="store-launchpad-desc">
-            Set up your store name, brand, and settlement currency in seconds. Unlock dynamic exponential decay pricing, touch POS checkout, and cryptographic receipts.
-          </p>
-
-          <!-- 3 Interactive Feature Preview Showcase Cards -->
-          <div class="store-feature-showcase-grid">
-            <div class="store-feature-card">
-              <div class="store-feature-icon-box" style="background: rgba(0, 229, 255, 0.12); border-color: rgba(0, 229, 255, 0.3); color: #00e5ff;">
-                🪙
-              </div>
-              <h4>Multi-Currency POS</h4>
-              <p>Accept USD, Zimbabwe Gold (ZiG), and ZAR with real-time conversion and split payments.</p>
+        <div class="glass-panel store-launchpad-hero widget-card" id="business-no-store-container" style="display: none; margin-bottom: 20px; position: relative;">
+          <!-- Top Control Header Bar -->
+          <div class="store-launchpad-ctrl-bar">
+            <div class="store-launchpad-ctrl-title">
+              <span style="font-size: 0.95rem;">🏪</span>
+              <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">Store Setup Launchpad</span>
             </div>
-
-            <div class="store-feature-card">
-              <div class="store-feature-icon-box" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">
-                ⚡
-              </div>
-              <h4>Smart Freshness Pricing</h4>
-              <p>Continuous decay curves for agricultural produce, ensuring maximum sales and zero food waste.</p>
-            </div>
-
-            <div class="store-feature-card">
-              <div class="store-feature-icon-box" style="background: rgba(124, 77, 255, 0.12); border-color: rgba(124, 77, 255, 0.3); color: #c084fc;">
-                🧾
-              </div>
-              <h4>Cryptographic Receipts</h4>
-              <p>Issue offline QR change vouchers and tamper-proof printable thermal receipts.</p>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" class="btn-card-ctrl btn-collapse-toggle" onclick="toggleWidgetCollapse('business-no-store-container')" title="Minimize to compact pill">▼</button>
+              <button type="button" class="btn-card-ctrl btn-panel-expand" onclick="togglePanelFullscreen('business-no-store-container')" title="Expand to Fullscreen">⛶</button>
             </div>
           </div>
 
-          <!-- Primary Action & Quick-Start Buttons -->
-          <div class="store-launchpad-actions">
-            <button type="button" class="btn-pill-primary glow-launch-btn" onclick="openCreateBusinessModal()" style="padding: 14px 28px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #0284c7); box-shadow: 0 4px 24px rgba(16, 185, 129, 0.4);">
-              <span>+ Set Up Your Store</span>
-              <span>🏪✨</span>
-            </button>
-            <button type="button" class="btn-quickstart-preset" onclick="quickStartPresetStore()">
-              <span>⚡ Quick-Start Farm Store (1-Click)</span>
-            </button>
+          <!-- Internal Scrollable Body with Slim Custom Scrollbar -->
+          <div class="store-launchpad-scroll-body">
+            <!-- Radiant Floating 3D Badge -->
+            <div class="store-launchpad-badge-wrapper">
+              <div class="store-launchpad-glow-ring"></div>
+              <div class="store-launchpad-dashed-ring"></div>
+              <div class="store-launchpad-icon">🏪</div>
+            </div>
+
+            <div class="inline-pill-badge mb-2">
+              <span class="live-pulse-dot"></span>
+              <span>READY TO START SELLING</span>
+            </div>
+
+            <h2 class="store-launchpad-title">Launch Your Sovereign Store & Register</h2>
+            <p class="store-launchpad-desc">
+              Set up your store name, brand, and settlement currency in seconds. Unlock dynamic exponential decay pricing, touch POS checkout, and cryptographic receipts.
+            </p>
+
+            <!-- 3 Interactive Feature Preview Showcase Cards -->
+            <div class="store-feature-showcase-grid">
+              <div class="store-feature-card">
+                <div class="store-feature-icon-box" style="background: rgba(0, 229, 255, 0.12); border-color: rgba(0, 229, 255, 0.3); color: #00e5ff;">
+                  🪙
+                </div>
+                <h4>Multi-Currency POS</h4>
+                <p>Accept USD, Zimbabwe Gold (ZiG), and ZAR with real-time conversion and split payments.</p>
+              </div>
+
+              <div class="store-feature-card">
+                <div class="store-feature-icon-box" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">
+                  ⚡
+                </div>
+                <h4>Smart Freshness Pricing</h4>
+                <p>Continuous decay curves for agricultural produce, ensuring maximum sales and zero food waste.</p>
+              </div>
+
+              <div class="store-feature-card">
+                <div class="store-feature-icon-box" style="background: rgba(124, 77, 255, 0.12); border-color: rgba(124, 77, 255, 0.3); color: #c084fc;">
+                  🧾
+                </div>
+                <h4>Cryptographic Receipts</h4>
+                <p>Issue offline QR change vouchers and tamper-proof printable thermal receipts.</p>
+              </div>
+            </div>
+
+            <!-- Primary Action & Quick-Start Buttons -->
+            <div class="store-launchpad-actions">
+              <button type="button" class="btn-pill-primary glow-launch-btn" onclick="openCreateBusinessModal()" style="padding: 14px 28px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #0284c7); box-shadow: 0 4px 24px rgba(16, 185, 129, 0.4);">
+                <span>+ Set Up Your Store</span>
+                <span>🏪✨</span>
+              </button>
+              <button type="button" class="btn-quickstart-preset" onclick="quickStartPresetStore()">
+                <span>⚡ Quick-Start Farm Store (1-Click)</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -3752,6 +3761,6 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260828_01"></script>
+  <script src="./app.js?v=20260828_02"></script>
 </body>
 </html>

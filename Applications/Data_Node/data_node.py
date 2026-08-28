@@ -103,11 +103,13 @@ async def telemetry_middleware(request: Request, call_next):
     latency_ms = (time.perf_counter() - start_time) * 1000
     now_str = datetime.datetime.now().strftime("%H:%M:%S")
     
-    # Filter health ping clutter or format cleanly
     path = request.url.path
-    if path != "/health":
-        print(f"[{now_str}] 📥 {request.method:<4} {path:<30} -> Status: {response.status_code} ({latency_ms:6.2f}ms)")
-        sys.stdout.flush()
+    query_str = f"?{request.url.query}" if request.url.query else ""
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    status_icon = "🟢" if response.status_code < 400 else "🔴"
+
+    print(f"[{now_str}] {status_icon} {request.method:<4} {path + query_str:<38} -> {response.status_code} ({latency_ms:5.2f}ms) [{client_ip}]")
+    sys.stdout.flush()
     return response
 
 

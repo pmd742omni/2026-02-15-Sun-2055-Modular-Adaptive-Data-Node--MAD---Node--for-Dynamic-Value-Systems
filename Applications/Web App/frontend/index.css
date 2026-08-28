@@ -1551,7 +1551,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 16px rgba(0, 229, 255, 0.2) !important;
 }
 
-/* --- AMBIENT LIVING ATMOSPHERE & AURORA ENGINE --- */
+/* --- AMBIENT LIVING ATMOSPHERE & AURORA ENGINE (HARDWARE ACCELERATED) --- */
 .ambient-aurora-container {
   position: fixed;
   inset: 0;
@@ -1560,15 +1560,18 @@ input:focus, select:focus, textarea:focus {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+  contain: strict;
+  transform: translateZ(0);
 }
 
 .ambient-aurora-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(140px);
-  opacity: 0.16;
+  filter: blur(48px);
+  opacity: 0.14;
   pointer-events: none;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
 .blob-cyan {
@@ -1599,15 +1602,15 @@ input:focus, select:focus, textarea:focus {
 }
 
 @keyframes driftAura1 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(120px, 80px) scale(1.15); }
-  100% { transform: translate(-60px, 140px) scale(0.95); }
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(120px, 80px, 0) scale(1.15); }
+  100% { transform: translate3d(-60px, 140px, 0) scale(0.95); }
 }
 
 @keyframes driftAura2 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-100px, -90px) scale(1.2); }
-  100% { transform: translate(110px, -50px) scale(0.9); }
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-100px, -90px, 0) scale(1.2); }
+  100% { transform: translate3d(110px, -50px, 0) scale(0.9); }
 }
 
 @keyframes driftAura3 {
@@ -1703,7 +1706,7 @@ input:focus, select:focus, textarea:focus {
 
 /* --- STORE LAUNCHPAD HERO & EMPTY STATES --- */
 .store-launchpad-hero {
-  padding: 42px 32px;
+  padding: 16px 20px 20px 20px;
   text-align: center;
   border-radius: 28px;
   background: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.1) 0%, rgba(16, 185, 129, 0.04) 50%, rgba(12, 18, 32, 0.96) 100%) !important;
@@ -1711,6 +1714,49 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.25);
   position: relative;
   overflow: hidden;
+  max-height: 490px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease !important;
+}
+
+.store-launchpad-ctrl-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin-bottom: 6px !important;
+  flex-shrink: 0 !important;
+  z-index: 10 !important;
+}
+
+.store-launchpad-scroll-body {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex-grow: 1 !important;
+  padding: 8px 12px 18px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(0, 229, 255, 0.4) transparent !important;
+}
+
+.store-launchpad-scroll-body::-webkit-scrollbar {
+  width: 4px;
+}
+.store-launchpad-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.store-launchpad-scroll-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.4);
+  border-radius: 9999px;
+}
+.store-launchpad-scroll-body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
 }
 
 .store-launchpad-hero::before {
@@ -1731,12 +1777,13 @@ input:focus, select:focus, textarea:focus {
 
 .store-launchpad-badge-wrapper {
   position: relative;
-  width: 96px;
-  height: 96px;
-  margin: 0 auto 16px auto;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 12px auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .store-launchpad-glow-ring {
@@ -1757,14 +1804,14 @@ input:focus, select:focus, textarea:focus {
 }
 
 .store-launchpad-icon {
-  font-size: 2.6rem;
+  font-size: 2.3rem;
   z-index: 2;
   animation: floatBounce 3s infinite ease-in-out;
 }
 
 @keyframes floatBounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50% { transform: translateY(-6px); }
 }
 
 .inline-pill-badge {
@@ -1784,27 +1831,28 @@ input:focus, select:focus, textarea:focus {
 }
 
 .store-launchpad-title {
-  font-size: 1.65rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: #ffffff;
   margin-bottom: 6px;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .store-launchpad-desc {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--text-muted);
-  max-width: 620px;
-  margin: 0 auto 24px auto;
-  line-height: 1.55;
+  max-width: 640px;
+  margin: 0 auto 20px auto;
+  line-height: 1.5;
 }
 
 .store-feature-showcase-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  max-width: 840px;
-  margin: 0 auto 28px auto;
+  max-width: 860px;
+  width: 100%;
+  margin: 0 auto 24px auto;
 }
 
 .store-feature-card {
@@ -1817,33 +1865,33 @@ input:focus, select:focus, textarea:focus {
 }
 
 .store-feature-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(0, 229, 255, 0.35);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 229, 255, 0.12);
 }
 
 .store-feature-icon-box {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   margin: 0 auto 10px auto;
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   border: 1px solid;
 }
 
 .store-feature-card h4 {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: #fff;
   margin-bottom: 4px;
   font-weight: 700;
 }
 
 .store-feature-card p {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
   line-height: 1.45;
   margin: 0;
@@ -1853,8 +1901,9 @@ input:focus, select:focus, textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
+  margin-top: 4px;
 }
 
 .btn-quickstart-preset {
