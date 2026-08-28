@@ -463,8 +463,6 @@ function initAuthSystem() {
     const p = document.getElementById('login-password').value;
     const mfa = document.getElementById('login-mfa-token')?.value.trim() || '';
     const errBox = document.getElementById('login-error');
-    const cardLogin = document.getElementById('card-login');
-    const cardJourney = document.getElementById('card-journey');
 
     if (!u || !p) {
       if (errBox) {
@@ -476,81 +474,35 @@ function initAuthSystem() {
 
     if (errBox) errBox.style.display = 'none';
 
-    // 1. Trigger Fullscreen Canvas Firework Shockwave Explosion immediately
-    triggerLaunchExplosion(btnLogin);
-
-    // 2. Begin network authentication in parallel (zero network delay)
-    const authBody = { username: u, password: p };
-    if (mfa) authBody.totp_token = mfa;
-
-    const authFetchPromise = fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(authBody)
-    });
-
-    // 3. Smooth, instant card cross-dissolve
-    if (cardLogin) {
-      cardLogin.classList.add('card-warp-out');
+    if (btnLogin) {
+      btnLogin.disabled = true;
+      btnLogin.innerHTML = `<span>Signing in...</span> 🚀`;
     }
-
-    await new Promise(r => setTimeout(r, 140));
-
-    if (cardLogin && cardJourney) {
-      cardLogin.style.display = 'none';
-      cardLogin.classList.remove('card-warp-out');
-
-      cardJourney.style.display = 'block';
-      cardJourney.classList.add('card-warp-in');
-
-      // Initialize journey display
-      const iconEl = document.getElementById('journey-icon');
-      const hlEl = document.getElementById('journey-headline');
-      const subEl = document.getElementById('journey-subtext');
-      const barEl = document.getElementById('journey-progress-bar');
-      const s3Text = document.getElementById('journey-step-3-text');
-
-      if (iconEl) iconEl.innerText = '✨';
-      if (hlEl) hlEl.innerText = 'Opening your space... ✨';
-      if (subEl) subEl.innerText = 'Checking your credentials... 🔑';
-      if (barEl) barEl.style.width = '35%';
-      if (s3Text) s3Text.innerText = '3. Getting your space ready ✨';
-
-      for (let i = 1; i <= 4; i++) {
-        const stepEl = document.getElementById(`journey-step-${i}`);
-        const sIcon = document.getElementById(`journey-step-${i}-icon`);
-        if (stepEl) stepEl.style.color = i === 1 ? '#fff' : 'var(--text-muted)';
-        if (sIcon) sIcon.innerText = i === 1 ? '⏳' : '⚪';
-      }
-    }
-
-    const resetToLoginCard = (errorMsg) => {
-      if (cardJourney && cardLogin) {
-        cardJourney.classList.remove('card-warp-in');
-        cardJourney.style.display = 'none';
-        cardLogin.style.display = 'block';
-      }
-      if (errBox) {
-        errBox.style.display = 'block';
-        errBox.innerText = errorMsg || "Authentication failed.";
-      }
-      if (btnLogin) {
-        btnLogin.disabled = false;
-        btnLogin.innerHTML = `<span id="btn-login-text">Let's Go!</span> <span id="btn-login-rocket" style="display: inline-block; animation: rocketPulse 1.8s infinite ease-in-out; font-size: 1.2rem;">🚀✨</span>`;
-      }
-    };
 
     try {
-      const res = await authFetchPromise;
+      const authBody = { username: u, password: p };
+      if (mfa) authBody.totp_token = mfa;
+
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(authBody)
+      });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ detail: "Invalid credentials." }));
         if (data.detail && data.detail.includes("MFA code required")) {
           document.getElementById('login-mfa-group').style.display = 'block';
-          resetToLoginCard("MFA Authenticator code required for this account.");
+          if (errBox) {
+            errBox.style.display = 'block';
+            errBox.innerText = "MFA Authenticator code required for this account.";
+          }
           return;
         }
-        resetToLoginCard(data.detail || "Invalid username or password.");
+        if (errBox) {
+          errBox.style.display = 'block';
+          errBox.innerText = data.detail || "Invalid username or password.";
+        }
         return;
       }
 
@@ -559,120 +511,18 @@ function initAuthSystem() {
       state.currentRole = data.role;
       updateUserUI(data);
 
-      const barEl = document.getElementById('journey-progress-bar');
-      const subEl = document.getElementById('journey-subtext');
-      const iconEl = document.getElementById('journey-icon');
-      const s1Icon = document.getElementById('journey-step-1-icon');
-      const s1El = document.getElementById('journey-step-1');
-      const s2Icon = document.getElementById('journey-step-2-icon');
-      const s2El = document.getElementById('journey-step-2');
-
-      // Milestone 1 complete: Credentials checked
-      if (s1Icon) s1Icon.innerText = '✅';
-      if (s1El) s1El.style.color = '#10b981';
-      if (s2Icon) s2Icon.innerText = '⏳';
-      if (s2El) s2El.style.color = '#fff';
-      if (iconEl) iconEl.innerText = '🌐';
-      if (subEl) subEl.innerText = 'Connecting with your community... 🌐';
-      if (barEl) barEl.style.width = '60%';
-
-      await new Promise(r => setTimeout(r, 160));
-
-      // Milestone 2 complete: Tailored to operator role with friendly language
-      const userRole = (data.role || 'guest').toLowerCase();
-      const displayName = data.full_name || data.username || 'Friend';
-
-      const roleProfiles = {
-        admin: {
-          step3Text: '3. Preparing your admin controls 👑',
-          subtext: 'Getting your admin controls ready... 👑',
-          icon: '👑',
-          toast: `Welcome back, Administrator ${displayName}! 👑✨`
-        },
-        agronomist: {
-          step3Text: '3. Preparing your farm & crops 🌾',
-          subtext: 'Loading your fields & crops... 🌾',
-          icon: '🌾',
-          toast: `Welcome back, Agronomist ${displayName}! 🌾✨`
-        },
-        guard: {
-          step3Text: '3. Preparing your security checkpoint 🛡️',
-          subtext: 'Setting up your visitor registry... 🛡️',
-          icon: '🛡️',
-          toast: `Welcome back, Officer ${displayName}! 🛡️✨`
-        },
-        merchant: {
-          step3Text: '3. Preparing your store & register 🏪',
-          subtext: 'Getting your store & register ready... 🏪',
-          icon: '🏪',
-          toast: `Welcome back, Merchant ${displayName}! 🏪✨`
-        },
-        customer: {
-          step3Text: '3. Preparing your wallet & receipts 🏦',
-          subtext: 'Loading your wallet & receipts... 🏦',
-          icon: '🏦',
-          toast: `Welcome back, ${displayName}! 🏦✨`
-        },
-        guest: {
-          step3Text: '3. Preparing the community space 🌐',
-          subtext: 'Opening up the community space... 🌐',
-          icon: '🌐',
-          toast: `Welcome, ${displayName}! 🌐✨`
-        },
-        operator: {
-          step3Text: '3. Getting your tools ready 🛠️',
-          subtext: 'Setting everything up for you... 🛠️',
-          icon: '🛠️',
-          toast: `Welcome back, ${displayName}! 🚀✨`
-        }
-      };
-
-      const profile = roleProfiles[userRole] || {
-        step3Text: '3. Getting your space ready ✨',
-        subtext: 'Setting everything up for you... ✨',
-        icon: '✨',
-        toast: `Welcome, ${displayName}! Everything is ready ✨`
-      };
-
-      const s3Icon = document.getElementById('journey-step-3-icon');
-      const s3Text = document.getElementById('journey-step-3-text');
-      const s3El = document.getElementById('journey-step-3');
-
-      if (s2Icon) s2Icon.innerText = '✅';
-      if (s2El) s2El.style.color = '#10b981';
-      if (s3Icon) s3Icon.innerText = '⏳';
-      if (s3El) s3El.style.color = '#fff';
-      if (s3Text) s3Text.innerText = profile.step3Text;
-      if (iconEl) iconEl.innerText = profile.icon;
-      if (subEl) subEl.innerText = profile.subtext;
-      if (barEl) barEl.style.width = '85%';
-
+      hideLoginOverlay();
+      ensureModulesInitialized();
       loadAllSubsystemData();
 
-      await new Promise(r => setTimeout(r, 180));
-
-      // Milestone 3 complete, Milestone 4: Ready to go!
-      const s4Icon = document.getElementById('journey-step-4-icon');
-      const s4El = document.getElementById('journey-step-4');
-      const hlEl = document.getElementById('journey-headline');
-
-      if (s3Icon) s3Icon.innerText = '✅';
-      if (s3El) s3El.style.color = '#10b981';
-      if (s4Icon) s4Icon.innerText = '🎉';
-      if (s4El) s4El.style.color = '#38bdf8';
-      if (iconEl) iconEl.innerText = '🚀';
-      if (hlEl) hlEl.innerText = `Welcome, ${displayName}! 🎉`;
-      if (subEl) subEl.innerText = "Everything is ready for you! ✨";
-      if (barEl) barEl.style.width = '100%';
-
-      await new Promise(r => setTimeout(r, 220));
-
-      if (cardJourney) cardJourney.classList.remove('card-warp-in');
-      hideLoginOverlay();
-      showSuccessToast(profile.toast, 4500);
+      const displayName = data.full_name || data.username || 'Operator';
+      showSuccessToast(`Welcome back, ${displayName}! 🚀✨`, 4000);
 
     } catch (e) {
-      resetToLoginCard(e.message || "Network error. Server might be restarting.");
+      if (errBox) {
+        errBox.style.display = 'block';
+        errBox.innerText = e.message || "Network error. Server might be restarting.";
+      }
     } finally {
       if (btnLogin) {
         btnLogin.disabled = false;
@@ -1905,30 +1755,12 @@ async function quickStartPresetStore() {
 window.quickStartPresetStore = quickStartPresetStore;
 
 function openCreateBusinessModal() {
-  openCreateBusinessWorkspace();
-}
-
-function openCreateBusinessWorkspace() {
-  const launchpad = document.getElementById('business-no-store-container');
-  const workspace = document.getElementById('business-setup-workspace-container');
-  const posTerminal = document.getElementById('pos-terminal-box');
-  const catalogBox = document.getElementById('biz-catalog-box');
-  const marketplaceBox = document.getElementById('biz-marketplace-box');
-  const inventoryBox = document.getElementById('biz-inventory-box');
-
-  if (state.activeView !== 'business') {
-    switchView('business');
-  }
-
-  if (launchpad) launchpad.style.display = 'none';
-  if (posTerminal) posTerminal.style.display = 'none';
-  if (catalogBox) catalogBox.style.display = 'none';
-  if (marketplaceBox) marketplaceBox.style.display = 'none';
-  if (inventoryBox) inventoryBox.style.display = 'none';
-
-  if (workspace) {
-    workspace.style.display = 'block';
-    workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.auth-card').forEach(m => m.style.display = 'none');
+  const overlay = document.getElementById('modal-overlay');
+  const modal = document.getElementById('modal-create-business');
+  if (overlay && modal) {
+    overlay.style.display = 'flex';
+    modal.style.display = 'block';
 
     // Reset modular fields
     state.activeBizFields = {
@@ -1956,24 +1788,7 @@ function openCreateBusinessWorkspace() {
     }, 100);
   }
 }
-
-function cancelBusinessSetupWorkspace() {
-  const workspace = document.getElementById('business-setup-workspace-container');
-  if (workspace) workspace.style.display = 'none';
-
-  const numBusinesses = (state.businesses && state.businesses.length) || 0;
-  if (numBusinesses === 0) {
-    const launchpad = document.getElementById('business-no-store-container');
-    if (launchpad) launchpad.style.display = 'block';
-  } else {
-    // Show active subview
-    const currentSub = document.querySelector('.subnav-pill.active')?.dataset.subtarget || 'pos-terminal-box';
-    switchSubView('business', currentSub);
-  }
-}
-
-window.openCreateBusinessWorkspace = openCreateBusinessWorkspace;
-window.cancelBusinessSetupWorkspace = cancelBusinessSetupWorkspace;
+window.openCreateBusinessModal = openCreateBusinessModal;
 
 function toggleBizField(fieldKey, forceState) {
   const el = document.getElementById(`biz-field-${fieldKey}`);
