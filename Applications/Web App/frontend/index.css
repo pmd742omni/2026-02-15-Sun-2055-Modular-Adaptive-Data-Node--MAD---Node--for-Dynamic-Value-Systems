@@ -738,6 +738,7 @@ body:not(.authenticated) .app-container {
   flex-grow: 1;
   min-height: 0;
   overflow-y: visible;
+  overflow-x: hidden !important;
   padding-right: 4px;
   padding-bottom: 20px;
   box-sizing: border-box;
@@ -1728,7 +1729,9 @@ input:focus, select:focus, textarea:focus {
   border: 1px solid rgba(0, 229, 255, 0.28) !important;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.25);
   position: relative;
-  overflow: visible !important;
+  overflow: hidden !important;
+  max-height: none !important;
+  height: auto !important;
   display: flex !important;
   flex-direction: column !important;
   transition: padding 0.3s ease !important;
@@ -1774,16 +1777,31 @@ input:focus, select:focus, textarea:focus {
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #00e5ff, #10b981, transparent);
-  animation: shimmerSweep 3s infinite linear;
+  left: -35%;
+  width: 35%;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.9), rgba(16, 185, 129, 0.9), transparent);
+  filter: blur(1px);
+  pointer-events: none;
+  border-radius: 9999px;
+  animation: shimmerSweep 3.5s infinite ease-in-out;
 }
 
 @keyframes shimmerSweep {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    left: -35%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.95;
+  }
+  80% {
+    opacity: 0.95;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
 }
 
 .store-launchpad-badge-wrapper {
