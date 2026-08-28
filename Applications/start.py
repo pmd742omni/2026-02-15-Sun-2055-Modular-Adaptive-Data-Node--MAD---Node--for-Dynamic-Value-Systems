@@ -113,16 +113,15 @@ def launch_browser_when_ready(port: int, use_https: bool = False, path: str = ""
     def _worker():
         protocol = "https" if use_https else "http"
         url = f"{protocol}://127.0.0.1:{port}{path}"
-        for _ in range(60):
+        for _ in range(100):
             if PreflightManager.is_port_in_use(port):
-                time.sleep(0.1)  # fast-path ready
                 print(f"\n[+] Opening web browser to Vault Node Sign-in: {url}")
                 try:
                     webbrowser.open(url)
                 except Exception as e:
                     print(f"[!] Note: Could not auto-launch browser ({e}). Please navigate to: {url}")
                 return
-            time.sleep(0.1)
+            time.sleep(0.04)
         print(f"[!] Timed out waiting for port {port} to become active.")
 
     thread = threading.Thread(target=_worker, daemon=True)

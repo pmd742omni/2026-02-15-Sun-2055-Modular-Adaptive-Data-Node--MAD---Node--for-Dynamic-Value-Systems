@@ -299,22 +299,17 @@ document.addEventListener('DOMContentLoaded', () => {
   initLoginPossibilitiesTicker();
   initNavigation();
 
-  // Discover local network addresses in non-blocking background task
-  setTimeout(() => {
-    fetchNetworkInfo();
-    pingDataNodeTelemetry();
-  }, 50);
-
   // Check active session & load data ONLY if user is authenticated
   checkActiveSession().then((user) => {
     if (user) {
       ensureModulesInitialized();
       loadAllSubsystemData();
       renderLatexInUI();
+      fetchNetworkInfo();
     }
   });
 
-  // Ticker for continuous decay update and Data Node live telemetry sync
+  // Ticker for continuous decay update and Data Node live telemetry sync (only when active)
   setInterval(() => {
     if (state.activeView === 'business' && state.user) {
       loadPosProducts();

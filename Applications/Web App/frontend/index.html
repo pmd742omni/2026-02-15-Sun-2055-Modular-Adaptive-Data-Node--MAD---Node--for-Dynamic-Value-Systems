@@ -8,8 +8,55 @@
   <link rel="alternate icon" href="./favicon.svg">
   <link rel="stylesheet" href="./index.css?v=20260828_05">
   <!-- KaTeX CSS for LaTeX Formula Rendering (Non-blocking Async) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" media="print" onload="this.media='all'" crossorigin="anonymous">
   <style>
+/* Critical Instant First-Paint Sovereign Login Styling */
+:root {
+  --bg-app: #06080d;
+  --glass-bg: rgba(20, 26, 38, 0.85);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-cyan: #00e5ff;
+  --success: #00e676;
+  --danger: #ff1744;
+  --radius-card: 28px;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #06080d;
+  color: #f8fafc;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+body:not(.authenticated) #app-main-container,
+body:not(.authenticated) .app-container {
+  display: none !important;
+}
+.auth-overlay {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #06080d;
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+  contain: strict;
+}
+.auth-card {
+  background: rgba(14, 20, 32, 0.96);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 28px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.85);
+  width: 450px;
+  max-width: 92%;
+  padding: 36px 32px;
+  box-sizing: border-box;
+}
+
 /* LaTeX & Mathematical Typography Styling */
 .katex {
   font-size: 1.05em !important;

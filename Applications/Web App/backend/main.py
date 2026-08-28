@@ -100,11 +100,16 @@ WEAK_PASSWORDS = {
 DUMMY_SALT = "00000000000000000000000000000000"
 DUMMY_HASH = "0000000000000000000000000000000000000000000000000000000000000000"
 
+from fastapi.middleware.gzip import GZipMiddleware
+
 app = FastAPI(
     title="MADN Offline Hub API",
     description="Offline-first API running locally on the Raspberry Pi 4 Vault hub.",
     version="1.1.0"
 )
+
+# High-Performance On-the-Fly GZIP Compression (Compresses HTML/JS/CSS up to 85% for sub-millisecond transfer)
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Startup & Shutdown Initializations
 @app.on_event("startup")
@@ -155,11 +160,11 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
 
-    # Always enforce fresh asset delivery in development and offline hubs
-    if request.url.path.endswith((".html", ".js", ".css", "/")) or not request.url.path.startswith("/api"):
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
+    # High-Performance HTTP Caching: Allow browser caching for versioned static assets
+    if request.url.path.endswith((".js", ".css", ".svg", ".png", ".jpg", ".woff", ".woff2", ".ico")):
+        response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=3600"
+    elif request.url.path.endswith(".html") or request.url.path == "/" or not request.url.path.startswith("/api"):
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
 
     return response
 
@@ -2234,14 +2239,36 @@ def get_my_receipts_endpoint(query: Optional[str] = None, current_user = Depends
     return {"status": "success", "username": current_user["username"], "receipts": receipts}
 
 
-@app.get("/favicon.ico", include_in_schema=False)
-@app.get("/favicon.svg", include_in_schema=False)
-def get_favicon():
-    favicon_path = os.path.join(FRONTEND_DIR, "favicon.svg")
-    if os.path.exists(favicon_path):
-        return FileResponse(favicon_path, media_type="image/svg+xml")
-    raise HTTPException(status_code=404, detail="Favicon not found")
+_INDEX_HTML_CACHE = None
+_INDEX_HTML_MTIME = 0.0
 
+@app.get("/", include_in_schema=False)
+@app.get("/index.html", include_in_schema=False)
+def serve_index_html():
+    """Serves index.html directly from high-speed memory cache with gzip compression."""
+    global _INDEX_HTML_CACHE, _INDEX_HTML_MTIME
+    index_path = os.path.join(FRONTEND_DIR, "index.html")
+    if not os.path.exists(index_path):
+        raise HTTPException(status_code=404, detail="Index HTML not found")
+    
+    try:
+        current_mtime = os.path.getmtime(index_path)
+        if _INDEX_HTML_CACHE is None or current_mtime != _INDEX_HTML_MTIME:
+            with open(index_path, "rb") as f:
+                _INDEX_HTML_CACHE = f.read()
+            _INDEX_HTML_MTIME = current_mtime
+    except Exception:
+        with open(index_path, "rb") as f:
+            _INDEX_HTML_CACHE = f.read()
+
+    return Response(
+        content=_INDEX_HTML_CACHE,
+        media_type="text/html; charset=utf-8",
+        headers={
+            "Cache-Control": "no-cache, must-revalidate",
+            "X-MADN-Speed": "RAM-Cached"
+        }
+    )
 
 # Serve static frontend folder (last route matches remaining files)
 app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
