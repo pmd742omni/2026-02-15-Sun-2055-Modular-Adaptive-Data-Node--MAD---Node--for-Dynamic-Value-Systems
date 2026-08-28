@@ -136,14 +136,28 @@ class NodeSupervisor:
         self.processes: Dict[str, subprocess.Popen] = {}
         self.running = False
 
-    def start_process(self, name: str, cmd: List[str], cwd: str, port: int):
+    def start_process(self, name: str, cmd: List[str], cwd: str, port: int, launch_in_new_terminal: bool = False):
         if PreflightManager.is_port_in_use(port):
             print(f"[!] Port {port} is already in use. Assuming {name} is running or occupied.")
             return
 
         print(f"[*] Starting {name} on port {port}...")
         try:
-            # Creationflags for Windows process group handling
+            # If launch_in_new_terminal is requested (e.g. Data Nodes on Windows), spawn in a dedicated terminal window
+            if launch_in_new_terminal and sys.platform == "win32":
+                window_title = f"MADN {name} [Port {port}] - Live Activity Tracker"
+                cmd_line = subprocess.list2cmdline(cmd)
+                full_cmd = f'cmd.exe /k "title {window_title} && {cmd_line}"'
+                proc = subprocess.Popen(
+                    full_cmd,
+                    cwd=cwd,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                )
+                self.processes[name] = proc
+                print(f"[+] Spawned dedicated terminal tracking window: [{window_title}]")
+                return
+
+            # Default / Headless fallback: process group handling with stdout multiplexing
             creation_flags = 0
             if sys.platform == "win32":
                 creation_flags = subprocess.CREATE_NEW_PROCESS_GROUP
@@ -179,8 +193,11 @@ class NodeSupervisor:
         print("\n[*] Gracefully terminating node services...")
         for name, proc in list(self.processes.items()):
             try:
-                proc.terminate()
-                proc.wait(timeout=3)
+                if sys.platform == "win32":
+                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
+                else:
+                    proc.terminate()
+                    proc.wait(timeout=3)
                 print(f"[+] Stopped {name}.")
             except Exception:
                 try:
@@ -264,6 +281,8 @@ def main():
     parser.add_argument("--no-browser", action="store_true", help="Do not automatically open web browser on startup")
     parser.add_argument("--https", action="store_true", help="Enforce HTTPS TLS encryption (Self-signed X.509 certificates)")
     parser.add_argument("--http", action="store_true", help="Launch in clean HTTP mode for zero-friction browser access (Default)")
+    parser.add_argument("--separate-terminals", action="store_true", default=True, help="Launch Data Nodes in dedicated tracking terminal windows (Default on Windows)")
+    parser.add_argument("--single-terminal", action="store_true", help="Run all node services within this single unified terminal window")
     parser.add_argument("--create-node", nargs=3, metavar=("NAME", "TYPE", "PORT"), help="Generate a new standalone portable node package (e.g. --create-node Alpha data_node 8005)")
     args = parser.parse_args()
 
@@ -293,6 +312,9 @@ def main():
         create_portable_node_cli(c_name, c_type, int(c_port))
         return
 
+    # Terminal tracking mode determination
+    use_separate_terminals = (sys.platform == "win32") and not args.single_terminal
+
     # Protocol selection (Interactive prompt if neither --http nor --https was explicitly passed)
     use_https = prompt_transport_protocol(cli_https=args.https, cli_http=args.http)
     scheme = "https" if use_https else "http"
@@ -313,8 +335,9 @@ def main():
     print("      MODULAR ADAPTIVE DATA NODE (MADN) ECOSYSTEM       ")
     print("           Portable Tri-Node Execution Platform        ")
     print("=======================================================")
-    print(f"[*] Applications Root: {APPLICATIONS_DIR}")
-    print(f"[*] Transport Protocol: {scheme.upper()}")
+    print(f"[*] Applications Root:     {APPLICATIONS_DIR}")
+    print(f"[*] Transport Protocol:    {scheme.upper()}")
+    print(f"[*] Data Node Tracking:    {'Dedicated Terminal Windows' if use_separate_terminals else 'Unified Console Stream'}")
 
     cert_file, key_file = None, None
     if use_https:
@@ -333,7 +356,7 @@ def main():
         vault_cmd = [sys.executable, "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", str(v_port)]
         if use_https and cert_file and key_file:
             vault_cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
-        supervisor.start_process("Vault-Node", vault_cmd, cwd=BACKEND_DIR, port=v_port)
+        supervisor.start_process("Vault-Node", vault_cmd, cwd=BACKEND_DIR, port=v_port, launch_in_new_terminal=False)
         if not args.no_browser:
             launch_browser_when_ready(v_port, use_https=use_https)
 
@@ -341,7 +364,7 @@ def main():
         data_cmd = [sys.executable, "data_node.py", str(d_port)]
         if use_https and cert_file and key_file:
             data_cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
-        supervisor.start_process("Data-Node-Primary", data_cmd, cwd=DATA_NODE_DIR, port=d_port)
+        supervisor.start_process("Data-Node-Primary", data_cmd, cwd=DATA_NODE_DIR, port=d_port, launch_in_new_terminal=use_separate_terminals)
 
     # Start any configured additional nodes
     for add_node in cfg.get("additional_nodes", []):
@@ -353,7 +376,7 @@ def main():
                 cmd = [sys.executable, "server.py", str(node_port)]
                 if use_https and cert_file and key_file:
                     cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
-                supervisor.start_process(node_name, cmd, cwd=node_dir, port=node_port)
+                supervisor.start_process(node_name, cmd, cwd=node_dir, port=node_port, launch_in_new_terminal=use_separate_terminals)
 
     local_ips = PreflightManager.get_local_ip_addresses()
 

@@ -23,14 +23,15 @@ FORENSIC_MODE = False
 VAULT_SECRET_KEY = b"madn-offline-vault-key-secret-2026"
 
 def get_db():
-    """Get SQLite database connection with WAL mode, busy_timeout, RAM cache, and Foreign Keys active."""
+    """Get SQLite database connection with WAL mode, busy_timeout, balanced RAM cache, and Foreign Keys active."""
     conn = sqlite3.connect(DB_PATH, timeout=10.0, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA synchronous=NORMAL;")
-    conn.execute("PRAGMA cache_size=-64000;")  # 64MB memory page cache
+    conn.execute("PRAGMA page_size=4096;")
+    conn.execute("PRAGMA cache_size=-16000;")  # 16MB balanced memory page cache
     conn.execute("PRAGMA temp_store=MEMORY;")  # Temp tables in RAM
-    conn.execute("PRAGMA mmap_size=268435456;") # 256MB Memory-Mapped I/O
+    conn.execute("PRAGMA mmap_size=67108864;")  # 64MB Memory-Mapped I/O
     conn.execute("PRAGMA busy_timeout=5000;")
     conn.execute("PRAGMA foreign_keys=ON;")
     return conn

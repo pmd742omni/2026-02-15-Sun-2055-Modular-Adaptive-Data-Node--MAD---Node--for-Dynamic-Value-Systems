@@ -22,17 +22,21 @@ logger = logging.getLogger("madn.data_node.storage")
 DB_FILENAME = "data_node.db"
 _DATA_NODE_KEY_SALT = b"MADN_DATA_NODE_STORAGE_SALT_2026"
 _DEFAULT_PASSPHRASE = "AdminPass123!"
+_CACHED_STORAGE_KEY = None
 
 def _get_storage_key(passphrase: str = _DEFAULT_PASSPHRASE) -> bytes:
-    return hashlib.scrypt(
-        passphrase.encode('utf-8'),
-        salt=_DATA_NODE_KEY_SALT,
-        n=16384,
-        r=8,
-        p=1,
-        maxmem=67108864,
-        dklen=32
-    )
+    global _CACHED_STORAGE_KEY
+    if _CACHED_STORAGE_KEY is None:
+        _CACHED_STORAGE_KEY = hashlib.scrypt(
+            passphrase.encode('utf-8'),
+            salt=_DATA_NODE_KEY_SALT,
+            n=16384,
+            r=8,
+            p=1,
+            maxmem=67108864,
+            dklen=32
+        )
+    return _CACHED_STORAGE_KEY
 
 def encrypt_data_node_payload(data_str: str, key: bytes = None) -> str:
     """Encrypts plaintext string with AES-256-GCM for storage on disk."""
@@ -95,6 +99,9 @@ class DataNodeStorage:
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA cache_size=-8000;")
+        conn.execute("PRAGMA temp_store=MEMORY;")
+        conn.execute("PRAGMA mmap_size=33554432;")
         conn.execute("PRAGMA foreign_keys=ON;")
         return conn
 

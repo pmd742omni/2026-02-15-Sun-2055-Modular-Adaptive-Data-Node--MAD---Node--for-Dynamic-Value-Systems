@@ -20,7 +20,7 @@ MULTICAST_PORT = 8001
 class BeaconBroadcaster:
     """Broadcaster sending periodic UDP multicast JSON announcements."""
 
-    def __init__(self, node_id: str, node_type: str, port: int, metadata: dict = None, interval: float = 3.0):
+    def __init__(self, node_id: str, node_type: str, port: int, metadata: dict = None, interval: float = 5.0):
         self.node_id = node_id
         self.node_type = node_type
         self.port = port
@@ -28,8 +28,14 @@ class BeaconBroadcaster:
         self.interval = interval
         self.running = False
         self.thread = None
+        self._cached_ip = None
+        self._last_ip_check = 0
 
     def _get_local_ip(self) -> str:
+        now = time.time()
+        if self._cached_ip and (now - self._last_ip_check < 60.0):
+            return self._cached_ip
+
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             # Connect to a dummy non-routable address to discover the primary outbound local IP
@@ -39,6 +45,8 @@ class BeaconBroadcaster:
             ip = "127.0.0.1"
         finally:
             s.close()
+        self._cached_ip = ip
+        self._last_ip_check = now
         return ip
 
     def _broadcast_loop(self):

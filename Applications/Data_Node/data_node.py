@@ -7,13 +7,23 @@ localized ACID data requests over FastAPI HTTP.
 
 import os
 import sys
+
+# Ensure UTF-8 formatting on Windows terminals
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+import time
+import json
 import uuid
 import logging
+import datetime
 from contextlib import asynccontextmanager
 from typing import Dict, Any, Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -37,12 +47,28 @@ broadcaster = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global broadcaster, IS_ACTIVE
-    logger.info(f"Starting Standalone Data Node: {NODE_ID} on port {NODE_PORT}")
     stats = storage.get_storage_stats()
+    
+    print("\n" + "=" * 70)
+    print(f"   MADN STANDALONE DATA NODE [{NODE_PORT}] • LIVE ACTIVITY TRACKER")
+    print("   Modular Adaptive Data Node Ecosystem — High-Performance Storage")
+    print("=" * 70)
+    print(f"  [*] Node Identifier:   {NODE_ID}")
+    print(f"  [*] Local Binding Port: {NODE_PORT}")
+    print(f"  [*] Storage Engine:    SQLite WAL (Encrypted at Rest AES-256-GCM)")
+    print(f"  [*] Storage Database:  {stats['db_path']}")
+    print(f"  [*] Free Disk Space:   {stats['free_mb']} MB available")
+    print(f"  [*] UDP Multicast:     224.0.0.251:8001 (Heartbeat: 5.0s)")
+    print(f"  [*] Currency Registry: 170+ ISO Fiats & Cryptos Active")
+    print("=" * 70)
+    print("[LIVE ACTIVITY STREAM — REAL-TIME DISCOVERY & STORAGE TELEMETRY]\n")
+    sys.stdout.flush()
+
     broadcaster = BeaconBroadcaster(
         node_id=NODE_ID,
         node_type="data_node",
         port=NODE_PORT,
+        interval=5.0,
         metadata={
             "storage_engine": "sqlite_wal",
             "free_mb": stats["free_mb"],
@@ -52,10 +78,11 @@ async def lifespan(app: FastAPI):
     )
     if IS_ACTIVE:
         broadcaster.start()
+        print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] 📡 BeaconBroadcaster active on 224.0.0.251:8001 (Interval: 5.0s)")
     yield
     if broadcaster:
         broadcaster.stop()
-    logger.info(f"Data Node {NODE_ID} shut down successfully.")
+    print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] 🛑 Data Node {NODE_ID} gracefully stopped.")
 
 
 app = FastAPI(title=f"MAD-Node Data Node - {NODE_ID}", lifespan=lifespan)
@@ -67,6 +94,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def telemetry_middleware(request: Request, call_next):
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    latency_ms = (time.perf_counter() - start_time) * 1000
+    now_str = datetime.datetime.now().strftime("%H:%M:%S")
+    
+    # Filter health ping clutter or format cleanly
+    path = request.url.path
+    if path != "/health":
+        print(f"[{now_str}] 📥 {request.method:<4} {path:<30} -> Status: {response.status_code} ({latency_ms:6.2f}ms)")
+        sys.stdout.flush()
+    return response
 
 
 class PutRecordRequest(BaseModel):
@@ -106,6 +148,7 @@ def activate_node():
     IS_ACTIVE = True
     if broadcaster and not broadcaster.running:
         broadcaster.start()
+    print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] 🟢 Node Activated: {NODE_ID}")
     return {"status": "success", "message": f"Data Node {NODE_ID} is now ACTIVE", "is_active": True}
 
 
@@ -115,6 +158,7 @@ def deactivate_node():
     IS_ACTIVE = False
     if broadcaster and broadcaster.running:
         broadcaster.stop()
+    print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] ⏸️ Node Deactivated (Standby Mode): {NODE_ID}")
     return {"status": "success", "message": f"Data Node {NODE_ID} is now DEACTIVATED (Standby)", "is_active": False}
 
 
@@ -167,7 +211,6 @@ def collect_live_currencies():
         "persisted_to_storage": stored_count,
         "mode": "online_updated" if live_updates else "air_gapped_fallback"
     }
-
 
 
 if __name__ == "__main__":
