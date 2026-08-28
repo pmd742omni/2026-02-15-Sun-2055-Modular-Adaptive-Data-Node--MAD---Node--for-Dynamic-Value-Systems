@@ -241,12 +241,35 @@ def create_portable_node_cli(name: str, node_type: str, port: int, output_dir: O
 
 def prompt_transport_protocol(cli_https: bool, cli_http: bool) -> bool:
     """
+    Prompts the operator in the terminal to select HTTP or HTTPS if no CLI flag was passed.
     Returns True for HTTPS, False for HTTP.
-    Defaults immediately to zero-friction HTTP without blocking startup.
     """
     if cli_https:
         return True
-    return False
+    if cli_http:
+        return False
+
+    # Non-interactive fallback (e.g. background automation, pipes, or tests)
+    if not sys.stdin.isatty():
+        return False
+
+    print("\n-------------------------------------------------------")
+    print("             SELECT TRANSPORT PROTOCOL                 ")
+    print("-------------------------------------------------------")
+    print("  [1] HTTP  - Recommended for Localhost / Zero Browser Warnings (Default)")
+    print("  [2] HTTPS - Encrypted TLS 1.3 for LAN / Multi-device Wi-Fi Mesh")
+    print("-------------------------------------------------------")
+    
+    try:
+        choice = input("Select protocol [1/2] (Press Enter for HTTP): ").strip()
+        if choice in ("2", "https", "HTTPS", "s", "S"):
+            print("[*] Selected: HTTPS Mode (Encrypted TLS)")
+            return True
+        print("[*] Selected: HTTP Mode (Zero-Friction Localhost)")
+        return False
+    except (EOFError, KeyboardInterrupt):
+        print("\n[*] Defaulting to HTTP Mode.")
+        return False
 
 
 def main():

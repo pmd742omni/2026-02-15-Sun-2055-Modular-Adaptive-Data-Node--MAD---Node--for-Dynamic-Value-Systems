@@ -904,7 +904,26 @@ function showLoginOverlay() {
 }
 
 function hideLoginOverlay() {
-  document.getElementById('auth-overlay').style.display = 'none';
+  document.body.classList.add('authenticated');
+  const overlay = document.getElementById('auth-overlay');
+  if (overlay) overlay.style.display = 'none';
+  const appContainer = document.getElementById('app-main-container') || document.querySelector('.app-container');
+  if (appContainer) appContainer.style.display = 'grid';
+}
+
+function showLoginOverlay() {
+  document.body.classList.remove('authenticated');
+  state.user = null;
+  const overlay = document.getElementById('auth-overlay');
+  if (overlay) overlay.style.display = 'flex';
+  const cardLogin = document.getElementById('card-login');
+  if (cardLogin) cardLogin.style.display = 'block';
+  const cardJourney = document.getElementById('card-journey');
+  if (cardJourney) cardJourney.style.display = 'none';
+  const cardRegister = document.getElementById('card-register');
+  if (cardRegister) cardRegister.style.display = 'none';
+  const appContainer = document.getElementById('app-main-container') || document.querySelector('.app-container');
+  if (appContainer) appContainer.style.display = 'none';
 }
 
 function updateUserUI(user) {
@@ -1891,12 +1910,30 @@ async function quickStartPresetStore() {
 window.quickStartPresetStore = quickStartPresetStore;
 
 function openCreateBusinessModal() {
-  document.querySelectorAll('.auth-card').forEach(m => m.style.display = 'none');
-  const overlay = document.getElementById('modal-overlay');
-  const modal = document.getElementById('modal-create-business');
-  if (overlay && modal) {
-    overlay.style.display = 'flex';
-    modal.style.display = 'block';
+  openCreateBusinessWorkspace();
+}
+
+function openCreateBusinessWorkspace() {
+  const launchpad = document.getElementById('business-no-store-container');
+  const workspace = document.getElementById('business-setup-workspace-container');
+  const posTerminal = document.getElementById('pos-terminal-box');
+  const catalogBox = document.getElementById('biz-catalog-box');
+  const marketplaceBox = document.getElementById('biz-marketplace-box');
+  const inventoryBox = document.getElementById('biz-inventory-box');
+
+  if (state.activeView !== 'business') {
+    switchView('business');
+  }
+
+  if (launchpad) launchpad.style.display = 'none';
+  if (posTerminal) posTerminal.style.display = 'none';
+  if (catalogBox) catalogBox.style.display = 'none';
+  if (marketplaceBox) marketplaceBox.style.display = 'none';
+  if (inventoryBox) inventoryBox.style.display = 'none';
+
+  if (workspace) {
+    workspace.style.display = 'block';
+    workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     // Reset modular fields
     state.activeBizFields = {
@@ -1924,6 +1961,24 @@ function openCreateBusinessModal() {
     }, 100);
   }
 }
+
+function cancelBusinessSetupWorkspace() {
+  const workspace = document.getElementById('business-setup-workspace-container');
+  if (workspace) workspace.style.display = 'none';
+
+  const numBusinesses = (state.businesses && state.businesses.length) || 0;
+  if (numBusinesses === 0) {
+    const launchpad = document.getElementById('business-no-store-container');
+    if (launchpad) launchpad.style.display = 'block';
+  } else {
+    // Show active subview
+    const currentSub = document.querySelector('.subnav-pill.active')?.dataset.subtarget || 'pos-terminal-box';
+    switchSubView('business', currentSub);
+  }
+}
+
+window.openCreateBusinessWorkspace = openCreateBusinessWorkspace;
+window.cancelBusinessSetupWorkspace = cancelBusinessSetupWorkspace;
 
 function toggleBizField(fieldKey, forceState) {
   const el = document.getElementById(`biz-field-${fieldKey}`);
@@ -2073,6 +2128,9 @@ async function submitCreateBusiness() {
     if (res.ok) {
       const data = await res.json();
       hideModals();
+      const workspace = document.getElementById('business-setup-workspace-container');
+      if (workspace) workspace.style.display = 'none';
+      document.getElementById('form-inline-create-business')?.reset();
       document.getElementById('form-create-business')?.reset();
       await loadBusinesses();
       if (data.business && data.business.id) {

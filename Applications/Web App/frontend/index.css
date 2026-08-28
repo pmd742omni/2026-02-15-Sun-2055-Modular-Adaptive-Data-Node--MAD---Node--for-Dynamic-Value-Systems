@@ -123,6 +123,11 @@ html, body {
   overflow: hidden !important;
 }
 
+/* Auth Shield: Hide main app layout when not authenticated */
+body:not(.authenticated) .app-container {
+  display: none !important;
+}
+
 /* VisionPro 3-Panel Layout Grid */
 .app-container {
   display: grid;
