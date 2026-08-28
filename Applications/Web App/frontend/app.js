@@ -520,8 +520,7 @@ function initAuthSystem() {
         body: JSON.stringify(authBody)
       });
 
-      // Stage 1: Checking credentials (~350ms)
-      await new Promise(r => setTimeout(r, 350));
+      // Stage 1: Checking credentials in real-time
       const res = await authPromise;
 
       if (!res.ok) {
@@ -540,7 +539,7 @@ function initAuthSystem() {
       state.currentRole = data.role;
       updateUserUI(data);
 
-      // Stage 2: Connecting with community (~450ms)
+      // Stage 2: Connecting with community (fast 70ms step)
       const barEl = document.getElementById('journey-progress-bar');
       const subEl = document.getElementById('journey-subtext');
       const iconEl = document.getElementById('journey-icon');
@@ -557,9 +556,9 @@ function initAuthSystem() {
       if (subEl) subEl.innerText = 'Connecting with your community nodes... 🌐';
       if (barEl) barEl.style.width = '55%';
 
-      await new Promise(r => setTimeout(r, 450));
+      await new Promise(r => setTimeout(r, 70));
 
-      // Stage 3: Preparing workspace (~450ms)
+      // Stage 3: Preparing workspace (fast 80ms step)
       const userRole = (data.role || 'guest').toLowerCase();
       const displayName = data.full_name || data.username || 'Friend';
       
@@ -574,12 +573,12 @@ function initAuthSystem() {
       if (subEl) subEl.innerText = `Preparing your ${userRole} workspace... ✨`;
       if (barEl) barEl.style.width = '80%';
 
-      // Preload subsystem data in background
+      // Preload subsystem data in parallel background
       loadAllSubsystemData();
 
-      await new Promise(r => setTimeout(r, 450));
+      await new Promise(r => setTimeout(r, 80));
 
-      // Stage 4: Ready (~350ms)
+      // Stage 4: Ready (snappy 120ms celebration)
       const s4Icon = document.getElementById('journey-step-4-icon');
       const s4El = document.getElementById('journey-step-4');
       const hlEl = document.getElementById('journey-headline');
@@ -593,7 +592,7 @@ function initAuthSystem() {
       if (subEl) subEl.innerText = "Everything is ready for you! ✨";
       if (barEl) barEl.style.width = '100%';
 
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise(r => setTimeout(r, 120));
 
       hideLoginOverlay();
       switchView(state.activeView || 'dashboard');
