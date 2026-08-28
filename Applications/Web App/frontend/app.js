@@ -194,11 +194,10 @@ const climateData = [
   { month: "December", rainfall: 90, temp: 22.1, rainyDays: 10 }
 ];
 
-// --- UNIVERSAL LATEX & MATHEMATICAL EQUATION RENDERER (FAST SCOPED EXECUTION) ---
+// --- UNIVERSAL LATEX & MATHEMATICAL EQUATION RENDERER (FAST NON-BLOCKING EXECUTION) ---
 function renderLatexInUI(rootEl) {
-  // Only target active visible section to avoid heavy global DOM traversals
   const container = rootEl || document.querySelector('.view-section.active');
-  if (!container) return;
+  if (!container || container.dataset.mathRendered) return;
 
   // 1. If KaTeX Auto-Renderer is available, run it on active view
   if (typeof window.renderMathInElement === 'function') {
@@ -210,45 +209,29 @@ function renderLatexInUI(rootEl) {
           { left: '$', right: '$', display: false },
           { left: '\\(', right: '\\)', display: false }
         ],
-        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option", "input"],
+        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option", "input", "select", "table", "tbody", "thead", "tr", "td"],
         throwOnError: false
       });
+      container.dataset.mathRendered = "true";
       return;
     } catch (e) {
       console.warn("KaTeX render notice:", e);
     }
   }
 
-  // 2. High-Fidelity Standalone Fallback Parser for offline/instant rendering
-  const mathTargets = container.querySelectorAll ? container.querySelectorAll('p, span, h1, h2, h3, h4, li, td, th') : [container];
-  const textNodes = [];
+  // 2. High-Fidelity Standalone Fallback Parser (only runs on explicit math containers)
+  const mathTargets = container.querySelectorAll('.math-expr, .katex-display, .latex-formula, [data-latex]');
+  if (!mathTargets || !mathTargets.length) return;
+
   mathTargets.forEach(el => {
-    if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'TEXTAREA', 'INPUT', 'OPTION'].includes(el.tagName)) return;
     if (el.dataset.latexRendered) return;
-    for (let node of el.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE && node.nodeValue && (/\\\(|\$\$|\$|\\\[|\\frac|\\ge|\\le|\\lambda|\\mu|\\cdot|\\text\{/.test(node.nodeValue))) {
-        textNodes.push(node);
-      }
+    el.dataset.latexRendered = "true";
+    const raw = el.innerText || el.textContent;
+    if (raw && (/\\\(|\$\$|\$|\\\[|\\frac|\\ge|\\le|\\lambda|\\mu|\\cdot|\\text\{/.test(raw))) {
+      el.innerHTML = formatLatexToHtml(raw);
     }
   });
-
-  textNodes.forEach(textNode => {
-    let raw = textNode.nodeValue;
-    if (!raw) return;
-
-    let transformed = raw.replace(/\\?\(([\s\S]*?)\\?\)|(?:\$([^\$]+?)\$)/g, (match, p1, p2) => {
-      let eq = (p1 !== undefined ? p1 : p2).trim();
-      return formatLatexToHtml(eq);
-    });
-
-    if (transformed !== raw) {
-      const span = document.createElement('span');
-      span.innerHTML = transformed;
-      if (textNode.parentNode) {
-        textNode.parentNode.replaceChild(span, textNode);
-      }
-    }
-  });
+  container.dataset.mathRendered = "true";
 }
 
 function formatLatexToHtml(latex) {
@@ -2702,31 +2685,35 @@ function handleQuickCTA() {
   }
 }
 
-function loadAllSubsystemData() {
-  loadCurrencies();
-  loadBusinesses();
-  loadCustomerWallet();
-  loadDiscoveredClusterNodes();
+async function loadAllSubsystemData() {
+  await Promise.all([
+    loadBusinesses(),
+    loadCustomerWallet(),
+    loadCurrencies()
+  ]).catch(() => {});
+
   updateDashboardLiveFeeds();
 
-  // On-demand load for current active view
-  if (state.activeView === 'business') {
+  // On-demand load strictly for current active view
+  const currentView = state.activeView || 'dashboard';
+  if (currentView === 'business') {
     loadPosProducts();
     loadMarketplaceCatalog();
-  } else if (state.activeView === 'agriculture') {
+  } else if (currentView === 'agriculture') {
     loadAgriFields();
     loadPlantings();
-  } else if (state.activeView === 'banking') {
+  } else if (currentView === 'banking') {
     loadCustomerReceipts();
     loadWalletLedger();
-  } else if (state.activeView === 'security') {
+  } else if (currentView === 'security') {
     loadActiveVisitors();
-  } else if (state.activeView === 'social') {
+  } else if (currentView === 'social') {
     loadSocialStories();
     loadSocialPosts();
-  } else if (state.activeView === 'cluster') {
+  } else if (currentView === 'cluster') {
+    loadDiscoveredClusterNodes();
     loadExportedNodePackages();
-  } else if (state.activeView === 'admin' && state.currentRole === 'admin') {
+  } else if (currentView === 'admin' && state.currentRole === 'admin') {
     loadAdminUsers();
     loadAdminDevices();
   }
@@ -4631,12 +4618,14 @@ async function loadCurrencies() {
     if (!res.ok) return;
     const data = await res.json();
     state.currencies = data.currencies || [];
-    renderAdminCurrencies();
     populateCurrencyDropdowns();
     if (state.wallet) {
       renderBankingBalances();
     }
-    searchGlobalCatalog("");
+    if (state.activeView === 'admin') {
+      renderAdminCurrencies();
+      searchGlobalCatalog("");
+    }
   } catch (e) {
     console.error("Failed to load currencies:", e);
   }
