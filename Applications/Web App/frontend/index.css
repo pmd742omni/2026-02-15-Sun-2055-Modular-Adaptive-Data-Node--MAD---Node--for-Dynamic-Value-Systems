@@ -1424,8 +1424,8 @@ input:focus, select:focus, textarea:focus {
   transform: scale(1.06) !important;
 }
 
-/* Widget Card internal layout, scrolling & collapse states */
-.widget-card {
+/* Right Column Sidebar Widget Card internal layout, scrolling & collapse states */
+.layout-col-right .widget-card {
   display: flex !important;
   flex-direction: column !important;
   max-height: 255px !important;
@@ -1511,15 +1511,13 @@ input:focus, select:focus, textarea:focus {
 
 /* Collapsed Launchpad Hero */
 .store-launchpad-hero.is-collapsed {
-  max-height: 76px !important;
-  padding: 16px 24px !important;
+  max-height: 48px !important;
+  padding: 10px 20px !important;
   overflow: hidden !important;
 }
 
-.store-launchpad-hero.is-collapsed .store-feature-showcase-grid,
-.store-launchpad-hero.is-collapsed .store-launchpad-actions,
-.store-launchpad-hero.is-collapsed .store-launchpad-desc,
-.store-launchpad-hero.is-collapsed .store-launchpad-badge-wrapper {
+.store-launchpad-hero.is-collapsed #business-launchpad-mode,
+.store-launchpad-hero.is-collapsed #business-setup-workspace-container {
   display: none !important;
 }
 
