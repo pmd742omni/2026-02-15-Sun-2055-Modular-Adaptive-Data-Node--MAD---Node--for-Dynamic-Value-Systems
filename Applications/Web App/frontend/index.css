@@ -708,20 +708,43 @@ body:not(.authenticated) .app-container {
 }
 
 /* Scrollable View Sections Below Sub-Navigation Bar */
+.app-viewport {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.3) transparent;
+}
+
+.app-viewport::-webkit-scrollbar {
+  width: 5px;
+}
+.app-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-viewport::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.3);
+  border-radius: 9999px;
+}
+.app-viewport::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+}
+
 .view-section {
   display: none;
   flex-grow: 1;
   min-height: 0;
-  overflow-y: auto;
-  padding-right: 6px;
+  overflow-y: visible;
+  padding-right: 4px;
   padding-bottom: 20px;
   box-sizing: border-box;
 }
 
 .view-section.active {
-  display: flex !important;
-  flex-direction: column;
-  gap: 20px;
+  display: block;
 }
 
 /* Custom Sleek Scrollbar for View Sections & Right Column */
@@ -1700,9 +1723,9 @@ input:focus, select:focus, textarea:focus {
 
 /* --- STORE LAUNCHPAD HERO & EMPTY STATES --- */
 .store-launchpad-hero {
-  padding: 20px 24px 26px 24px;
+  padding: 14px 20px 18px 20px;
   text-align: center;
-  border-radius: 28px;
+  border-radius: 24px;
   background: radial-gradient(ellipse at 50% 0%, rgba(0, 229, 255, 0.1) 0%, rgba(16, 185, 129, 0.04) 50%, rgba(12, 18, 32, 0.96) 100%) !important;
   border: 1px solid rgba(0, 229, 255, 0.28) !important;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.25);
@@ -1718,7 +1741,7 @@ input:focus, select:focus, textarea:focus {
   align-items: center !important;
   justify-content: space-between !important;
   width: 100% !important;
-  margin-bottom: 8px !important;
+  margin-bottom: 6px !important;
   flex-shrink: 0 !important;
   z-index: 10 !important;
 }
@@ -1767,9 +1790,9 @@ input:focus, select:focus, textarea:focus {
 
 .store-launchpad-badge-wrapper {
   position: relative;
-  width: 84px;
-  height: 84px;
-  margin: 0 auto 12px auto;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 6px auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1780,110 +1803,110 @@ input:focus, select:focus, textarea:focus {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(0, 229, 255, 0.7);
-  box-shadow: 0 0 30px rgba(0, 229, 255, 0.4), inset 0 0 15px rgba(16, 185, 129, 0.3);
+  border: 1.5px solid rgba(0, 229, 255, 0.7);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), inset 0 0 10px rgba(16, 185, 129, 0.3);
   animation: pulseGlow 2.5s infinite ease-in-out;
 }
 
 .store-launchpad-dashed-ring {
   position: absolute;
-  inset: -6px;
+  inset: -4px;
   border-radius: 50%;
-  border: 1.5px dashed rgba(16, 185, 129, 0.5);
+  border: 1px dashed rgba(16, 185, 129, 0.5);
   animation: spinSlow 14s linear infinite;
 }
 
 .store-launchpad-icon {
-  font-size: 2.3rem;
+  font-size: 1.45rem;
   z-index: 2;
   animation: floatBounce 3s infinite ease-in-out;
 }
 
 @keyframes floatBounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-4px); }
 }
 
 .inline-pill-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 14px;
+  gap: 5px;
+  padding: 2px 10px;
   background: rgba(0, 229, 255, 0.12);
   border: 1px solid rgba(0, 229, 255, 0.28);
   border-radius: 9999px;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--accent-cyan);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .store-launchpad-title {
-  font-size: 1.6rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
   letter-spacing: -0.01em;
 }
 
 .store-launchpad-desc {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  max-width: 640px;
-  margin: 0 auto 20px auto;
-  line-height: 1.5;
+  max-width: 580px;
+  margin: 0 auto 12px auto;
+  line-height: 1.35;
 }
 
 .store-feature-showcase-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  max-width: 860px;
+  gap: 10px;
+  max-width: 780px;
   width: 100%;
-  margin: 0 auto 24px auto;
+  margin: 0 auto 12px auto;
 }
 
 .store-feature-card {
-  padding: 16px 14px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 18px;
+  border-radius: 14px;
   text-align: center;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .store-feature-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(0, 229, 255, 0.35);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 229, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 229, 255, 0.12);
 }
 
 .store-feature-icon-box {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 10px auto;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 6px auto;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   border: 1px solid;
 }
 
 .store-feature-card h4 {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   color: #fff;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   font-weight: 700;
 }
 
 .store-feature-card p {
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  line-height: 1.45;
+  line-height: 1.3;
   margin: 0;
 }
 
@@ -1891,18 +1914,18 @@ input:focus, select:focus, textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .btn-quickstart-preset {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 13px 24px;
+  padding: 10px 20px;
   border-radius: 9999px;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
   background: rgba(0, 229, 255, 0.1);
   border: 1px solid rgba(0, 229, 255, 0.35);
@@ -1914,9 +1937,14 @@ input:focus, select:focus, textarea:focus {
 .btn-quickstart-preset:hover {
   background: rgba(0, 229, 255, 0.22);
   border-color: var(--accent-cyan);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 229, 255, 0.25);
-  color: #fff;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Strict Mode Isolation for Unified Store Setup Card */
+#business-launchpad-mode[style*="display: none"],
+#business-setup-workspace-container[style*="display: none"] {
+  display: none !important;
 }
 
 
