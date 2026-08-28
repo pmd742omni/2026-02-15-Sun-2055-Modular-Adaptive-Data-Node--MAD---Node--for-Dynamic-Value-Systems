@@ -1088,22 +1088,6 @@ body:not(.authenticated) .app-container {
         <p class="auth-subtitle" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Add store products with pricing, details, and optional images</p>
       </div>
       <form novalidate id="form-add-store-product" onsubmit="return false;">
-        <!-- Multi-Industry Product Inspiration Quick-Fill Bar -->
-        <div style="margin-bottom: 12px; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; padding: 8px 12px;">
-          <div style="font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-            <span>💡 Quick Product Inspiration Templates:</span>
-            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: normal;">Click to auto-fill</span>
-          </div>
-          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); color: #00e5ff;" onclick="applyProductInspiration('inverter_5kva')">⚡ 5kVA Solar Inverter</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.3); color: #c084fc;" onclick="applyProductInspiration('denim_jacket')">🛍️ Vintage Denim Jacket</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: #fbbf24;" onclick="applyProductInspiration('sourdough_bread')">☕ Artisan Sourdough Loaf</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); color: #60a5fa;" onclick="applyProductInspiration('solar_audit_service')">🛠️ Solar Efficiency Audit</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #34d399;" onclick="applyProductInspiration('maize_meal_10kg')">🌾 Roller Maize Meal 10kg</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(236,72,153,0.1); border-color: rgba(236,72,153,0.3); color: #f472b6;" onclick="applyProductInspiration('energy_drink_can')">🥤 Switch Energy Drink 500ml</button>
-          </div>
-        </div>
-
         <!-- Core Mandatory Fields -->
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
           <div style="font-size: 0.72rem; color: var(--accent-cyan); text-transform: uppercase; font-weight: 700; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
@@ -1120,7 +1104,7 @@ body:not(.authenticated) .app-container {
 
           <div style="margin-bottom: 12px;">
             <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Item Name / Title *</label>
-            <input type="text" id="store-product-name-input" class="search-input" data-dynamic-field="product_name" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Pure Sine Wave Solar Inverter 5kVA 48V" oninput="updateSystemSkuPreview()" required>
+            <input type="text" id="store-product-name-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Switch Energy Drink 500ml, Cat6 Network Cable 100m" oninput="updateSystemSkuPreview()" required>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
@@ -1152,7 +1136,6 @@ body:not(.authenticated) .app-container {
                 <option value="crates">crates</option>
                 <option value="bags">bags</option>
                 <option value="liters">liters</option>
-                <option value="hours">hours</option>
               </select>
             </div>
           </div>
@@ -1197,7 +1180,7 @@ body:not(.authenticated) .app-container {
             <button type="button" style="background: none; border: none; color: #ff5252; cursor: pointer; font-size: 0.75rem;" onclick="toggleProductField('barcode', false)">✕ Remove</button>
           </div>
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="store-product-barcode-input" class="search-input" data-dynamic-field="barcode" style="flex-grow: 1; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; font-family: monospace;" placeholder="e.g. 6009802491823 or scan hardware barcode">
+            <input type="text" id="store-product-barcode-input" class="search-input" style="flex-grow: 1; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; font-family: monospace;" placeholder="e.g. 6009802491823 or scan hardware barcode">
             <button type="button" class="btn-pill-small" onclick="generateRandomBarcode()" style="background: rgba(255,255,255,0.08); white-space: nowrap;">⚡ Generate</button>
           </div>
         </div>
@@ -1210,21 +1193,19 @@ body:not(.authenticated) .app-container {
           </div>
           <div style="margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 4px;">
             <span style="font-size: 0.7rem; color: var(--text-muted); margin-right: 4px; align-self: center;">Quick presets:</span>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Electronics', 'Solar Inverters & Batteries')">Electronics > Solar</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Retail', 'Apparel & Footwear')">Retail > Apparel</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Bakery', 'Artisan Sourdough & Pastry')">Bakery > Artisan</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Services', 'Diagnostics & Maintenance')">Services > Diagnostics</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Produce', 'Grains & Mill Feeds')">Produce > Grains</button>
-            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Drinks', 'Energy & Beverages')">Drinks > Energy</button>
+            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Drinks', 'Switch Energy Drinks')">Drinks > Energy</button>
+            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Hardware', 'Network Cables')">Hardware > Cables</button>
+            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Crops', 'Grains & Meal')">Crops > Grains</button>
+            <button type="button" class="btn-pill-small" style="font-size: 0.68rem; padding: 2px 8px; background: rgba(255,255,255,0.05);" onclick="applyCategoryPreset('Electronics', 'Solar Power')">Electronics > Solar</button>
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
               <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">Primary Category</label>
-              <input type="text" id="store-product-category-input" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Electronics, Retail, Bakery, Services, Crops" oninput="updateCatBreadcrumb(); updateSystemSkuPreview();">
+              <input type="text" id="store-product-category-input" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Drinks, Hardware, Crops" oninput="updateCatBreadcrumb(); updateSystemSkuPreview();">
             </div>
             <div>
               <label style="display: block; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">Subcategory</label>
-              <input type="text" id="store-product-subcategory-input" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Solar Inverters, Denim Workwear, Sourdough Breads" oninput="updateCatBreadcrumb()">
+              <input type="text" id="store-product-subcategory-input" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Energy Drinks, Network Cables" oninput="updateCatBreadcrumb()">
             </div>
           </div>
           <div id="store-product-cat-breadcrumb" style="margin-top: 6px; font-size: 0.72rem; color: var(--accent-cyan); font-family: monospace;"></div>
@@ -1236,7 +1217,7 @@ body:not(.authenticated) .app-container {
             <span style="font-size: 0.75rem; color: #fff; font-weight: 700;">🏢 Brand / Manufacturer</span>
             <button type="button" style="background: none; border: none; color: #ff5252; cursor: pointer; font-size: 0.75rem;" onclick="toggleProductField('brand', false)">✕ Remove</button>
           </div>
-          <input type="text" id="store-product-brand-input" class="search-input" data-dynamic-field="product_brand" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Apex Solar, Matopos Outfitters, Khumalo Millers, Ubiquiti">
+          <input type="text" id="store-product-brand-input" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Switch Energy, Seed Co, Ubiquiti, Delta Beverages">
         </div>
 
         <!-- Modular Field: Description & Specifications -->
@@ -1246,7 +1227,8 @@ body:not(.authenticated) .app-container {
             <button type="button" style="background: none; border: none; color: #ff5252; cursor: pointer; font-size: 0.75rem;" onclick="toggleProductField('specs', false)">✕ Remove</button>
           </div>
           <div style="margin-bottom: 8px;">
-            <textarea id="store-product-desc-input" class="search-input" data-dynamic-field="product_desc" style="width: 100%; height: 60px; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; resize: vertical;" placeholder="Customer-facing details, technical specs, storage instructions, or warranty..."></textarea>
+            <textarea id="store-product-desc-input" class="search-input" style="width: 100%; height: 60px; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; resize: vertical;" placeholder="Customer-facing details, storage instructions, or dimensions..."></textarea>
+          </div>
           <div id="store-product-specs-rows" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
             <!-- Key-value spec rows -->
           </div>

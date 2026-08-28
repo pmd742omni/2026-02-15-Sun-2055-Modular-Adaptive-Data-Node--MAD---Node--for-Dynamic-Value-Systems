@@ -1963,5 +1963,28 @@ input:focus, select:focus, textarea:focus {
   display: none !important;
 }
 
+/* Live Store Inspiration Engine */
+#biz-inspiration-banner {
+  background: rgba(0, 229, 255, 0.04);
+  border: 1px solid rgba(0, 229, 255, 0.16);
+  border-radius: 9999px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+#biz-inspiration-sector-badge {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  will-change: opacity, transform;
+}
+
+.biz-inspire-input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+  transition: color 0.3s ease;
+}
+
+.biz-inspire-input:focus::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
 
 

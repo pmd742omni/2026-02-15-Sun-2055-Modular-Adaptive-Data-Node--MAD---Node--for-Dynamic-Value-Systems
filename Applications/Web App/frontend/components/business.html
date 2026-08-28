@@ -59,66 +59,54 @@
               </div>
             </div>
 
-            <!-- Primary Action & Multi-Industry Quick-Start Inspiration Presets -->
-            <div class="store-launchpad-actions" style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
-              <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%;">
-                <button type="button" class="btn-pill-primary glow-launch-btn" onclick="openCreateBusinessWorkspace()" style="padding: 10px 24px; font-size: 0.9rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #0284c7); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); cursor: pointer;">
-                  <span>+ Set Up Custom Store</span>
-                  <span>🏪✨</span>
-                </button>
-              </div>
-
-              <!-- Multi-Industry Quick-Launch Inspiration Bar -->
-              <div style="margin-top: 6px; text-align: center; width: 100%;">
-                <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">⚡ 1-Click Instant Industry Presets:</div>
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
-                  <button type="button" class="btn-pill-small" style="background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.3); color: #00e5ff;" onclick="quickStartPresetStore('solar_tech')">⚡ Solar & Electronics</button>
-                  <button type="button" class="btn-pill-small" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc;" onclick="quickStartPresetStore('retail_fashion')">🛍️ Fashion & Retail</button>
-                  <button type="button" class="btn-pill-small" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24;" onclick="quickStartPresetStore('food_bakery')">☕ Artisan Bakery & Cafe</button>
-                  <button type="button" class="btn-pill-small" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa;" onclick="quickStartPresetStore('tech_services')">🛠️ Professional Services</button>
-                  <button type="button" class="btn-pill-small" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399;" onclick="quickStartPresetStore('agro_produce')">🌾 Organic Farm Store</button>
-                </div>
-              </div>
+            <!-- Primary Action & Quick-Start Buttons -->
+            <div class="store-launchpad-actions">
+              <button type="button" class="btn-pill-primary glow-launch-btn" onclick="openCreateBusinessWorkspace()" style="padding: 10px 24px; font-size: 0.9rem; font-weight: 700; background: linear-gradient(135deg, #10b981, #0284c7); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); cursor: pointer;">
+                <span>+ Set Up Your Store</span>
+                <span>🏪✨</span>
+              </button>
+              <button type="button" class="btn-quickstart-preset" onclick="quickStartPresetStore()">
+                <span>⚡ Quick-Start Farm Store (1-Click)</span>
+              </button>
             </div>
           </div>
 
-          <!-- Mode 2: Store Setup Workspace Form (Replaces Launchpad in-place when clicking '+ Set Up Custom Store') -->
+          <!-- Mode 2: Store Setup Workspace Form (Replaces Launchpad in-place when clicking '+ Set Up Your Store') -->
           <div id="business-setup-workspace-container" class="store-setup-form-wrapper" style="display: none; padding-top: 10px; width: 100%;">
-            <div style="text-align: center; margin-bottom: 18px;">
+            <div style="text-align: center; margin-bottom: 14px;">
               <h3 style="font-size: 1.35rem; margin-bottom: 4px; color: #fff;">🏪 Set Up Business / Store</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Configure your store identity, visual branding, and banking settlement</p>
+            </div>
+
+            <!-- Dynamic Live Sector Inspiration Banner -->
+            <div id="biz-inspiration-banner" style="display: flex; align-items: center; justify-content: space-between; background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 9999px; padding: 7px 16px; margin-bottom: 14px; font-size: 0.78rem; transition: all 0.3s ease; flex-wrap: wrap; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: var(--accent-cyan); font-weight: 700;">✨ Sector Inspiration:</span>
+                <span id="biz-inspiration-sector-badge" style="font-weight: 600; color: #fff; background: rgba(255,255,255,0.08); padding: 2px 10px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12);">Electronics, Hardware & Solar</span>
+              </div>
+              <span id="biz-inspiration-action-hint" style="color: var(--text-muted); font-size: 0.72rem;">Examples cycle live • Focus any field to freeze</span>
             </div>
 
             <form novalidate id="form-create-business" onsubmit="event.preventDefault(); submitCreateBusiness(); return false;">
               <!-- Mandatory Core Section -->
               <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 14px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
-                  <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px;">
-                    📌 Core Store Details (Mandatory)
-                  </div>
-                  <div style="display: flex; gap: 4px; align-items: center;">
-                    <span style="font-size: 0.68rem; color: var(--text-muted);">Inspire Form:</span>
-                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(0,229,255,0.1); color: #00e5ff;" onclick="applyStoreInspiration('solar_tech')">⚡ Electronics</button>
-                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(168,85,247,0.1); color: #c084fc;" onclick="applyStoreInspiration('retail_fashion')">🛍️ Retail</button>
-                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(245,158,11,0.1); color: #fbbf24;" onclick="applyStoreInspiration('food_bakery')">☕ Food & Cafe</button>
-                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(59,130,246,0.1); color: #60a5fa;" onclick="applyStoreInspiration('tech_services')">🛠️ Services</button>
-                    <button type="button" class="btn-pill-small" style="font-size: 0.65rem; padding: 2px 6px; background: rgba(16,185,129,0.1); color: #34d399;" onclick="applyStoreInspiration('agro_produce')">🌾 Agriculture</button>
-                  </div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+                  📌 Core Store Details (Mandatory)
                 </div>
 
                 <div style="margin-bottom: 10px;">
                   <label for="new-biz-name" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Business / Store Name *</label>
-                  <input type="text" id="new-biz-name" class="search-input" data-dynamic-field="store_name" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Apex Solar & Clean Energy Lab" required>
+                  <input type="text" id="new-biz-name" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Apex Cybernetics & Solar Depot" required>
                 </div>
 
                 <div style="margin-bottom: 10px;">
                   <label for="new-biz-tagline" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Tagline (Brief Overview) *</label>
-                  <input type="text" id="new-biz-tagline" class="search-input" data-dynamic-field="store_tagline" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Enterprise off-grid solar equipment & smart lithium storage" required>
+                  <input type="text" id="new-biz-tagline" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Off-grid solar inverters, smart sensors, and sovereign computing nodes" required>
                 </div>
 
                 <div>
                   <label for="new-biz-desc" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Detailed Store Description</label>
-                  <textarea id="new-biz-desc" class="search-input" data-dynamic-field="store_desc" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; height: 65px; resize: vertical;" placeholder="Specialized retail emporium delivering enterprise solar inverters, lithium batteries, and sovereign IoT hardware..."></textarea>
+                  <textarea id="new-biz-desc" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; height: 65px; resize: vertical;" placeholder="Comprehensive overview of products, commercial practices, and store services..."></textarea>
                 </div>
               </div>
 
@@ -180,16 +168,16 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
                   <div>
                     <label for="new-biz-phone" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Phone Number</label>
-                    <input type="text" id="new-biz-phone" class="search-input" data-dynamic-field="store_phone" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="+263 77 987 6543">
+                    <input type="text" id="new-biz-phone" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. +263 77 456 7890">
                   </div>
                   <div>
                     <label for="new-biz-email" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Email Address</label>
-                    <input type="email" id="new-biz-email" class="search-input" data-dynamic-field="store_email" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="orders@apexsolar.co.zw">
+                    <input type="email" id="new-biz-email" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. orders@apexcyber.co.zw">
                   </div>
                 </div>
                 <div>
-                  <label for="new-biz-address" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Physical Address / Plot / Stall #</label>
-                  <input type="text" id="new-biz-address" class="search-input" data-dynamic-field="store_address" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Stall 14, Apex Technology Center, Bulawayo">
+                  <label for="new-biz-address" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Physical Address / Stall / Suite #</label>
+                  <input type="text" id="new-biz-address" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Shop 12, Cyber Hub Arcade, Bulawayo CBD">
                 </div>
               </div>
 
@@ -203,19 +191,20 @@
                   <div>
                     <label for="new-biz-category" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Industry Category</label>
                     <select id="new-biz-category" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; color: #fff;">
-                      <option value="Electronics, Solar & Hardware">⚡ Electronics, Solar & Hardware</option>
-                      <option value="Consumer Retail & Apparel">🛍️ Consumer Retail & Apparel</option>
-                      <option value="Food, Bakery & Specialty Dining">🍽️ Food, Bakery & Specialty Dining</option>
-                      <option value="Professional & Technical Services">🛠️ Professional & Technical Services</option>
-                      <option value="Horticulture & Fresh Produce">🌾 Horticulture & Fresh Produce</option>
-                      <option value="Grain Milling & Animal Feeds">🌽 Grain Milling & Animal Feeds</option>
-                      <option value="Health, Wellness & Pharmacy">💊 Health, Wellness & Pharmacy</option>
-                      <option value="Community Wholesale & General Supply">📦 Community Wholesale & General Supply</option>
+                      <option value="Hardware & Technology">⚡ Electronics, Hardware & Computing</option>
+                      <option value="Bakery & Specialty Food">🥐 Bakery, Coffee & Specialty Foods</option>
+                      <option value="Community Wholesale & Retail">🛒 Supermarket, Wholesale & General Retail</option>
+                      <option value="Fashion & Apparel">👗 Apparel, Modern Fashion & Textiles</option>
+                      <option value="Automotive & Mobility">🚗 Automotive, Solar & Fleet Services</option>
+                      <option value="Creative & Digital Services">🎨 Creative Design, Media & Professional</option>
+                      <option value="Horticulture & Fresh Produce">🌾 Agriculture, Horticulture & Farm Produce</option>
+                      <option value="Health & Natural Wellness">🌿 Health, Wellness & Natural Apothecary</option>
+                      <option value="General Enterprise">🏬 General Commercial Enterprise</option>
                     </select>
                   </div>
                   <div>
                     <label for="new-biz-tax-id" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Tax ID / Business Reg #</label>
-                    <input type="text" id="new-biz-tax-id" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="ZW-2026-REG-01">
+                    <input type="text" id="new-biz-tax-id" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. ZW-2026-TECH-08">
                   </div>
                 </div>
               </div>
@@ -244,7 +233,7 @@
                 </div>
                 <div>
                   <label for="new-biz-website" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Website URL / WhatsApp Channel</label>
-                  <input type="text" id="new-biz-website" class="search-input" data-dynamic-field="store_website" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="https://apexsolar.co.zw or wa.me/263779876543">
+                  <input type="text" id="new-biz-website" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. https://apexcyber.co.zw">
                 </div>
               </div>
 
@@ -256,7 +245,7 @@
                 </div>
                 <div>
                   <label for="new-biz-hours" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Trading Schedule</label>
-                  <input type="text" id="new-biz-hours" class="search-input" data-dynamic-field="store_hours" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Mon-Fri: 08:00 - 17:30, Sat: 08:00 - 14:00">
+                  <input type="text" id="new-biz-hours" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Mon - Fri: 08:30 - 17:30 | Sat: 09:00 - 14:00">
                 </div>
               </div>
 
@@ -268,7 +257,7 @@
                 </div>
                 <div>
                   <label for="new-biz-policy" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Customer Return Terms</label>
-                  <input type="text" id="new-biz-policy" class="search-input" data-dynamic-field="store_policy" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="14-day direct replacement with receipt and warranty seal.">
+                  <input type="text" id="new-biz-policy" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. 1-year direct manufacturer warranty on all electronics.">
                 </div>
               </div>
 
@@ -281,11 +270,11 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                   <div>
                     <label for="new-biz-header" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Receipt Top Header</label>
-                    <input type="text" id="new-biz-header" class="search-input" data-dynamic-field="store_receipt_header" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Apex Solar & Hardware Solutions">
+                    <input type="text" id="new-biz-header" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Apex Cybernetics & Solar">
                   </div>
                   <div>
                     <label for="new-biz-footer" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Receipt Bottom Footer</label>
-                    <input type="text" id="new-biz-footer" class="search-input" data-dynamic-field="store_receipt_footer" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="Thank you for supporting sovereign local clean energy!">
+                    <input type="text" id="new-biz-footer" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Powering sovereign communities with decentralized tech!">
                   </div>
                 </div>
               </div>
