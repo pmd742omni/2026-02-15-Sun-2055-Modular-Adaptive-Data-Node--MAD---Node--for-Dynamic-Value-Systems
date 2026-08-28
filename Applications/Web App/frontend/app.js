@@ -2204,23 +2204,52 @@ function toggleBizField(fieldKey, forceState) {
   }
 }
 
+function compressClientImage(file, maxWidth, maxHeight, quality, callback) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth || height > maxHeight) {
+        if (width / maxWidth > height / maxHeight) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality || 0.85);
+      callback(compressedDataUrl);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 function handleBizLogoUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    state.pendingBizLogo = dataUrl;
+  compressClientImage(file, 256, 256, 0.88, function(compressedUrl) {
+    state.pendingBizLogo = compressedUrl;
     const urlInput = document.getElementById('new-biz-logo-url');
-    if (urlInput) urlInput.value = dataUrl.substring(0, 48) + '... (embedded image)';
+    if (urlInput) urlInput.value = compressedUrl.substring(0, 48) + '... (compressed asset)';
     const previewBox = document.getElementById('new-biz-logo-preview');
     const previewImg = document.getElementById('new-biz-logo-img');
     if (previewBox && previewImg) {
-      previewImg.src = dataUrl;
+      previewImg.src = compressedUrl;
       previewBox.style.display = 'block';
     }
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function handleBizLogoUrlInput(url) {
@@ -2241,20 +2270,17 @@ function handleBizLogoUrlInput(url) {
 function handleBizBannerUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    state.pendingBizBanner = dataUrl;
+  compressClientImage(file, 1000, 360, 0.84, function(compressedUrl) {
+    state.pendingBizBanner = compressedUrl;
     const urlInput = document.getElementById('new-biz-banner-url');
-    if (urlInput) urlInput.value = dataUrl.substring(0, 48) + '... (embedded banner)';
+    if (urlInput) urlInput.value = compressedUrl.substring(0, 48) + '... (compressed banner)';
     const previewBox = document.getElementById('new-biz-banner-preview');
     const previewImg = document.getElementById('new-biz-banner-img');
     if (previewBox && previewImg) {
-      previewImg.src = dataUrl;
+      previewImg.src = compressedUrl;
       previewBox.style.display = 'block';
     }
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function handleBizBannerUrlInput(url) {
