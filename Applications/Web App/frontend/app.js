@@ -2242,30 +2242,56 @@ function handleBizLogoUpload(inputEl) {
   compressClientImage(file, 256, 256, 0.88, function(compressedUrl) {
     state.pendingBizLogo = compressedUrl;
     const urlInput = document.getElementById('new-biz-logo-url');
-    if (urlInput) urlInput.value = compressedUrl.substring(0, 48) + '... (compressed asset)';
-    const previewBox = document.getElementById('new-biz-logo-preview');
+    if (urlInput) urlInput.value = compressedUrl;
     const previewImg = document.getElementById('new-biz-logo-img');
-    if (previewBox && previewImg) {
+    const placeholder = document.getElementById('new-biz-logo-placeholder');
+    const clearBtn = document.getElementById('btn-clear-logo');
+    if (previewImg) {
       previewImg.src = compressedUrl;
-      previewBox.style.display = 'block';
+      previewImg.style.display = 'block';
     }
+    if (placeholder) placeholder.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'block';
   });
 }
+window.handleBizLogoUpload = handleBizLogoUpload;
+
+function clearBizLogo() {
+  state.pendingBizLogo = '';
+  const fileInput = document.getElementById('new-biz-logo-file');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('new-biz-logo-url');
+  if (urlInput) urlInput.value = '';
+  const previewImg = document.getElementById('new-biz-logo-img');
+  const placeholder = document.getElementById('new-biz-logo-placeholder');
+  const clearBtn = document.getElementById('btn-clear-logo');
+  if (previewImg) {
+    previewImg.src = '';
+    previewImg.style.display = 'none';
+  }
+  if (placeholder) placeholder.style.display = 'flex';
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+window.clearBizLogo = clearBizLogo;
 
 function handleBizLogoUrlInput(url) {
   const clean = (url || '').trim();
   state.pendingBizLogo = clean;
-  const previewBox = document.getElementById('new-biz-logo-preview');
   const previewImg = document.getElementById('new-biz-logo-img');
-  if (previewBox && previewImg) {
-    if (clean) {
+  const placeholder = document.getElementById('new-biz-logo-placeholder');
+  const clearBtn = document.getElementById('btn-clear-logo');
+  if (clean) {
+    if (previewImg) {
       previewImg.src = clean;
-      previewBox.style.display = 'block';
-    } else {
-      previewBox.style.display = 'none';
+      previewImg.style.display = 'block';
     }
+    if (placeholder) placeholder.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'block';
+  } else {
+    clearBizLogo();
   }
 }
+window.handleBizLogoUrlInput = handleBizLogoUrlInput;
 
 function handleBizBannerUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
@@ -2273,30 +2299,56 @@ function handleBizBannerUpload(inputEl) {
   compressClientImage(file, 1000, 360, 0.84, function(compressedUrl) {
     state.pendingBizBanner = compressedUrl;
     const urlInput = document.getElementById('new-biz-banner-url');
-    if (urlInput) urlInput.value = compressedUrl.substring(0, 48) + '... (compressed banner)';
-    const previewBox = document.getElementById('new-biz-banner-preview');
+    if (urlInput) urlInput.value = compressedUrl;
     const previewImg = document.getElementById('new-biz-banner-img');
-    if (previewBox && previewImg) {
+    const placeholder = document.getElementById('new-biz-banner-placeholder');
+    const clearBtn = document.getElementById('btn-clear-banner');
+    if (previewImg) {
       previewImg.src = compressedUrl;
-      previewBox.style.display = 'block';
+      previewImg.style.display = 'block';
     }
+    if (placeholder) placeholder.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'block';
   });
 }
+window.handleBizBannerUpload = handleBizBannerUpload;
+
+function clearBizBanner() {
+  state.pendingBizBanner = '';
+  const fileInput = document.getElementById('new-biz-banner-file');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('new-biz-banner-url');
+  if (urlInput) urlInput.value = '';
+  const previewImg = document.getElementById('new-biz-banner-img');
+  const placeholder = document.getElementById('new-biz-banner-placeholder');
+  const clearBtn = document.getElementById('btn-clear-banner');
+  if (previewImg) {
+    previewImg.src = '';
+    previewImg.style.display = 'none';
+  }
+  if (placeholder) placeholder.style.display = 'flex';
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+window.clearBizBanner = clearBizBanner;
 
 function handleBizBannerUrlInput(url) {
   const clean = (url || '').trim();
   state.pendingBizBanner = clean;
-  const previewBox = document.getElementById('new-biz-banner-preview');
   const previewImg = document.getElementById('new-biz-banner-img');
-  if (previewBox && previewImg) {
-    if (clean) {
+  const placeholder = document.getElementById('new-biz-banner-placeholder');
+  const clearBtn = document.getElementById('btn-clear-banner');
+  if (clean) {
+    if (previewImg) {
       previewImg.src = clean;
-      previewBox.style.display = 'block';
-    } else {
-      previewBox.style.display = 'none';
+      previewImg.style.display = 'block';
     }
+    if (placeholder) placeholder.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'block';
+  } else {
+    clearBizBanner();
   }
 }
+window.handleBizBannerUrlInput = handleBizBannerUrlInput;
 
 async function submitCreateBusiness() {
   const name = (document.getElementById('new-biz-name')?.value || '').trim();

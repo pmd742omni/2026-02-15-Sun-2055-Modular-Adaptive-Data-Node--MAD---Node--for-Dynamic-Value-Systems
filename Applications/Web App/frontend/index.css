@@ -44,19 +44,29 @@
   scrollbar-color: rgba(0, 229, 255, 0.25) transparent;
 }
 
-/* Universal Sleek Sovereign Obsidian Glass Scrollbars */
+/* Universal Sleek Sovereign Obsidian Glass Scrollbars - Strict Arrow Suppression */
+*::-webkit-scrollbar-button,
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  background: transparent !important;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 229, 255, 0.25);
   border-radius: 9999px;
+  border: none !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -94,22 +104,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text-main);
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-cyan);
 }
 
 /* Fixed Height Screen Container with Single Subnav Scrollable Region */
@@ -1533,27 +1527,27 @@ input:focus, select:focus, textarea:focus {
   display: none !important;
 }
 
-/* Universal Panel / Card Custom Slim Micro-Scrollbars */
-.glass-panel, .dash-subview, .collapsible-bottom-widget, .visitor-table-wrapper, .table-responsive-wrapper, .view-section, .store-launchpad-hero {
+/* Specific Inner Containers Custom Slim Micro-Scrollbars */
+.visitor-table-wrapper, .table-responsive-wrapper, .dash-subview, .collapsible-bottom-widget {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 229, 255, 0.4) transparent;
 }
 
-.glass-panel::-webkit-scrollbar, .dash-subview::-webkit-scrollbar, .collapsible-bottom-widget::-webkit-scrollbar, .visitor-table-wrapper::-webkit-scrollbar, .table-responsive-wrapper::-webkit-scrollbar, .view-section::-webkit-scrollbar, .store-launchpad-hero::-webkit-scrollbar {
+.visitor-table-wrapper::-webkit-scrollbar, .table-responsive-wrapper::-webkit-scrollbar, .dash-subview::-webkit-scrollbar, .collapsible-bottom-widget::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
-.glass-panel::-webkit-scrollbar-track, .dash-subview::-webkit-scrollbar-track, .visitor-table-wrapper::-webkit-scrollbar-track, .store-launchpad-hero::-webkit-scrollbar-track {
+.visitor-table-wrapper::-webkit-scrollbar-track, .table-responsive-wrapper::-webkit-scrollbar-track, .dash-subview::-webkit-scrollbar-track, .collapsible-bottom-widget::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.glass-panel::-webkit-scrollbar-thumb, .dash-subview::-webkit-scrollbar-thumb, .visitor-table-wrapper::-webkit-scrollbar-thumb, .store-launchpad-hero::-webkit-scrollbar-thumb {
+.visitor-table-wrapper::-webkit-scrollbar-thumb, .table-responsive-wrapper::-webkit-scrollbar-thumb, .dash-subview::-webkit-scrollbar-thumb, .collapsible-bottom-widget::-webkit-scrollbar-thumb {
   background: rgba(0, 229, 255, 0.35);
   border-radius: 9999px;
 }
 
-.glass-panel::-webkit-scrollbar-thumb:hover, .dash-subview::-webkit-scrollbar-thumb:hover, .visitor-table-wrapper::-webkit-scrollbar-thumb:hover, .store-launchpad-hero::-webkit-scrollbar-thumb:hover {
+.visitor-table-wrapper::-webkit-scrollbar-thumb:hover, .table-responsive-wrapper::-webkit-scrollbar-thumb:hover, .dash-subview::-webkit-scrollbar-thumb:hover, .collapsible-bottom-widget::-webkit-scrollbar-thumb:hover {
   background: var(--accent-cyan);
   box-shadow: 0 0 10px var(--accent-cyan);
 }
