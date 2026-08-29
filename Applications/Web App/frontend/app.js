@@ -2130,10 +2130,8 @@ async function openCreateBusinessWorkspace() {
 
   state.pendingBizLogo = '';
   state.pendingBizBanner = '';
-  const logoPrev = document.getElementById('new-biz-logo-preview');
-  const bannerPrev = document.getElementById('new-biz-banner-preview');
-  if (logoPrev) logoPrev.style.display = 'none';
-  if (bannerPrev) bannerPrev.style.display = 'none';
+  clearBizLogo();
+  clearBizBanner();
 
   // Trigger dynamic live inspiration ticker
   setTimeout(() => {
@@ -2239,20 +2237,31 @@ function compressClientImage(file, maxWidth, maxHeight, quality, callback) {
 function handleBizLogoUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  compressClientImage(file, 256, 256, 0.88, function(compressedUrl) {
-    state.pendingBizLogo = compressedUrl;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawDataUrl = e.target.result;
+    state.pendingBizLogo = rawDataUrl;
     const urlInput = document.getElementById('new-biz-logo-url');
-    if (urlInput) urlInput.value = compressedUrl;
+    if (urlInput) urlInput.value = rawDataUrl;
     const previewImg = document.getElementById('new-biz-logo-img');
     const placeholder = document.getElementById('new-biz-logo-placeholder');
     const clearBtn = document.getElementById('btn-clear-logo');
     if (previewImg) {
-      previewImg.src = compressedUrl;
+      previewImg.src = rawDataUrl;
       previewImg.style.display = 'block';
     }
     if (placeholder) placeholder.style.display = 'none';
     if (clearBtn) clearBtn.style.display = 'block';
-  });
+
+    // Compress in background for lightweight database payload
+    compressClientImage(file, 256, 256, 0.88, function(compressedUrl) {
+      if (compressedUrl) {
+        state.pendingBizLogo = compressedUrl;
+        if (urlInput) urlInput.value = compressedUrl;
+      }
+    });
+  };
+  reader.readAsDataURL(file);
 }
 window.handleBizLogoUpload = handleBizLogoUpload;
 
@@ -2296,20 +2305,31 @@ window.handleBizLogoUrlInput = handleBizLogoUrlInput;
 function handleBizBannerUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  compressClientImage(file, 1000, 360, 0.84, function(compressedUrl) {
-    state.pendingBizBanner = compressedUrl;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawDataUrl = e.target.result;
+    state.pendingBizBanner = rawDataUrl;
     const urlInput = document.getElementById('new-biz-banner-url');
-    if (urlInput) urlInput.value = compressedUrl;
+    if (urlInput) urlInput.value = rawDataUrl;
     const previewImg = document.getElementById('new-biz-banner-img');
     const placeholder = document.getElementById('new-biz-banner-placeholder');
     const clearBtn = document.getElementById('btn-clear-banner');
     if (previewImg) {
-      previewImg.src = compressedUrl;
+      previewImg.src = rawDataUrl;
       previewImg.style.display = 'block';
     }
     if (placeholder) placeholder.style.display = 'none';
     if (clearBtn) clearBtn.style.display = 'block';
-  });
+
+    // Compress in background for lightweight database payload
+    compressClientImage(file, 1000, 360, 0.84, function(compressedUrl) {
+      if (compressedUrl) {
+        state.pendingBizBanner = compressedUrl;
+        if (urlInput) urlInput.value = compressedUrl;
+      }
+    });
+  };
+  reader.readAsDataURL(file);
 }
 window.handleBizBannerUpload = handleBizBannerUpload;
 
@@ -3120,7 +3140,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260828_15`)
+      fetch(`./components/${v}.html?v=20260828_2137`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3135,7 +3155,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260828_15`);
+      const res = await fetch(`./components/${target}.html?v=20260828_2137`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {

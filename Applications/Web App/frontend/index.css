@@ -41,36 +41,73 @@
   margin: 0;
   padding: 0;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 229, 255, 0.25) transparent;
+  scrollbar-color: rgba(0, 229, 255, 0.4) rgba(0, 229, 255, 0.05);
 }
 
-/* Universal Sleek Sovereign Obsidian Glass Scrollbars - Strict Arrow Suppression */
-*::-webkit-scrollbar-button,
-::-webkit-scrollbar-button {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  opacity: 0 !important;
-  background: transparent !important;
-}
-
+/* Sovereign Obsidian Glass Scrollbars with Clean Integrated Up/Down Arrow Buttons */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent !important;
+  background: rgba(0, 229, 255, 0.04) !important;
+  border-radius: 9999px;
+  margin: 3px 0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.25);
+  background: linear-gradient(180deg, #00e5ff, #10b981) !important;
   border-radius: 9999px;
   border: none !important;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.35);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 229, 255, 0.6);
+  background: linear-gradient(180deg, #38bdf8, #34d399) !important;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.7);
+}
+
+/* Up Arrow Button (▲) */
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+  display: block !important;
+  height: 14px;
+  width: 7px;
+  background-color: rgba(14, 20, 32, 0.95) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='18 15 12 9 6 15'></polyline></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
+  background-color: rgba(0, 229, 255, 0.25) !important;
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+/* Down Arrow Button (▼) */
+::-webkit-scrollbar-button:single-button:vertical:increment {
+  display: block !important;
+  height: 14px;
+  width: 7px;
+  background-color: rgba(14, 20, 32, 0.95) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  border-radius: 4px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar-button:single-button:vertical:increment:hover {
+  background-color: rgba(0, 229, 255, 0.25) !important;
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
 }
 
 ::-webkit-scrollbar-corner {
