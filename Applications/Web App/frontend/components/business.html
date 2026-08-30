@@ -128,53 +128,64 @@
               </div>
 
               <!-- Modular Container: Visual Branding (Logo & Banner) -->
-              <div id="biz-field-branding" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(167,139,250,0.25); border-radius: 16px; padding: 16px; margin-bottom: 14px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                  <span style="font-size: 0.8rem; font-weight: 700; color: #c4b5fd;">🖼️ Visual Brand Assets (Logo & Banner)</span>
+              <div id="biz-field-branding" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(167,139,250,0.3); border-radius: 18px; padding: 18px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
+                  <span style="font-size: 0.85rem; font-weight: 700; color: #c4b5fd; display: flex; align-items: center; gap: 6px;">🖼️ Visual Brand Assets (Store Logo & Hero Banner)</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.68rem; background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.35);" onclick="toggleBizField('branding')">✕ Remove</button>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
-                  <!-- Store Logo Column -->
-                  <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; align-items: center; text-align: center;">
-                    <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #e2e8f0; margin-bottom: 8px;">Store Logo</label>
-                    
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                  
+                  <!-- Row 1: Store Logo (Badge + Upload Buttons) -->
+                  <div style="background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                     <!-- Logo Preview Box -->
-                    <div id="new-biz-logo-preview" style="margin-bottom: 10px;">
-                      <img id="new-biz-logo-img" src="" alt="Logo Preview" style="width: 80px; height: 80px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(167,139,250,0.6); box-shadow: 0 4px 14px rgba(0,0,0,0.5); display: none;">
-                      <div id="new-biz-logo-placeholder" style="width: 80px; height: 80px; border-radius: 16px; border: 2px dashed rgba(167,139,250,0.4); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #a78bfa; background: rgba(167,139,250,0.06);">
-                        🏪
+                    <div id="new-biz-logo-preview" style="flex-shrink: 0;">
+                      <img id="new-biz-logo-img" src="" alt="Logo Preview" style="width: 88px; height: 88px; border-radius: 18px; object-fit: cover; border: 2px solid rgba(167,139,250,0.7); box-shadow: 0 4px 16px rgba(0,0,0,0.6); display: none;">
+                      <div id="new-biz-logo-placeholder" style="width: 88px; height: 88px; border-radius: 18px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.72rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 4px;">
+                        <span style="font-size: 1.6rem; margin-bottom: 2px;">🏪</span>
+                        <span>No Logo</span>
                       </div>
                     </div>
 
-                    <input type="file" id="new-biz-logo-file" accept="image/*" style="display: none;" onchange="handleBizLogoUpload(this)">
-                    <div style="display: flex; gap: 6px; width: 100%;">
-                      <button type="button" class="btn-pill-small" onclick="document.getElementById('new-biz-logo-file').click()" style="flex: 1; padding: 7px 10px; font-size: 0.75rem; background: rgba(167,139,250,0.2); border: 1px solid rgba(167,139,250,0.45); color: #c4b5fd; font-weight: 600;">Upload Logo 📁</button>
-                      <button type="button" id="btn-clear-logo" class="btn-pill-small" onclick="clearBizLogo()" style="display: none; padding: 7px 10px; font-size: 0.75rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); color: #f87171;">✕</button>
+                    <div style="flex-grow: 1; min-width: 200px;">
+                      <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px;">Store Identity Logo</label>
+                      <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0 0 10px 0;">Square avatar badge displayed on storefronts, POS terminals, and customer receipts.</p>
+                      
+                      <input type="file" id="new-biz-logo-file" accept="image/*" style="display: none;" onchange="handleBizLogoUpload(this)">
+                      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button type="button" class="btn-pill-small" onclick="document.getElementById('new-biz-logo-file').click()" style="padding: 8px 14px; font-size: 0.78rem; background: rgba(167,139,250,0.25); border: 1px solid rgba(167,139,250,0.5); color: #c4b5fd; font-weight: 700; cursor: pointer;">Upload Store Logo 📁</button>
+                        <button type="button" id="btn-clear-logo" class="btn-pill-small" onclick="clearBizLogo()" style="display: none; padding: 8px 12px; font-size: 0.78rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); color: #f87171; cursor: pointer;">✕ Remove Logo</button>
+                      </div>
+                      <input type="hidden" id="new-biz-logo-url" value="">
                     </div>
-                    <input type="hidden" id="new-biz-logo-url" value="">
                   </div>
 
-                  <!-- Storefront Banner Column -->
-                  <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; align-items: center; text-align: center;">
-                    <label style="display: block; font-size: 0.78rem; font-weight: 600; color: #e2e8f0; margin-bottom: 8px;">Storefront Hero Banner</label>
-
-                    <!-- Banner Preview Box -->
-                    <div id="new-biz-banner-preview" style="width: 100%; margin-bottom: 10px;">
-                      <img id="new-biz-banner-img" src="" alt="Banner Preview" style="width: 100%; height: 110px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(167,139,250,0.6); box-shadow: 0 6px 18px rgba(0,0,0,0.5); display: none;">
-                      <div id="new-biz-banner-placeholder" style="width: 100%; height: 110px; border-radius: 12px; border: 2px dashed rgba(167,139,250,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.82rem; color: #a78bfa; background: rgba(167,139,250,0.06);">
-                        <span style="font-size: 1.6rem; margin-bottom: 2px;">🌄</span>
-                        <span>Upload panoramic storefront banner</span>
+                  <!-- Row 2: Storefront Hero Banner (Full-Width Panoramic) -->
+                  <div style="background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                      <div>
+                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #e2e8f0; margin-bottom: 2px;">Storefront Hero Banner (Panoramic Cover)</label>
+                        <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0;">Wide panoramic showcase banner displayed at the top of your digital marketplace storefront.</p>
+                      </div>
+                      <div style="display: flex; gap: 8px;">
+                        <input type="file" id="new-biz-banner-file" accept="image/*" style="display: none;" onchange="handleBizBannerUpload(this)">
+                        <button type="button" class="btn-pill-small" onclick="document.getElementById('new-biz-banner-file').click()" style="padding: 8px 14px; font-size: 0.78rem; background: rgba(167,139,250,0.25); border: 1px solid rgba(167,139,250,0.5); color: #c4b5fd; font-weight: 700; cursor: pointer;">Upload Banner 🌄</button>
+                        <button type="button" id="btn-clear-banner" class="btn-pill-small" onclick="clearBizBanner()" style="display: none; padding: 8px 12px; font-size: 0.78rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); color: #f87171; cursor: pointer;">✕ Remove Banner</button>
                       </div>
                     </div>
 
-                    <input type="file" id="new-biz-banner-file" accept="image/*" style="display: none;" onchange="handleBizBannerUpload(this)">
-                    <div style="display: flex; gap: 6px; width: 100%;">
-                      <button type="button" class="btn-pill-small" onclick="document.getElementById('new-biz-banner-file').click()" style="flex: 1; padding: 7px 10px; font-size: 0.75rem; background: rgba(167,139,250,0.2); border: 1px solid rgba(167,139,250,0.45); color: #c4b5fd; font-weight: 600;">Upload Banner 🌄</button>
-                      <button type="button" id="btn-clear-banner" class="btn-pill-small" onclick="clearBizBanner()" style="display: none; padding: 7px 10px; font-size: 0.75rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); color: #f87171;">✕</button>
+                    <!-- Full-Width Panoramic Banner Preview Box -->
+                    <div id="new-biz-banner-preview" style="width: 100%; min-height: 140px; border-radius: 14px; overflow: hidden; position: relative;">
+                      <img id="new-biz-banner-img" src="" alt="Banner Preview" style="width: 100%; height: 160px; border-radius: 14px; object-fit: cover; object-position: center; border: 2px solid rgba(167,139,250,0.7); box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: none;">
+                      <div id="new-biz-banner-placeholder" style="width: 100%; height: 140px; border-radius: 14px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.82rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 12px;">
+                        <span style="font-size: 2rem; margin-bottom: 4px;">🌄</span>
+                        <span style="font-weight: 600; color: #c4b5fd;">No Storefront Hero Banner Uploaded</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Click "Upload Banner" to select a panoramic image from your device</span>
+                      </div>
                     </div>
                     <input type="hidden" id="new-biz-banner-url" value="">
                   </div>
+
                 </div>
               </div>
 

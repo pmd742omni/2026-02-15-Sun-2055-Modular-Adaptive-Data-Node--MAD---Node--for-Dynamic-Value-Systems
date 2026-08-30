@@ -2203,7 +2203,7 @@ function toggleBizField(fieldKey, forceState) {
 }
 
 function compressClientImage(file, maxWidth, maxHeight, quality, callback) {
-  if (!file || !file.type.startsWith('image/')) return;
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
@@ -2222,11 +2222,14 @@ function compressClientImage(file, maxWidth, maxHeight, quality, callback) {
         }
       }
 
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = Math.max(1, width);
+      canvas.height = Math.max(1, height);
       const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, width, height);
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality || 0.85);
+      const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      const compressedDataUrl = canvas.toDataURL(mime, quality || 0.88);
       callback(compressedDataUrl);
     };
     img.src = e.target.result;
@@ -2251,7 +2254,7 @@ function handleBizLogoUpload(inputEl) {
       previewImg.style.display = 'block';
     }
     if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'inline-block';
 
     // Compress in background for lightweight database payload
     compressClientImage(file, 256, 256, 0.88, function(compressedUrl) {
@@ -2295,7 +2298,7 @@ function handleBizLogoUrlInput(url) {
       previewImg.style.display = 'block';
     }
     if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'inline-block';
   } else {
     clearBizLogo();
   }
@@ -2319,10 +2322,10 @@ function handleBizBannerUpload(inputEl) {
       previewImg.style.display = 'block';
     }
     if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'inline-block';
 
-    // Compress in background for lightweight database payload
-    compressClientImage(file, 1000, 360, 0.84, function(compressedUrl) {
+    // Compress in background for lightweight database payload (wide panoramic 1200x480)
+    compressClientImage(file, 1200, 480, 0.88, function(compressedUrl) {
       if (compressedUrl) {
         state.pendingBizBanner = compressedUrl;
         if (urlInput) urlInput.value = compressedUrl;
@@ -2363,7 +2366,7 @@ function handleBizBannerUrlInput(url) {
       previewImg.style.display = 'block';
     }
     if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'inline-block';
   } else {
     clearBizBanner();
   }
@@ -3140,7 +3143,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260828_2137`)
+      fetch(`./components/${v}.html?v=20260830_1856`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3155,7 +3158,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260828_2137`);
+      const res = await fetch(`./components/${target}.html?v=20260830_1856`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
