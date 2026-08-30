@@ -744,39 +744,25 @@ body:not(.authenticated) .app-container {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 229, 255, 0.3) transparent;
-}
-
-.app-viewport::-webkit-scrollbar {
-  width: 5px;
-}
-.app-viewport::-webkit-scrollbar-track {
-  background: transparent;
-}
-.app-viewport::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.3);
-  border-radius: 9999px;
-}
-.app-viewport::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-cyan);
+  overflow: hidden !important;
 }
 
 .view-section {
   display: none;
   flex-grow: 1;
   min-height: 0;
-  overflow-y: visible;
-  overflow-x: hidden !important;
-  padding-right: 4px;
-  padding-bottom: 20px;
+  overflow: hidden !important;
+  padding-right: 0;
+  padding-bottom: 0;
   box-sizing: border-box;
 }
 
 .view-section.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+  height: 100%;
 }
 
 /* Custom Sleek Scrollbar for View Sections & Right Column */
@@ -1751,7 +1737,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 12px rgba(168, 85, 247, 0.1);
 }
 
-/* --- STORE LAUNCHPAD HERO & EMPTY STATES --- */
+/* --- STORE LAUNCHPAD HERO & EMPTY STATES (PILL-CONTAINED SCROLLING WITH INTEGRATED ARROWS) --- */
 .store-launchpad-hero {
   padding: 18px 24px 22px 24px !important;
   text-align: center;
@@ -1760,13 +1746,78 @@ input:focus, select:focus, textarea:focus {
   border: 1px solid rgba(0, 229, 255, 0.28) !important;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.25);
   position: relative;
-  overflow: visible !important;
-  max-height: none !important;
-  height: auto !important;
+  max-height: calc(100vh - 165px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   display: flex !important;
   flex-direction: column !important;
   transition: all 0.3s ease !important;
   box-sizing: border-box !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.45) rgba(0, 229, 255, 0.05);
+}
+
+.store-launchpad-hero::-webkit-scrollbar {
+  width: 7px;
+}
+
+.store-launchpad-hero::-webkit-scrollbar-track {
+  background: rgba(0, 229, 255, 0.04) !important;
+  border-radius: 9999px;
+  margin: 6px 0;
+}
+
+.store-launchpad-hero::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00e5ff, #10b981) !important;
+  border-radius: 9999px;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+}
+
+.store-launchpad-hero::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #38bdf8, #34d399) !important;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.7);
+}
+
+.store-launchpad-hero::-webkit-scrollbar-button:single-button:vertical:decrement {
+  display: block !important;
+  height: 14px;
+  width: 7px;
+  background-color: rgba(14, 20, 32, 0.95) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='18 15 12 9 6 15'></polyline></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  border-radius: 4px;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+.store-launchpad-hero::-webkit-scrollbar-button:single-button:vertical:decrement:hover {
+  background-color: rgba(0, 229, 255, 0.25) !important;
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+.store-launchpad-hero::-webkit-scrollbar-button:single-button:vertical:increment {
+  display: block !important;
+  height: 14px;
+  width: 7px;
+  background-color: rgba(14, 20, 32, 0.95) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%2300e5ff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  border-radius: 4px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.store-launchpad-hero::-webkit-scrollbar-button:single-button:vertical:increment:hover {
+  background-color: rgba(0, 229, 255, 0.25) !important;
+  border-color: #00e5ff !important;
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
 }
 
 .store-launchpad-ctrl-bar {
@@ -1798,20 +1849,6 @@ input:focus, select:focus, textarea:focus {
   max-height: none !important;
   height: auto !important;
   padding-top: 4px !important;
-}
-
-.store-launchpad-scroll-body::-webkit-scrollbar {
-  width: 4px;
-}
-.store-launchpad-scroll-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-.store-launchpad-scroll-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.4);
-  border-radius: 9999px;
-}
-.store-launchpad-scroll-body::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-cyan);
 }
 
 .store-launchpad-hero::before {
