@@ -44,6 +44,22 @@
   scrollbar-color: rgba(0, 229, 255, 0.4) rgba(0, 229, 255, 0.05);
 }
 
+/* Authentication Presentation & Single-Card Containment */
+.auth-overlay {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.auth-card {
+  margin: auto !important;
+}
+
+.hidden, [hidden] {
+  display: none !important;
+}
+
 /* Sovereign Obsidian Glass Scrollbars with Clean Integrated Up/Down Arrow Buttons */
 ::-webkit-scrollbar {
   width: 7px;

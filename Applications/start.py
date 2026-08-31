@@ -14,6 +14,19 @@ Features:
 
 import os
 import sys
+import types
+
+# Windows AppLocker / Application Control resilience stub for uvicorn/multiprocessing
+try:
+    import _multiprocessing
+except ImportError:
+    m = types.ModuleType('_multiprocessing')
+    m.win32 = types.ModuleType('win32')
+    m.closesocket = lambda s: None
+    m.recv = lambda *a: b''
+    m.send = lambda *a: None
+    m.sem_unlink = lambda *a: None
+    sys.modules['_multiprocessing'] = m
 
 # Ensure UTF-8 output formatting on Windows terminals
 if hasattr(sys.stdout, "reconfigure"):
@@ -366,9 +379,12 @@ def main():
     start_data = not args.vault_only
 
     if start_vault:
-        vault_cmd = [sys.executable, "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", str(v_port)]
+        vault_cmd = [sys.executable, "run_vault.py"]
         if use_https and cert_file and key_file:
-            vault_cmd.extend(["--ssl-keyfile", key_file, "--ssl-certfile", cert_file])
+            os.environ["MADN_HTTPS_ENABLED"] = "1"
+            os.environ["MADN_SSL_KEYFILE"] = key_file
+            os.environ["MADN_SSL_CERTFILE"] = cert_file
+        os.environ["MADN_VAULT_PORT"] = str(v_port)
         supervisor.start_process("Vault-Node", vault_cmd, cwd=BACKEND_DIR, port=v_port, launch_in_new_terminal=False)
         if not no_browser:
             launch_browser_when_ready(v_port, use_https=use_https)

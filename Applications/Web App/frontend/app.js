@@ -468,10 +468,10 @@ function initAuthSystem() {
     const cardLogin = document.getElementById('card-login');
     const cardJourney = document.getElementById('card-journey');
 
-    // 1. Show card-journey immediately
+    // 1. Show card-journey strictly as single active card
     if (cardLogin && cardJourney) {
-      cardLogin.style.display = 'none';
-      cardJourney.style.display = 'block';
+      cardLogin.style.setProperty('display', 'none', 'important');
+      cardJourney.style.setProperty('display', 'block', 'important');
 
       // Reset journey elements
       const iconEl = document.getElementById('journey-icon');
@@ -494,8 +494,8 @@ function initAuthSystem() {
 
     const resetToLoginCard = (errorMsg) => {
       if (cardJourney && cardLogin) {
-        cardJourney.style.display = 'none';
-        cardLogin.style.display = 'block';
+        cardJourney.style.setProperty('display', 'none', 'important');
+        cardLogin.style.setProperty('display', 'block', 'important');
       }
       if (errBox) {
         errBox.style.display = 'block';
@@ -513,15 +513,20 @@ function initAuthSystem() {
       const authBody = { username: u, password: p };
       if (mfa) authBody.totp_token = mfa;
 
-      // Start auth request in parallel
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      // Start auth request in parallel with timeout protection
       const authPromise = fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(authBody)
+        body: JSON.stringify(authBody),
+        signal: controller.signal
       });
 
       // Stage 1: Checking credentials in real-time
       const res = await authPromise;
+      clearTimeout(timeoutId);
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ detail: "Invalid credentials." }));

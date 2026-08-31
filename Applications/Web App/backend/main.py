@@ -1,5 +1,19 @@
 import os
 import sys
+import types
+
+# Windows AppLocker / Application Control resilience stub for uvicorn/multiprocessing
+try:
+    import _multiprocessing
+except ImportError:
+    m = types.ModuleType('_multiprocessing')
+    m.win32 = types.ModuleType('win32')
+    m.closesocket = lambda s: None
+    m.recv = lambda *a: b''
+    m.send = lambda *a: None
+    m.sem_unlink = lambda *a: None
+    sys.modules['_multiprocessing'] = m
+
 import secrets
 import time
 import uuid
