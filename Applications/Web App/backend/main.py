@@ -141,6 +141,13 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 @app.on_event("startup")
 def startup_event():
     init_db()
+    try:
+        with get_db() as db:
+            cutoff = int(time.time()) - 24 * 3600
+            db.execute("DELETE FROM sessions WHERE last_seen_at < ?", (cutoff,))
+            db.commit()
+    except Exception:
+        pass
     discovery_manager.start()
 
 @app.on_event("shutdown")
@@ -214,6 +221,13 @@ async def csrf_validation(request: Request, call_next):
 # Helper: Get current authenticated user
 async def get_current_user(request: Request):
     session_token = request.cookies.get("madn_session")
+    if not session_token:
+        auth_hdr = request.headers.get("Authorization", "")
+        if auth_hdr.startswith("Bearer "):
+            session_token = auth_hdr[7:].strip()
+        elif request.headers.get("X-Session-Token"):
+            session_token = request.headers.get("X-Session-Token").strip()
+
     if not session_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
         
@@ -468,7 +482,8 @@ async def login(payload: LoginPayload, request: Request, response: Response):
         "avatar_url": decrypt_vault_payload(user["avatar_url"]) or "",
         "role": user["role"],
         "must_change_password": user["must_change_password"],
-        "mfa_enrolled": bool(user["mfa_secret"])
+        "mfa_enrolled": bool(user["mfa_secret"]),
+        "session_token": session_token
     }
 
 @app.post("/api/auth/step-up")

@@ -327,6 +327,14 @@ async function secureFetch(url, options = {}) {
   if (csrfToken) {
     options.headers["X-CSRF-Token"] = csrfToken;
   }
+  let sessionToken = null;
+  try {
+    sessionToken = sessionStorage.getItem("madn_session_token") || localStorage.getItem("madn_session_token");
+  } catch (e) {}
+  if (sessionToken) {
+    if (!options.headers["X-Session-Token"]) options.headers["X-Session-Token"] = sessionToken;
+    if (!options.headers["Authorization"]) options.headers["Authorization"] = `Bearer ${sessionToken}`;
+  }
   if (!options.headers["Content-Type"] && !(options.body instanceof FormData)) {
     options.headers["Content-Type"] = "application/json";
   }
@@ -337,9 +345,6 @@ async function secureFetch(url, options = {}) {
   try {
     const response = await fetch(url, options);
     if (response.status === 401) {
-      if (state.user && !window._isAuthTransitioning) {
-        showLoginOverlay(false);
-      }
       throw new Error("Unauthorized");
     }
     if (response.status === 403) {
@@ -562,6 +567,12 @@ function initAuthSystem() {
 
     // --- FROM THIS POINT FORWARD, OPERATOR IS FULLY AUTHENTICATED ---
     try {
+      if (authData.session_token) {
+        try {
+          sessionStorage.setItem("madn_session_token", authData.session_token);
+          localStorage.setItem("madn_session_token", authData.session_token);
+        } catch(e) {}
+      }
       state.user = authData;
       state.currentRole = authData.role;
       updateUserUI(authData);
@@ -792,7 +803,20 @@ function quickFillLogin(role) {
 
 async function checkActiveSession() {
   try {
-    const res = await fetch("/api/auth/session");
+    const headers = {};
+    let sessToken = null;
+    try {
+      sessToken = sessionStorage.getItem("madn_session_token") || localStorage.getItem("madn_session_token");
+    } catch (e) {}
+    if (sessToken) {
+      headers["X-Session-Token"] = sessToken;
+      headers["Authorization"] = `Bearer ${sessToken}`;
+    }
+
+    const res = await fetch("/api/auth/session", {
+      credentials: "include",
+      headers: headers
+    });
     if (res.ok) {
       const user = await res.json();
       state.user = user;
@@ -800,10 +824,9 @@ async function checkActiveSession() {
       updateUserUI(user);
       hideLoginOverlay();
       switchView(state.activeView || 'dashboard');
-      loadAllSubsystemData();
       return user;
     } else {
-      // Unauthenticated visitor - preserve whatever credentials user might already be typing
+      // Unauthenticated visitor
       document.body.classList.remove('authenticated');
       state.user = null;
       state.currentRole = 'guest';
@@ -897,7 +920,11 @@ function hideLoginOverlay() {
 }
 
 function executeLogout() {
-  showLoginOverlay();
+  try {
+    sessionStorage.removeItem("madn_session_token");
+    localStorage.removeItem("madn_session_token");
+  } catch(e) {}
+  showLoginOverlay(true);
   try {
     fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => {});
   } catch (e) {}
@@ -3191,7 +3218,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_0906`)
+      fetch(`./components/${v}.html?v=20260831_0953`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3206,7 +3233,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_0906`);
+      const res = await fetch(`./components/${target}.html?v=20260831_0953`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
