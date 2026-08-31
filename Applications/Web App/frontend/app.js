@@ -2328,9 +2328,11 @@ function handleBizBannerUpload(inputEl) {
     state.pendingBizBanner = rawDataUrl;
     const urlInput = document.getElementById('new-biz-banner-url');
     if (urlInput) urlInput.value = rawDataUrl;
+    const pillFrame = document.getElementById('new-biz-banner-pill-frame');
     const previewImg = document.getElementById('new-biz-banner-img');
     const placeholder = document.getElementById('new-biz-banner-placeholder');
     const clearBtn = document.getElementById('btn-clear-banner');
+    if (pillFrame) pillFrame.style.display = 'block';
     if (previewImg) {
       previewImg.src = rawDataUrl;
       previewImg.style.display = 'block';
@@ -2356,9 +2358,11 @@ function clearBizBanner() {
   if (fileInput) fileInput.value = '';
   const urlInput = document.getElementById('new-biz-banner-url');
   if (urlInput) urlInput.value = '';
+  const pillFrame = document.getElementById('new-biz-banner-pill-frame');
   const previewImg = document.getElementById('new-biz-banner-img');
   const placeholder = document.getElementById('new-biz-banner-placeholder');
   const clearBtn = document.getElementById('btn-clear-banner');
+  if (pillFrame) pillFrame.style.display = 'none';
   if (previewImg) {
     previewImg.src = '';
     previewImg.style.display = 'none';
@@ -2371,10 +2375,12 @@ window.clearBizBanner = clearBizBanner;
 function handleBizBannerUrlInput(url) {
   const clean = (url || '').trim();
   state.pendingBizBanner = clean;
+  const pillFrame = document.getElementById('new-biz-banner-pill-frame');
   const previewImg = document.getElementById('new-biz-banner-img');
   const placeholder = document.getElementById('new-biz-banner-placeholder');
   const clearBtn = document.getElementById('btn-clear-banner');
   if (clean) {
+    if (pillFrame) pillFrame.style.display = 'block';
     if (previewImg) {
       previewImg.src = clean;
       previewImg.style.display = 'block';
@@ -3157,7 +3163,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_0740`)
+      fetch(`./components/${v}.html?v=20260831_0842`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3172,7 +3178,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_0740`);
+      const res = await fetch(`./components/${target}.html?v=20260831_0842`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
