@@ -837,11 +837,15 @@ function showLoginOverlay(clearInputs = true) {
   const btnLogin = document.getElementById('btn-login-submit');
   const appContainer = document.getElementById('app-main-container') || document.querySelector('.app-container');
 
-  if (authOverlay) authOverlay.style.display = 'flex';
-  if (cardLogin) cardLogin.style.display = 'block';
-  if (cardJourney) cardJourney.style.display = 'none';
-  if (cardRegister) cardRegister.style.display = 'none';
-  if (appContainer) appContainer.style.display = 'none';
+  document.body.classList.remove('authenticated');
+  if (authOverlay) {
+    authOverlay.classList.remove('hidden');
+    authOverlay.style.setProperty('display', 'flex', 'important');
+  }
+  if (cardLogin) cardLogin.style.setProperty('display', 'block', 'important');
+  if (cardJourney) cardJourney.style.setProperty('display', 'none', 'important');
+  if (cardRegister) cardRegister.style.setProperty('display', 'none', 'important');
+  if (appContainer) appContainer.style.setProperty('display', 'none', 'important');
 
   if (btnLogin) {
     btnLogin.disabled = false;
@@ -854,9 +858,14 @@ function showLoginOverlay(clearInputs = true) {
 function hideLoginOverlay() {
   document.body.classList.add('authenticated');
   const overlay = document.getElementById('auth-overlay');
-  if (overlay) overlay.style.display = 'none';
+  if (overlay) {
+    overlay.classList.add('hidden');
+    overlay.style.setProperty('display', 'none', 'important');
+  }
   const appContainer = document.getElementById('app-main-container') || document.querySelector('.app-container');
-  if (appContainer) appContainer.style.display = 'grid';
+  if (appContainer) {
+    appContainer.style.setProperty('display', 'grid', 'important');
+  }
 }
 
 function executeLogout() {
