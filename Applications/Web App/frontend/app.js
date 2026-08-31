@@ -2334,27 +2334,43 @@ async function handleBizLogoUpload(inputEl) {
   const clearBtn = document.getElementById('btn-clear-logo');
   const urlInput = document.getElementById('new-biz-logo-url');
 
-  if (placeholder) placeholder.innerText = '⏳ Loading...';
-
-  // Fast single-pass downsample to 128x128 JPEG (~6KB) in <10ms
-  const compressed = await compressClientImage(file, 128, 128, 0.75);
-  if (compressed) {
-    state.pendingBizLogo = compressed;
-    if (urlInput) urlInput.value = compressed;
-    if (previewImg) {
-      previewImg.src = compressed;
-      previewImg.style.display = 'block';
-    }
-    if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'inline-block';
-  } else {
-    if (placeholder) placeholder.innerText = 'No Logo';
+  // 1. Instant 0ms Optimistic Visual Preview
+  const tempUrl = URL.createObjectURL(file);
+  if (previewImg) {
+    previewImg.src = tempUrl;
+    previewImg.style.display = 'block';
   }
+  if (placeholder) placeholder.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'inline-block';
+
+  // 2. Non-blocking background worker compression
+  state.pendingBizLogoPromise = new Promise(resolve => {
+    const runWorker = () => {
+      compressClientImage(file, 128, 128, 0.75).then(compressed => {
+        if (compressed) {
+          state.pendingBizLogo = compressed;
+          if (urlInput) urlInput.value = compressed;
+        }
+        try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+        resolve(compressed);
+      }).catch(() => {
+        try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+        resolve(null);
+      });
+    };
+
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(runWorker, { timeout: 300 });
+    } else {
+      setTimeout(runWorker, 40);
+    }
+  });
 }
 window.handleBizLogoUpload = handleBizLogoUpload;
 
 function clearBizLogo() {
   state.pendingBizLogo = '';
+  state.pendingBizLogoPromise = null;
   const fileInput = document.getElementById('new-biz-logo-file');
   if (fileInput) fileInput.value = '';
   const urlInput = document.getElementById('new-biz-logo-url');
@@ -2374,6 +2390,7 @@ window.clearBizLogo = clearBizLogo;
 function handleBizLogoUrlInput(url) {
   const clean = (url || '').trim();
   state.pendingBizLogo = clean;
+  state.pendingBizLogoPromise = null;
   const previewImg = document.getElementById('new-biz-logo-img');
   const placeholder = document.getElementById('new-biz-logo-placeholder');
   const clearBtn = document.getElementById('btn-clear-logo');
@@ -2390,7 +2407,7 @@ function handleBizLogoUrlInput(url) {
 }
 window.handleBizLogoUrlInput = handleBizLogoUrlInput;
 
-async function handleBizBannerUpload(inputEl) {
+function handleBizBannerUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
   
@@ -2400,28 +2417,44 @@ async function handleBizBannerUpload(inputEl) {
   const clearBtn = document.getElementById('btn-clear-banner');
   const urlInput = document.getElementById('new-biz-banner-url');
 
-  if (placeholder) placeholder.innerHTML = '<span style="font-size:1.3rem">⏳</span><span>Loading banner...</span>';
-
-  // Fast single-pass downsample to 640x360 JPEG (~15KB) in <15ms
-  const compressed = await compressClientImage(file, 640, 360, 0.72);
-  if (compressed) {
-    state.pendingBizBanner = compressed;
-    if (urlInput) urlInput.value = compressed;
-    if (pillFrame) pillFrame.style.display = 'block';
-    if (previewImg) {
-      previewImg.src = compressed;
-      previewImg.style.display = 'block';
-    }
-    if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'inline-block';
-  } else {
-    if (placeholder) placeholder.innerHTML = '<span>No Storefront Hero Banner Uploaded</span>';
+  // 1. Instant 0ms Optimistic Visual Preview (Tightly hugging natural aspect ratio)
+  const tempUrl = URL.createObjectURL(file);
+  if (pillFrame) pillFrame.style.display = 'block';
+  if (previewImg) {
+    previewImg.src = tempUrl;
+    previewImg.style.display = 'block';
   }
+  if (placeholder) placeholder.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'inline-block';
+
+  // 2. Non-blocking background worker compression
+  state.pendingBizBannerPromise = new Promise(resolve => {
+    const runWorker = () => {
+      compressClientImage(file, 640, 360, 0.72).then(compressed => {
+        if (compressed) {
+          state.pendingBizBanner = compressed;
+          if (urlInput) urlInput.value = compressed;
+        }
+        try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+        resolve(compressed);
+      }).catch(() => {
+        try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+        resolve(null);
+      });
+    };
+
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(runWorker, { timeout: 300 });
+    } else {
+      setTimeout(runWorker, 40);
+    }
+  });
 }
 window.handleBizBannerUpload = handleBizBannerUpload;
 
 function clearBizBanner() {
   state.pendingBizBanner = '';
+  state.pendingBizBannerPromise = null;
   const fileInput = document.getElementById('new-biz-banner-file');
   if (fileInput) fileInput.value = '';
   const urlInput = document.getElementById('new-biz-banner-url');
@@ -2443,6 +2476,7 @@ window.clearBizBanner = clearBizBanner;
 function handleBizBannerUrlInput(url) {
   const clean = (url || '').trim();
   state.pendingBizBanner = clean;
+  state.pendingBizBannerPromise = null;
   const pillFrame = document.getElementById('new-biz-banner-pill-frame');
   const previewImg = document.getElementById('new-biz-banner-img');
   const placeholder = document.getElementById('new-biz-banner-placeholder');
@@ -2473,6 +2507,14 @@ async function submitCreateBusiness() {
   if (!tagline) {
     showErrorToast("Please enter a Brief Tagline for your store.");
     return;
+  }
+
+  // Await in-flight background worker compression if submitted immediately
+  if (state.pendingBizLogoPromise) {
+    await state.pendingBizLogoPromise.catch(() => {});
+  }
+  if (state.pendingBizBannerPromise) {
+    await state.pendingBizBannerPromise.catch(() => {});
   }
 
   // Gather optional modular fields
@@ -3231,7 +3273,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_1748`)
+      fetch(`./components/${v}.html?v=20260831_1756`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3246,7 +3288,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_1748`);
+      const res = await fetch(`./components/${target}.html?v=20260831_1756`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
@@ -3954,20 +3996,38 @@ function toggleProductField(fieldKey, forceState) {
   }
 }
 
-async function handleProductImageUpload(inputEl) {
+function handleProductImageUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
+  
+  // 1. Instant 0ms Visual Preview
+  const tempUrl = URL.createObjectURL(file);
   const previewWrap = document.getElementById('store-product-image-preview-wrap');
   if (previewWrap) {
-    previewWrap.innerHTML = `<span>⏳</span>`;
+    previewWrap.innerHTML = `<img src="${tempUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product preview">`;
   }
-  const compressed = await compressClientImage(file, 256, 256, 0.72);
-  if (compressed) {
-    state.pendingProductImage = compressed;
-    if (previewWrap) {
-      previewWrap.innerHTML = `<img src="${compressed}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product preview">`;
+
+  // 2. Non-blocking background worker compression
+  state.pendingProductImagePromise = new Promise(resolve => {
+    const runWorker = () => {
+      compressClientImage(file, 240, 240, 0.72).then(compressed => {
+        if (compressed) {
+          state.pendingProductImage = compressed;
+        }
+        try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+        resolve(compressed);
+      }).catch(() => {
+        try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+        resolve(null);
+      });
+    };
+
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(runWorker, { timeout: 300 });
+    } else {
+      setTimeout(runWorker, 40);
     }
-  }
+  });
 }
 
 function handleProductImageUrlInput(url) {
@@ -4038,6 +4098,9 @@ function addProductSpecRow(key = '', val = '') {
 }
 
 async function submitAddStoreProduct() {
+  if (state.pendingProductImagePromise) {
+    await state.pendingProductImagePromise.catch(() => {});
+  }
   const bizId = document.getElementById('store-product-business-select')?.value || state.activeBusinessId || (state.businesses[0] ? state.businesses[0].id : '');
   const name = document.getElementById('store-product-name-input').value.trim();
   const cost = parseFloat(document.getElementById('store-product-cost-input').value || "0");
