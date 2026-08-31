@@ -330,11 +330,16 @@ async function secureFetch(url, options = {}) {
   if (!options.headers["Content-Type"] && !(options.body instanceof FormData)) {
     options.headers["Content-Type"] = "application/json";
   }
+  if (!options.credentials) {
+    options.credentials = "include";
+  }
 
   try {
     const response = await fetch(url, options);
     if (response.status === 401) {
-      showLoginOverlay();
+      if (state.user && !window._isAuthTransitioning) {
+        showLoginOverlay(false);
+      }
       throw new Error("Unauthorized");
     }
     if (response.status === 403) {
@@ -510,17 +515,19 @@ function initAuthSystem() {
     };
 
     try {
+      window._isAuthTransitioning = true;
       const authBody = { username: u, password: p };
       if (mfa) authBody.totp_token = mfa;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-      // Start auth request in parallel with timeout protection
+      // Start auth request in parallel with timeout protection & credentials: "include"
       const authPromise = fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(authBody),
+        credentials: "include",
         signal: controller.signal
       });
 
@@ -578,9 +585,6 @@ function initAuthSystem() {
       if (subEl) subEl.innerText = `Preparing your ${userRole} workspace... ✨`;
       if (barEl) barEl.style.width = '80%';
 
-      // Preload subsystem data in parallel background
-      loadAllSubsystemData();
-
       await new Promise(r => setTimeout(r, 80));
 
       // Stage 4: Ready (snappy 120ms celebration)
@@ -603,9 +607,13 @@ function initAuthSystem() {
       switchView(state.activeView || 'dashboard');
       showSuccessToast(`Welcome back, ${displayName}! 🚀✨`, 4000);
 
+      // Load subsystem data safely in background after overlay is dismissed
+      loadAllSubsystemData();
+
     } catch (e) {
       resetToLoginCard(e.message || "Network error. Server might be restarting.");
     } finally {
+      window._isAuthTransitioning = false;
       isAuthSubmitting = false;
       if (btnLogin) {
         btnLogin.disabled = false;

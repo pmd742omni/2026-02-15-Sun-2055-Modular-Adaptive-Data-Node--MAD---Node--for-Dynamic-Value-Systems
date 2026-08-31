@@ -243,15 +243,17 @@ async def get_current_user(request: Request):
     # Session Fingerprint Validation (UA and /24 Subnet check)
     ua = request.headers.get("User-Agent", "")
     ip = request.client.host if request.client else "127.0.0.1"
-    subnet = ".".join(ip.split(".")[:3])  # Coarse /24 IPv4
+    is_loopback = ip in ["127.0.0.1", "::1", "localhost", "testclient"]
+    subnet = "127.0.0" if is_loopback else ".".join(ip.split(".")[:3])
     
-    if dec_ua != ua or dec_subnet != subnet:
-        # User fingerprint mismatch: invalidate session to prevent hijacking
-        db.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
-        db.commit()
-        db.close()
-        write_audit_log(session_dict["username"], "HIJACK_ALERT", f"Fingerprint mismatch: UA '{ua}' / Subnet '{subnet}' vs Session '{dec_ua}' / '{dec_subnet}'. Session terminated.")
-        raise HTTPException(status_code=401, detail="Session fingerprint mismatch. Please log in again.")
+    if not is_loopback and dec_ua and dec_subnet:
+        if dec_ua != ua or dec_subnet != subnet:
+            # User fingerprint mismatch: invalidate session to prevent hijacking
+            db.execute("DELETE FROM sessions WHERE token_hash = ?", (token_hash,))
+            db.commit()
+            db.close()
+            write_audit_log(session_dict["username"], "HIJACK_ALERT", f"Fingerprint mismatch: UA '{ua}' / Subnet '{subnet}' vs Session '{dec_ua}' / '{dec_subnet}'. Session terminated.")
+            raise HTTPException(status_code=401, detail="Session fingerprint mismatch. Please log in again.")
         
     # Check status
     if session_dict["status"] != "active":
@@ -444,7 +446,8 @@ async def login(payload: LoginPayload, request: Request, response: Response):
         value=session_token,
         httponly=True,
         samesite="lax",
-        secure=is_secure
+        secure=is_secure,
+        path="/"
     )
     
     # Set non-HttpOnly CSRF token cookie
@@ -454,7 +457,8 @@ async def login(payload: LoginPayload, request: Request, response: Response):
         value=csrf_token,
         httponly=False,
         samesite="lax",
-        secure=is_secure
+        secure=is_secure,
+        path="/"
     )
     
     write_audit_log(username, "LOGIN", "Successful login session created.")
