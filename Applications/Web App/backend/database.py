@@ -870,6 +870,41 @@ def init_db():
             except sqlite3.OperationalError:
                 pass
 
+    # Ensure wallets table supports multiple business accounts per user (removes legacy UNIQUE on username)
+    try:
+        w_sql_row = db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='wallets'").fetchone()
+        if w_sql_row and "username TEXT NOT NULL UNIQUE" in w_sql_row["sql"]:
+            db.commit()
+            raw_conn = sqlite3.connect(DB_PATH)
+            raw_conn.execute("PRAGMA foreign_keys = OFF;")
+            raw_conn.execute("""
+                CREATE TABLE IF NOT EXISTS wallets_migrated_new (
+                    account_number TEXT PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    balance_usd REAL DEFAULT 0.0,
+                    balance_zar REAL DEFAULT 0.0,
+                    balance_zwg REAL DEFAULT 0.0,
+                    created_at_utc TEXT NOT NULL,
+                    status TEXT DEFAULT 'active',
+                    account_type TEXT DEFAULT 'personal',
+                    business_id TEXT DEFAULT '',
+                    FOREIGN KEY (username) REFERENCES users(username)
+                );
+            """)
+            raw_conn.execute("""
+                INSERT INTO wallets_migrated_new (account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status, account_type, business_id)
+                SELECT account_number, username, balance_usd, balance_zar, balance_zwg, created_at_utc, status,
+                       COALESCE(account_type, 'personal'), COALESCE(business_id, '')
+                FROM wallets;
+            """)
+            raw_conn.execute("DROP TABLE wallets;")
+            raw_conn.execute("ALTER TABLE wallets_migrated_new RENAME TO wallets;")
+            raw_conn.commit()
+            raw_conn.close()
+            print("[+] Successfully migrated wallets table to multi-store enterprise schema.")
+    except Exception as e:
+        print(f"[!] Wallets schema migration note: {e}")
+
     # Seed default configurations
     cursor = db.execute("SELECT COUNT(*) as count FROM calculator_config")
     if cursor.fetchone()["count"] == 0:
