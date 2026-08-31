@@ -139,8 +139,8 @@
                   <!-- Row 1: Store Logo (Badge + Upload Buttons) -->
                   <div style="background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; text-align: left;">
                     <!-- Logo Preview Box -->
-                    <div id="new-biz-logo-preview" style="flex-shrink: 0; width: 88px; height: 88px;">
-                      <img id="new-biz-logo-img" src="" alt="Logo Preview" style="width: 88px; height: 88px; border-radius: 18px; object-fit: cover; border: 2px solid rgba(167,139,250,0.7); box-shadow: 0 4px 16px rgba(0,0,0,0.6); display: none;">
+                    <div id="new-biz-logo-preview" style="flex-shrink: 0; width: 88px; height: 88px; contain: layout paint;">
+                      <img id="new-biz-logo-img" src="" alt="Logo Preview" style="width: 88px; height: 88px; border-radius: 16px; object-fit: cover; border: 1.5px solid rgba(167,139,250,0.6); box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: none; transform: translateZ(0);">
                       <div id="new-biz-logo-placeholder" style="width: 88px; height: 88px; border-radius: 18px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.72rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 4px; box-sizing: border-box;">
                         <span style="font-size: 1.6rem; margin-bottom: 2px;">🏪</span>
                         <span>No Logo</span>
@@ -176,8 +176,8 @@
 
                     <!-- Flexible Adaptive Banner Preview Box (Surrounds image perfectly in its exact natural aspect ratio) -->
                     <div id="new-biz-banner-preview" style="width: 100%; position: relative; display: flex; justify-content: center; align-items: center; background: transparent; border: none; padding: 0;">
-                      <div id="new-biz-banner-pill-frame" style="display: none; width: fit-content; max-width: 100%; margin: 0 auto; border-radius: 18px; overflow: hidden; border: 2px solid rgba(167, 139, 250, 0.7); box-shadow: 0 10px 32px rgba(0,0,0,0.7), 0 0 22px rgba(167, 139, 250, 0.25); line-height: 0; background: #06080d;">
-                        <img id="new-biz-banner-img" src="" alt="Banner Preview" style="display: block; max-width: 100%; max-height: 420px; width: auto; height: auto; object-fit: contain; margin: 0 auto; border-radius: 16px;">
+                      <div id="new-biz-banner-pill-frame" style="display: none; width: fit-content; max-width: 100%; margin: 0 auto; border-radius: 16px; overflow: hidden; border: 1.5px solid rgba(167, 139, 250, 0.6); box-shadow: 0 4px 16px rgba(0,0,0,0.5); line-height: 0; background: #06080d; contain: layout paint; transform: translateZ(0);">
+                        <img id="new-biz-banner-img" src="" alt="Banner Preview" style="display: block; max-width: 100%; max-height: 360px; width: auto; height: auto; object-fit: contain; margin: 0 auto; border-radius: 14px;">
                       </div>
                       <div id="new-biz-banner-placeholder" style="width: 100%; min-height: 120px; border-radius: 14px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.82rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 18px; box-sizing: border-box;">
                         <span style="font-size: 2rem; margin-bottom: 4px;">🌄</span>

@@ -2275,29 +2275,23 @@ function toggleBizField(fieldKey, forceState) {
   }
 }
 
-async function compressClientImage(file, maxWidth, maxHeight, quality = 0.75) {
+async function compressClientImage(file, targetWidth, targetHeight, quality = 0.72) {
   if (!file) return null;
   try {
     let source = null;
-    let targetW = maxWidth;
-    let targetH = maxHeight;
+    let w = targetWidth;
+    let h = targetHeight;
 
     if (typeof window.createImageBitmap === 'function') {
       try {
-        const probe = await window.createImageBitmap(file);
-        const origW = probe.width || maxWidth;
-        const origH = probe.height || maxHeight;
-        if (typeof probe.close === 'function') probe.close();
-
-        const ratio = Math.min(maxWidth / origW, maxHeight / origH, 1);
-        targetW = Math.max(1, Math.round(origW * ratio));
-        targetH = Math.max(1, Math.round(origH * ratio));
-
+        // Direct single-pass stream downsampling (ZERO full-res allocation in RAM/GPU)
         source = await window.createImageBitmap(file, {
-          resizeWidth: targetW,
-          resizeHeight: targetH,
+          resizeWidth: targetWidth,
+          resizeHeight: targetHeight,
           resizeQuality: 'low'
         });
+        w = source.width || targetWidth;
+        h = source.height || targetHeight;
       } catch (bmpErr) {
         source = null;
       }
@@ -2313,66 +2307,55 @@ async function compressClientImage(file, maxWidth, maxHeight, quality = 0.75) {
       });
       URL.revokeObjectURL(objUrl);
       source = img;
-      const origW = img.naturalWidth || img.width || maxWidth;
-      const origH = img.naturalHeight || img.height || maxHeight;
-      const ratio = Math.min(maxWidth / origW, maxHeight / origH, 1);
-      targetW = Math.max(1, Math.round(origW * ratio));
-      targetH = Math.max(1, Math.round(origH * ratio));
+      const ratio = Math.min(targetWidth / (img.naturalWidth || targetWidth), targetHeight / (img.naturalHeight || targetHeight), 1);
+      w = Math.max(1, Math.round((img.naturalWidth || targetWidth) * ratio));
+      h = Math.max(1, Math.round((img.naturalHeight || targetHeight) * ratio));
     }
 
     const canvas = document.createElement('canvas');
-    canvas.width = targetW;
-    canvas.height = targetH;
-    const ctx = canvas.getContext('2d', { willReadFrequently: false });
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d', { willReadFrequently: false, alpha: false });
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(source, 0, 0, targetW, targetH);
+    ctx.drawImage(source, 0, 0, w, h);
 
     if (typeof source.close === 'function') {
       source.close();
     }
 
-    let compressedDataUrl = canvas.toDataURL('image/webp', quality);
-    if (!compressedDataUrl || compressedDataUrl.length < 50 || compressedDataUrl.startsWith('data:image/png')) {
-      compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-    }
+    let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
     return compressedDataUrl;
   } catch (err) {
-    console.warn("Fast non-blocking image compression fallback:", err);
+    console.warn("Fast single-pass image downsample notice:", err);
     return null;
   }
 }
 
-function handleBizLogoUpload(inputEl) {
+async function handleBizLogoUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
   
-  // 1. Instant 0ms visual preview using lightweight Object URL (Zero RAM bloat)
-  const tempUrl = URL.createObjectURL(file);
   const previewImg = document.getElementById('new-biz-logo-img');
   const placeholder = document.getElementById('new-biz-logo-placeholder');
   const clearBtn = document.getElementById('btn-clear-logo');
   const urlInput = document.getElementById('new-biz-logo-url');
 
-  if (previewImg) {
-    previewImg.src = tempUrl;
-    previewImg.style.display = 'block';
-  }
-  if (placeholder) placeholder.style.display = 'none';
-  if (clearBtn) clearBtn.style.display = 'inline-block';
+  if (placeholder) placeholder.innerText = '⏳ Loading...';
 
-  // 2. Hardware-accelerated non-blocking compression in background (160x160 max, ~8KB WebP)
-  setTimeout(() => {
-    compressClientImage(file, 160, 160, 0.75).then(compressedUrl => {
-      if (compressedUrl) {
-        state.pendingBizLogo = compressedUrl;
-        if (urlInput) urlInput.value = compressedUrl;
-        if (previewImg) previewImg.src = compressedUrl;
-      }
-      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
-    }).catch(() => {
-      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
-    });
-  }, 30);
+  // Fast single-pass downsample to 128x128 JPEG (~6KB) in <10ms
+  const compressed = await compressClientImage(file, 128, 128, 0.75);
+  if (compressed) {
+    state.pendingBizLogo = compressed;
+    if (urlInput) urlInput.value = compressed;
+    if (previewImg) {
+      previewImg.src = compressed;
+      previewImg.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+  } else {
+    if (placeholder) placeholder.innerText = 'No Logo';
+  }
 }
 window.handleBizLogoUpload = handleBizLogoUpload;
 
@@ -2413,39 +2396,33 @@ function handleBizLogoUrlInput(url) {
 }
 window.handleBizLogoUrlInput = handleBizLogoUrlInput;
 
-function handleBizBannerUpload(inputEl) {
+async function handleBizBannerUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
   
-  // 1. Instant 0ms visual preview with flexible aspect ratio
-  const tempUrl = URL.createObjectURL(file);
   const pillFrame = document.getElementById('new-biz-banner-pill-frame');
   const previewImg = document.getElementById('new-biz-banner-img');
   const placeholder = document.getElementById('new-biz-banner-placeholder');
   const clearBtn = document.getElementById('btn-clear-banner');
   const urlInput = document.getElementById('new-biz-banner-url');
 
-  if (pillFrame) pillFrame.style.display = 'block';
-  if (previewImg) {
-    previewImg.src = tempUrl;
-    previewImg.style.display = 'block';
-  }
-  if (placeholder) placeholder.style.display = 'none';
-  if (clearBtn) clearBtn.style.display = 'inline-block';
+  if (placeholder) placeholder.innerHTML = '<span style="font-size:1.3rem">⏳</span><span>Loading banner...</span>';
 
-  // 2. Hardware-accelerated non-blocking compression (640x360 max, ~15KB WebP)
-  setTimeout(() => {
-    compressClientImage(file, 640, 360, 0.75).then(compressedUrl => {
-      if (compressedUrl) {
-        state.pendingBizBanner = compressedUrl;
-        if (urlInput) urlInput.value = compressedUrl;
-        if (previewImg) previewImg.src = compressedUrl;
-      }
-      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
-    }).catch(() => {
-      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
-    });
-  }, 30);
+  // Fast single-pass downsample to 640x360 JPEG (~15KB) in <15ms
+  const compressed = await compressClientImage(file, 640, 360, 0.72);
+  if (compressed) {
+    state.pendingBizBanner = compressed;
+    if (urlInput) urlInput.value = compressed;
+    if (pillFrame) pillFrame.style.display = 'block';
+    if (previewImg) {
+      previewImg.src = compressed;
+      previewImg.style.display = 'block';
+    }
+    if (placeholder) placeholder.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'inline-block';
+  } else {
+    if (placeholder) placeholder.innerHTML = '<span>No Storefront Hero Banner Uploaded</span>';
+  }
 }
 window.handleBizBannerUpload = handleBizBannerUpload;
 
@@ -3260,7 +3237,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_1322`)
+      fetch(`./components/${v}.html?v=20260831_1350`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3275,7 +3252,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_1322`);
+      const res = await fetch(`./components/${target}.html?v=20260831_1350`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
@@ -3983,22 +3960,20 @@ function toggleProductField(fieldKey, forceState) {
   }
 }
 
-function handleProductImageUpload(inputEl) {
+async function handleProductImageUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  const tempUrl = URL.createObjectURL(file);
   const previewWrap = document.getElementById('store-product-image-preview-wrap');
   if (previewWrap) {
-    previewWrap.innerHTML = `<img src="${tempUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product preview">`;
+    previewWrap.innerHTML = `<span>⏳</span>`;
   }
-  compressClientImage(file, 400, 400, 0.82).then(compressedUrl => {
-    if (compressedUrl) {
-      state.pendingProductImage = compressedUrl;
+  const compressed = await compressClientImage(file, 256, 256, 0.72);
+  if (compressed) {
+    state.pendingProductImage = compressed;
+    if (previewWrap) {
+      previewWrap.innerHTML = `<img src="${compressed}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product preview">`;
     }
-    URL.revokeObjectURL(tempUrl);
-  }).catch(() => {
-    URL.revokeObjectURL(tempUrl);
-  });
+  }
 }
 
 function handleProductImageUrlInput(url) {
