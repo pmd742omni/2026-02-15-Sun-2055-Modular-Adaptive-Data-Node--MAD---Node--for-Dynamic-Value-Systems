@@ -473,7 +473,11 @@ function initAuthSystem() {
     }
 
     isAuthSubmitting = true;
-    if (errBox) errBox.style.display = 'none';
+    if (btnLogin) btnLogin.disabled = true;
+    if (errBox) {
+      errBox.classList.add('hidden');
+      errBox.style.display = 'none';
+    }
 
     const cardLogin = document.getElementById('card-login');
     const cardJourney = document.getElementById('card-journey');
@@ -491,7 +495,7 @@ function initAuthSystem() {
       
       if (iconEl) iconEl.innerText = '✨';
       if (hlEl) hlEl.innerText = 'Opening your space... ✨';
-      if (subEl) subEl.innerText = 'Checking your credentials... 🔑';
+      if (subEl) subEl.innerText = 'Verifying cryptographic credentials... 🔑';
       if (barEl) barEl.style.width = '25%';
 
       for (let i = 1; i <= 4; i++) {
@@ -503,6 +507,7 @@ function initAuthSystem() {
     }
 
     const resetToLoginCard = (errorMsg) => {
+      isAuthSubmitting = false;
       if (cardJourney && cardLogin) {
         cardJourney.style.setProperty('display', 'none', 'important');
         cardLogin.style.setProperty('display', 'block', 'important');
@@ -531,21 +536,13 @@ function initAuthSystem() {
       const authBody = { username: u, password: p };
       if (mfa) authBody.totp_token = mfa;
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-      // Start auth request in parallel with timeout protection & credentials: "include"
-      const authPromise = fetch("/api/auth/login", {
+      // Uninterrupted Scrypt authentication fetch
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(authBody),
-        credentials: "include",
-        signal: controller.signal
+        credentials: "include"
       });
-
-      // Stage 1: Checking credentials in real-time
-      const res = await authPromise;
-      clearTimeout(timeoutId);
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({ detail: "Invalid credentials." }));
@@ -3222,7 +3219,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_1018`)
+      fetch(`./components/${v}.html?v=20260831_1114`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3237,7 +3234,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_1018`);
+      const res = await fetch(`./components/${target}.html?v=20260831_1114`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
