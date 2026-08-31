@@ -2272,69 +2272,94 @@ function toggleBizField(fieldKey, forceState) {
   }
 }
 
-function compressClientImage(file, maxWidth, maxHeight, quality, callback) {
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
+async function compressClientImage(file, maxWidth, maxHeight, quality = 0.82) {
+  if (!file) return null;
+  try {
+    let source = null;
+    let width = 0;
+    let height = 0;
 
-      if (width > maxWidth || height > maxHeight) {
-        if (width / maxWidth > height / maxHeight) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        } else {
-          width = Math.round((width * maxHeight) / height);
-          height = maxHeight;
-        }
+    if (typeof window.createImageBitmap === 'function') {
+      try {
+        source = await window.createImageBitmap(file);
+        width = source.width;
+        height = source.height;
+      } catch (bitmapErr) {
+        source = null;
       }
+    }
 
-      canvas.width = Math.max(1, width);
-      canvas.height = Math.max(1, height);
-      const ctx = canvas.getContext('2d');
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, 0, 0, width, height);
-      const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-      const compressedDataUrl = canvas.toDataURL(mime, quality || 0.88);
-      callback(compressedDataUrl);
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    if (!source) {
+      const objUrl = URL.createObjectURL(file);
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Image decode failed"));
+        img.src = objUrl;
+      });
+      URL.revokeObjectURL(objUrl);
+      source = img;
+      width = img.naturalWidth || img.width;
+      height = img.naturalHeight || img.height;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      const ratio = Math.min(maxWidth / width, maxHeight / height);
+      width = Math.max(1, Math.round(width * ratio));
+      height = Math.max(1, Math.round(height * ratio));
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'medium';
+    ctx.drawImage(source, 0, 0, width, height);
+
+    if (typeof source.close === 'function') {
+      source.close();
+    }
+
+    let compressedDataUrl = canvas.toDataURL('image/webp', quality);
+    if (!compressedDataUrl || compressedDataUrl.length < 50 || compressedDataUrl.startsWith('data:image/png')) {
+      compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+    }
+    return compressedDataUrl;
+  } catch (err) {
+    console.warn("Fast image compression fallback:", err);
+    return null;
+  }
 }
 
 function handleBizLogoUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const rawDataUrl = e.target.result;
-    state.pendingBizLogo = rawDataUrl;
-    const urlInput = document.getElementById('new-biz-logo-url');
-    if (urlInput) urlInput.value = rawDataUrl;
-    const previewImg = document.getElementById('new-biz-logo-img');
-    const placeholder = document.getElementById('new-biz-logo-placeholder');
-    const clearBtn = document.getElementById('btn-clear-logo');
-    if (previewImg) {
-      previewImg.src = rawDataUrl;
-      previewImg.style.display = 'block';
-    }
-    if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'inline-block';
+  
+  // 1. Instant 0ms visual preview using lightweight Object URL (Zero RAM bloat)
+  const tempUrl = URL.createObjectURL(file);
+  const previewImg = document.getElementById('new-biz-logo-img');
+  const placeholder = document.getElementById('new-biz-logo-placeholder');
+  const clearBtn = document.getElementById('btn-clear-logo');
+  const urlInput = document.getElementById('new-biz-logo-url');
 
-    // Compress in background for lightweight database payload
-    compressClientImage(file, 256, 256, 0.88, function(compressedUrl) {
-      if (compressedUrl) {
-        state.pendingBizLogo = compressedUrl;
-        if (urlInput) urlInput.value = compressedUrl;
-      }
-    });
-  };
-  reader.readAsDataURL(file);
+  if (previewImg) {
+    previewImg.src = tempUrl;
+    previewImg.style.display = 'block';
+  }
+  if (placeholder) placeholder.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'inline-block';
+
+  // 2. Hardware-accelerated non-blocking compression in background
+  compressClientImage(file, 256, 256, 0.82).then(compressedUrl => {
+    if (compressedUrl) {
+      state.pendingBizLogo = compressedUrl;
+      if (urlInput) urlInput.value = compressedUrl;
+    }
+    URL.revokeObjectURL(tempUrl);
+  }).catch(() => {
+    URL.revokeObjectURL(tempUrl);
+  });
 }
 window.handleBizLogoUpload = handleBizLogoUpload;
 
@@ -2378,33 +2403,33 @@ window.handleBizLogoUrlInput = handleBizLogoUrlInput;
 function handleBizBannerUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const rawDataUrl = e.target.result;
-    state.pendingBizBanner = rawDataUrl;
-    const urlInput = document.getElementById('new-biz-banner-url');
-    if (urlInput) urlInput.value = rawDataUrl;
-    const pillFrame = document.getElementById('new-biz-banner-pill-frame');
-    const previewImg = document.getElementById('new-biz-banner-img');
-    const placeholder = document.getElementById('new-biz-banner-placeholder');
-    const clearBtn = document.getElementById('btn-clear-banner');
-    if (pillFrame) pillFrame.style.display = 'block';
-    if (previewImg) {
-      previewImg.src = rawDataUrl;
-      previewImg.style.display = 'block';
-    }
-    if (placeholder) placeholder.style.display = 'none';
-    if (clearBtn) clearBtn.style.display = 'inline-block';
+  
+  // 1. Instant 0ms visual preview with flexible aspect ratio
+  const tempUrl = URL.createObjectURL(file);
+  const pillFrame = document.getElementById('new-biz-banner-pill-frame');
+  const previewImg = document.getElementById('new-biz-banner-img');
+  const placeholder = document.getElementById('new-biz-banner-placeholder');
+  const clearBtn = document.getElementById('btn-clear-banner');
+  const urlInput = document.getElementById('new-biz-banner-url');
 
-    // Compress in background for lightweight database payload with flexible aspect ratio (up to 1600x900)
-    compressClientImage(file, 1600, 900, 0.88, function(compressedUrl) {
-      if (compressedUrl) {
-        state.pendingBizBanner = compressedUrl;
-        if (urlInput) urlInput.value = compressedUrl;
-      }
-    });
-  };
-  reader.readAsDataURL(file);
+  if (pillFrame) pillFrame.style.display = 'block';
+  if (previewImg) {
+    previewImg.src = tempUrl;
+    previewImg.style.display = 'block';
+  }
+  if (placeholder) placeholder.style.display = 'none';
+  if (clearBtn) clearBtn.style.display = 'inline-block';
+
+  // 2. Hardware-accelerated non-blocking compression (1024x576 max, ~40KB WebP)
+  compressClientImage(file, 1024, 576, 0.80).then(compressedUrl => {
+    if (compressedUrl) {
+      state.pendingBizBanner = compressedUrl;
+      if (urlInput) urlInput.value = compressedUrl;
+    }
+    URL.revokeObjectURL(tempUrl);
+  }).catch(() => {
+    URL.revokeObjectURL(tempUrl);
+  });
 }
 window.handleBizBannerUpload = handleBizBannerUpload;
 
@@ -3219,7 +3244,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_1114`)
+      fetch(`./components/${v}.html?v=20260831_1238`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3234,7 +3259,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_1114`);
+      const res = await fetch(`./components/${target}.html?v=20260831_1238`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
@@ -3945,16 +3970,19 @@ function toggleProductField(fieldKey, forceState) {
 function handleProductImageUpload(inputEl) {
   if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
   const file = inputEl.files[0];
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    state.pendingProductImage = dataUrl;
-    const previewWrap = document.getElementById('store-product-image-preview-wrap');
-    if (previewWrap) {
-      previewWrap.innerHTML = `<img src="${dataUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product preview">`;
+  const tempUrl = URL.createObjectURL(file);
+  const previewWrap = document.getElementById('store-product-image-preview-wrap');
+  if (previewWrap) {
+    previewWrap.innerHTML = `<img src="${tempUrl}" style="width: 100%; height: 100%; object-fit: cover;" alt="Product preview">`;
+  }
+  compressClientImage(file, 400, 400, 0.82).then(compressedUrl => {
+    if (compressedUrl) {
+      state.pendingProductImage = compressedUrl;
     }
-  };
-  reader.readAsDataURL(file);
+    URL.revokeObjectURL(tempUrl);
+  }).catch(() => {
+    URL.revokeObjectURL(tempUrl);
+  });
 }
 
 function handleProductImageUrlInput(url) {
