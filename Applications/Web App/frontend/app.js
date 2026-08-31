@@ -1388,7 +1388,11 @@ async function processStudioAvatarFile(file) {
     let sourceWidth, sourceHeight, drawSource;
     if (typeof window.createImageBitmap === 'function') {
       try {
-        const bmp = await window.createImageBitmap(file);
+        const bmp = await window.createImageBitmap(file, {
+          resizeWidth: 256,
+          resizeHeight: 256,
+          resizeQuality: 'low'
+        });
         sourceWidth = bmp.width;
         sourceHeight = bmp.height;
         drawSource = bmp;
@@ -1401,9 +1405,8 @@ async function processStudioAvatarFile(file) {
     const maxDim = 256;
     canvas.width = maxDim;
     canvas.height = maxDim;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    const ctx = canvas.getContext('2d', { willReadFrequently: false });
+    ctx.imageSmoothingEnabled = false;
 
     if (drawSource) {
       const minEdge = Math.min(sourceWidth, sourceHeight);
@@ -2272,19 +2275,30 @@ function toggleBizField(fieldKey, forceState) {
   }
 }
 
-async function compressClientImage(file, maxWidth, maxHeight, quality = 0.82) {
+async function compressClientImage(file, maxWidth, maxHeight, quality = 0.75) {
   if (!file) return null;
   try {
     let source = null;
-    let width = 0;
-    let height = 0;
+    let targetW = maxWidth;
+    let targetH = maxHeight;
 
     if (typeof window.createImageBitmap === 'function') {
       try {
-        source = await window.createImageBitmap(file);
-        width = source.width;
-        height = source.height;
-      } catch (bitmapErr) {
+        const probe = await window.createImageBitmap(file);
+        const origW = probe.width || maxWidth;
+        const origH = probe.height || maxHeight;
+        if (typeof probe.close === 'function') probe.close();
+
+        const ratio = Math.min(maxWidth / origW, maxHeight / origH, 1);
+        targetW = Math.max(1, Math.round(origW * ratio));
+        targetH = Math.max(1, Math.round(origH * ratio));
+
+        source = await window.createImageBitmap(file, {
+          resizeWidth: targetW,
+          resizeHeight: targetH,
+          resizeQuality: 'low'
+        });
+      } catch (bmpErr) {
         source = null;
       }
     }
@@ -2299,23 +2313,19 @@ async function compressClientImage(file, maxWidth, maxHeight, quality = 0.82) {
       });
       URL.revokeObjectURL(objUrl);
       source = img;
-      width = img.naturalWidth || img.width;
-      height = img.naturalHeight || img.height;
-    }
-
-    if (width > maxWidth || height > maxHeight) {
-      const ratio = Math.min(maxWidth / width, maxHeight / height);
-      width = Math.max(1, Math.round(width * ratio));
-      height = Math.max(1, Math.round(height * ratio));
+      const origW = img.naturalWidth || img.width || maxWidth;
+      const origH = img.naturalHeight || img.height || maxHeight;
+      const ratio = Math.min(maxWidth / origW, maxHeight / origH, 1);
+      targetW = Math.max(1, Math.round(origW * ratio));
+      targetH = Math.max(1, Math.round(origH * ratio));
     }
 
     const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'medium';
-    ctx.drawImage(source, 0, 0, width, height);
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext('2d', { willReadFrequently: false });
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(source, 0, 0, targetW, targetH);
 
     if (typeof source.close === 'function') {
       source.close();
@@ -2327,7 +2337,7 @@ async function compressClientImage(file, maxWidth, maxHeight, quality = 0.82) {
     }
     return compressedDataUrl;
   } catch (err) {
-    console.warn("Fast image compression fallback:", err);
+    console.warn("Fast non-blocking image compression fallback:", err);
     return null;
   }
 }
@@ -2350,16 +2360,19 @@ function handleBizLogoUpload(inputEl) {
   if (placeholder) placeholder.style.display = 'none';
   if (clearBtn) clearBtn.style.display = 'inline-block';
 
-  // 2. Hardware-accelerated non-blocking compression in background
-  compressClientImage(file, 256, 256, 0.82).then(compressedUrl => {
-    if (compressedUrl) {
-      state.pendingBizLogo = compressedUrl;
-      if (urlInput) urlInput.value = compressedUrl;
-    }
-    URL.revokeObjectURL(tempUrl);
-  }).catch(() => {
-    URL.revokeObjectURL(tempUrl);
-  });
+  // 2. Hardware-accelerated non-blocking compression in background (160x160 max, ~8KB WebP)
+  setTimeout(() => {
+    compressClientImage(file, 160, 160, 0.75).then(compressedUrl => {
+      if (compressedUrl) {
+        state.pendingBizLogo = compressedUrl;
+        if (urlInput) urlInput.value = compressedUrl;
+        if (previewImg) previewImg.src = compressedUrl;
+      }
+      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+    }).catch(() => {
+      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+    });
+  }, 30);
 }
 window.handleBizLogoUpload = handleBizLogoUpload;
 
@@ -2420,16 +2433,19 @@ function handleBizBannerUpload(inputEl) {
   if (placeholder) placeholder.style.display = 'none';
   if (clearBtn) clearBtn.style.display = 'inline-block';
 
-  // 2. Hardware-accelerated non-blocking compression (1024x576 max, ~40KB WebP)
-  compressClientImage(file, 1024, 576, 0.80).then(compressedUrl => {
-    if (compressedUrl) {
-      state.pendingBizBanner = compressedUrl;
-      if (urlInput) urlInput.value = compressedUrl;
-    }
-    URL.revokeObjectURL(tempUrl);
-  }).catch(() => {
-    URL.revokeObjectURL(tempUrl);
-  });
+  // 2. Hardware-accelerated non-blocking compression (640x360 max, ~15KB WebP)
+  setTimeout(() => {
+    compressClientImage(file, 640, 360, 0.75).then(compressedUrl => {
+      if (compressedUrl) {
+        state.pendingBizBanner = compressedUrl;
+        if (urlInput) urlInput.value = compressedUrl;
+        if (previewImg) previewImg.src = compressedUrl;
+      }
+      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+    }).catch(() => {
+      try { URL.revokeObjectURL(tempUrl); } catch(e) {}
+    });
+  }, 30);
 }
 window.handleBizBannerUpload = handleBizBannerUpload;
 
@@ -3244,7 +3260,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_1238`)
+      fetch(`./components/${v}.html?v=20260831_1322`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3259,7 +3275,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_1238`);
+      const res = await fetch(`./components/${target}.html?v=20260831_1322`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
