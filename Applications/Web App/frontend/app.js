@@ -446,6 +446,26 @@ function triggerLaunchExplosion(buttonEl) {
   requestAnimationFrame(animate);
 }
 
+function showAuthCard(activeCardId) {
+  const cards = ['card-login', 'card-journey', 'card-register'];
+  cards.forEach(id => {
+    const card = document.getElementById(id);
+    if (card) {
+      if (id === activeCardId) {
+        card.classList.remove('hidden');
+        card.removeAttribute('hidden');
+        card.style.removeProperty('display');
+        card.style.setProperty('display', 'block', 'important');
+      } else {
+        card.classList.add('hidden');
+        card.setAttribute('hidden', 'true');
+        card.style.setProperty('display', 'none', 'important');
+      }
+    }
+  });
+}
+window.showAuthCard = showAuthCard;
+
 // --- AUTHENTICATION & SESSION ---
 function initAuthSystem() {
   const btnLogin = document.getElementById('btn-login-submit');
@@ -479,39 +499,30 @@ function initAuthSystem() {
       errBox.style.display = 'none';
     }
 
-    const cardLogin = document.getElementById('card-login');
-    const cardJourney = document.getElementById('card-journey');
-
     // 1. Show card-journey strictly as single active card
-    if (cardLogin && cardJourney) {
-      cardLogin.style.setProperty('display', 'none', 'important');
-      cardJourney.style.setProperty('display', 'block', 'important');
+    showAuthCard('card-journey');
 
-      // Reset journey elements
-      const iconEl = document.getElementById('journey-icon');
-      const hlEl = document.getElementById('journey-headline');
-      const subEl = document.getElementById('journey-subtext');
-      const barEl = document.getElementById('journey-progress-bar');
-      
-      if (iconEl) iconEl.innerText = '✨';
-      if (hlEl) hlEl.innerText = 'Opening your space... ✨';
-      if (subEl) subEl.innerText = 'Verifying cryptographic credentials... 🔑';
-      if (barEl) barEl.style.width = '25%';
+    // Reset journey elements
+    const iconEl = document.getElementById('journey-icon');
+    const hlEl = document.getElementById('journey-headline');
+    const subEl = document.getElementById('journey-subtext');
+    const barEl = document.getElementById('journey-progress-bar');
+    
+    if (iconEl) iconEl.innerText = '✨';
+    if (hlEl) hlEl.innerText = 'Opening your space... ✨';
+    if (subEl) subEl.innerText = 'Verifying cryptographic credentials... 🔑';
+    if (barEl) barEl.style.width = '25%';
 
-      for (let i = 1; i <= 4; i++) {
-        const stepEl = document.getElementById(`journey-step-${i}`);
-        const sIcon = document.getElementById(`journey-step-${i}-icon`);
-        if (stepEl) stepEl.style.color = i === 1 ? '#fff' : 'var(--text-muted)';
-        if (sIcon) sIcon.innerText = i === 1 ? '⏳' : '⚪';
-      }
+    for (let i = 1; i <= 4; i++) {
+      const stepEl = document.getElementById(`journey-step-${i}`);
+      const sIcon = document.getElementById(`journey-step-${i}-icon`);
+      if (stepEl) stepEl.style.color = i === 1 ? '#fff' : 'var(--text-muted)';
+      if (sIcon) sIcon.innerText = i === 1 ? '⏳' : '⚪';
     }
 
     const resetToLoginCard = (errorMsg) => {
       isAuthSubmitting = false;
-      if (cardJourney && cardLogin) {
-        cardJourney.style.setProperty('display', 'none', 'important');
-        cardLogin.style.setProperty('display', 'block', 'important');
-      }
+      showAuthCard('card-login');
       if (errBox) {
         errBox.classList.remove('hidden');
         errBox.style.setProperty('display', 'block', 'important');
@@ -695,8 +706,7 @@ function initAuthSystem() {
   if (linkGotoReg) {
     linkGotoReg.addEventListener('click', (e) => {
       e.preventDefault();
-      document.getElementById('card-login').style.display = 'none';
-      document.getElementById('card-register').style.display = 'block';
+      showAuthCard('card-register');
       const regUser = document.getElementById('register-username');
       if (regUser) regUser.focus();
     });
@@ -706,8 +716,7 @@ function initAuthSystem() {
   if (linkGotoLog) {
     linkGotoLog.addEventListener('click', (e) => {
       e.preventDefault();
-      document.getElementById('card-register').style.display = 'none';
-      document.getElementById('card-login').style.display = 'block';
+      showAuthCard('card-login');
     });
   }
 
@@ -737,34 +746,26 @@ async function handleRegister(e) {
   if (e) e.preventDefault();
   const username = document.getElementById('register-username').value.trim();
   const password = document.getElementById('register-password').value;
-  const confirm = document.getElementById('register-confirm').value;
   const errEl = document.getElementById('register-error');
   const succEl = document.getElementById('register-success');
 
   if (errEl) { errEl.style.display = 'none'; errEl.innerText = ''; }
   if (succEl) { succEl.style.display = 'none'; succEl.innerText = ''; }
 
-  if (!username) {
-    if (errEl) { errEl.innerText = 'Please enter a username.'; errEl.style.display = 'block'; }
-    return;
-  }
-
-  if (password.length < 12) {
-    if (errEl) { errEl.innerText = 'Password must be at least 12 characters.'; errEl.style.display = 'block'; }
-    return;
-  }
-
-  if (password !== confirm) {
-    if (errEl) { errEl.innerText = 'Passwords do not match.'; errEl.style.display = 'block'; }
+  if (!username || !password) {
+    if (errEl) {
+      errEl.innerText = 'Please provide both username and password.';
+      errEl.style.display = 'block';
+    }
     return;
   }
 
   try {
-    const res = await secureFetch("/api/auth/register", {
+    const res = await fetch("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ username: username, password: password })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
     });
-
     const data = await res.json();
     if (res.ok) {
       if (succEl) {
@@ -774,8 +775,7 @@ async function handleRegister(e) {
       setTimeout(() => {
         document.getElementById('form-register').reset();
         if (succEl) succEl.style.display = 'none';
-        document.getElementById('card-register').style.display = 'none';
-        document.getElementById('card-login').style.display = 'block';
+        showAuthCard('card-login');
         document.getElementById('login-username').value = username;
         document.getElementById('login-password').value = '';
         const pw = document.getElementById('login-password');
@@ -832,9 +832,8 @@ async function checkActiveSession() {
       state.user = null;
       state.currentRole = 'guest';
       const authOverlay = document.getElementById('auth-overlay');
-      const cardLogin = document.getElementById('card-login');
       if (authOverlay) authOverlay.style.display = 'flex';
-      if (cardLogin) cardLogin.style.display = 'block';
+      showAuthCard('card-login');
       return null;
     }
   } catch (e) {
@@ -883,9 +882,6 @@ function showLoginOverlay(clearInputs = true) {
   document.cookie = "csrf_token" + expireStr + " SameSite=Strict; Secure;";
 
   const authOverlay = document.getElementById('auth-overlay');
-  const cardLogin = document.getElementById('card-login');
-  const cardJourney = document.getElementById('card-journey');
-  const cardRegister = document.getElementById('card-register');
   const btnLogin = document.getElementById('btn-login-submit');
   const appContainer = document.getElementById('app-main-container') || document.querySelector('.app-container');
 
@@ -894,9 +890,7 @@ function showLoginOverlay(clearInputs = true) {
     authOverlay.classList.remove('hidden');
     authOverlay.style.setProperty('display', 'flex', 'important');
   }
-  if (cardLogin) cardLogin.style.setProperty('display', 'block', 'important');
-  if (cardJourney) cardJourney.style.setProperty('display', 'none', 'important');
-  if (cardRegister) cardRegister.style.setProperty('display', 'none', 'important');
+  showAuthCard('card-login');
   if (appContainer) appContainer.style.setProperty('display', 'none', 'important');
 
   if (btnLogin) {
@@ -3237,7 +3231,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_1350`)
+      fetch(`./components/${v}.html?v=20260831_1717`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3252,7 +3246,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_1350`);
+      const res = await fetch(`./components/${target}.html?v=20260831_1717`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
