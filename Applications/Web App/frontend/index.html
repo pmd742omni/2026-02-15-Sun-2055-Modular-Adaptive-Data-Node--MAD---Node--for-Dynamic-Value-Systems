@@ -6,7 +6,7 @@
   <title>MADN • Isango LomPhakathi</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="alternate icon" href="./favicon.svg">
-  <link rel="stylesheet" href="./index.css?v=20260831_1717">
+  <link rel="stylesheet" href="./index.css?v=20260831_1748">
   <!-- KaTeX CSS for LaTeX Formula Rendering (Non-blocking Async) -->
   <style>
 /* Critical Instant First-Paint Sovereign Login Styling */
@@ -1163,7 +1163,7 @@ body:not(.authenticated) .app-container {
           </div>
           <div style="display: flex; gap: 12px; align-items: center;">
             <div style="flex-grow: 1;">
-              <input type="file" id="store-product-image-file" accept="image/*" class="search-input" style="width: 100%; padding: 8px; font-size: 0.75rem; background: rgba(255,255,255,0.04); border-radius: 12px;" onchange="handleProductImageUpload(this)">
+              <input type="file" id="store-product-image-file" accept=".png,.jpg,.jpeg,.webp,.svg,.gif" class="search-input" style="width: 100%; padding: 8px; font-size: 0.75rem; background: rgba(255,255,255,0.04); border-radius: 12px;" onchange="handleProductImageUpload(this)">
               <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">Or enter image URL:</div>
               <input type="text" id="store-product-image-url" class="search-input" style="width: 100%; padding: 6px 10px; font-size: 0.75rem; background: rgba(255,255,255,0.04); border-radius: 8px; margin-top: 2px;" placeholder="https://..." oninput="handleProductImageUrlInput(this.value)">
             </div>
@@ -1438,7 +1438,7 @@ body:not(.authenticated) .app-container {
 
       <!-- Dropzone / File Picker Trigger -->
       <div class="avatar-upload-dropzone" id="avatar-studio-dropzone" onclick="document.getElementById('studio-avatar-file-input').click()">
-        <input type="file" id="studio-avatar-file-input" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display: none;" onclick="event.stopPropagation()" onchange="handleStudioAvatarFileSelected(event)">
+        <input type="file" id="studio-avatar-file-input" accept=".png,.jpg,.jpeg,.webp,.svg,.gif" style="display: none;" onclick="event.stopPropagation()" onchange="handleStudioAvatarFileSelected(event)">
         
         <!-- Live Circular Organic Preview Viewport -->
         <div style="display: flex; justify-content: center; margin-bottom: 10px;">
@@ -1815,6 +1815,6 @@ body:not(.authenticated) .app-container {
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260831_1717"></script>
+  <script src="./app.js?v=20260831_1748"></script>
 </body>
 </html>

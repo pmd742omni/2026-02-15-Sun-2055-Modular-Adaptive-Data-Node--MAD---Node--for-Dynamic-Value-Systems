@@ -151,7 +151,7 @@
                       <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; text-align: left;">Store Identity Logo</label>
                       <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0 0 10px 0; text-align: left;">Square avatar badge displayed on storefronts, POS terminals, and customer receipts.</p>
                       
-                      <input type="file" id="new-biz-logo-file" accept="image/*" style="display: none;" onchange="handleBizLogoUpload(this)">
+                      <input type="file" id="new-biz-logo-file" accept=".png,.jpg,.jpeg,.webp,.svg,.gif" style="display: none;" onchange="handleBizLogoUpload(this)">
                       <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                         <button type="button" class="btn-pill-small" onclick="document.getElementById('new-biz-logo-file').click()" style="padding: 8px 14px; font-size: 0.78rem; background: rgba(167,139,250,0.25); border: 1px solid rgba(167,139,250,0.5); color: #c4b5fd; font-weight: 700; cursor: pointer;">Upload Store Logo 📁</button>
                         <button type="button" id="btn-clear-logo" class="btn-pill-small" onclick="clearBizLogo()" style="display: none; padding: 8px 12px; font-size: 0.78rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); color: #f87171; cursor: pointer;">✕ Remove Logo</button>
@@ -168,7 +168,7 @@
                         <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0; text-align: left;">Showcase banner displayed across digital storefronts. Adapts flexibly to whatever image proportions you upload.</p>
                       </div>
                       <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="file" id="new-biz-banner-file" accept="image/*" style="display: none;" onchange="handleBizBannerUpload(this)">
+                        <input type="file" id="new-biz-banner-file" accept=".png,.jpg,.jpeg,.webp,.svg,.gif" style="display: none;" onchange="handleBizBannerUpload(this)">
                         <button type="button" class="btn-pill-small" onclick="document.getElementById('new-biz-banner-file').click()" style="padding: 8px 14px; font-size: 0.78rem; background: rgba(167,139,250,0.25); border: 1px solid rgba(167,139,250,0.5); color: #c4b5fd; font-weight: 700; cursor: pointer;">Upload Banner 🌄</button>
                         <button type="button" id="btn-clear-banner" class="btn-pill-small" onclick="clearBizBanner()" style="display: none; padding: 8px 12px; font-size: 0.78rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); color: #f87171; cursor: pointer;">✕ Remove Banner</button>
                       </div>
