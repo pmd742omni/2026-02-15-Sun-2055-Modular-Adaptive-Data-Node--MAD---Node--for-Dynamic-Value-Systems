@@ -508,8 +508,12 @@ function initAuthSystem() {
         cardLogin.style.setProperty('display', 'block', 'important');
       }
       if (errBox) {
-        errBox.style.display = 'block';
+        errBox.classList.remove('hidden');
+        errBox.style.setProperty('display', 'block', 'important');
         errBox.innerText = errorMsg || "Authentication failed.";
+      }
+      if (typeof showErrorToast === 'function') {
+        showErrorToast(errorMsg || "Invalid credentials. Please check your username and password.");
       }
       if (btnLogin) {
         btnLogin.disabled = false;
@@ -3218,7 +3222,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_0953`)
+      fetch(`./components/${v}.html?v=20260831_1018`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3233,7 +3237,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_0953`);
+      const res = await fetch(`./components/${target}.html?v=20260831_1018`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {
