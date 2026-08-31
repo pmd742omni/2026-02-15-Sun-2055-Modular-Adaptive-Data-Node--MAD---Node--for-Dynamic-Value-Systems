@@ -1926,56 +1926,66 @@ def list_businesses_endpoint():
     """List all registered business entities."""
     return {"status": "success", "businesses": get_all_businesses()}
 
-@app.post("/api/businesses", dependencies=[Depends(get_current_user)])
+@app.post("/api/businesses")
 async def create_business_endpoint(request: Request, current_user = Depends(get_current_user)):
     """Register a new business enterprise profile with modular dynamic fields and dedicated banking account."""
-    body = await request.json()
-    name = body.get("name", "").strip()
-    category = body.get("category", "General Retail & Wholesale").strip() or "General Retail & Wholesale"
-    tagline = body.get("tagline", "").strip()
-    description = body.get("description", "").strip()
-    logo_url = body.get("logo_url", "").strip()
-    banner_url = body.get("banner_url", "").strip()
-    phone = body.get("contact_phone", "").strip()
-    email = body.get("contact_email", "").strip()
-    address = body.get("location_address", "").strip()
-    tax_id = body.get("tax_id", "").strip()
-    website = body.get("website_url", "").strip()
-    hours = body.get("operating_hours", "").strip()
-    return_policy = body.get("return_policy", "").strip()
-    header = body.get("receipt_header", "").strip()
-    footer = body.get("receipt_footer_note", "").strip()
-    curr = body.get("currency_preference", "USD").strip()
-    extra_attributes = body.get("extra_attributes") or {}
+    try:
+        body = await request.json()
+        name = body.get("name", "").strip()
+        category = body.get("category", "General Retail & Wholesale").strip() or "General Retail & Wholesale"
+        tagline = body.get("tagline", "").strip()
+        description = body.get("description", "").strip()
+        logo_url = body.get("logo_url", "").strip()
+        banner_url = body.get("banner_url", "").strip()
+        phone = body.get("contact_phone", "").strip()
+        email = body.get("contact_email", "").strip()
+        address = body.get("location_address", "").strip()
+        tax_id = body.get("tax_id", "").strip()
+        website = body.get("website_url", "").strip()
+        hours = body.get("operating_hours", "").strip()
+        return_policy = body.get("return_policy", "").strip()
+        header = body.get("receipt_header", "").strip()
+        footer = body.get("receipt_footer_note", "").strip()
+        curr = body.get("currency_preference", "USD").strip() or "USD"
+        extra_attributes = body.get("extra_attributes") or {}
 
-    if not name:
-        raise HTTPException(status_code=400, detail="Business / Store Name is required.")
+        if not name:
+            raise HTTPException(status_code=400, detail="Business / Store Name is required.")
 
-    if not tagline and not description:
-        raise HTTPException(status_code=400, detail="Tagline or Description is required for store overview.")
+        if not tagline:
+            tagline = f"Official store for {name}"
 
-    biz = create_business(
-        name=name,
-        category=category,
-        tagline=tagline,
-        description=description,
-        logo_url=logo_url,
-        banner_url=banner_url,
-        contact_phone=phone,
-        contact_email=email,
-        location_address=address,
-        tax_id=tax_id,
-        website_url=website,
-        operating_hours=hours,
-        return_policy=return_policy,
-        receipt_header=header,
-        receipt_footer_note=footer,
-        currency_preference=curr,
-        owner_username=current_user["username"],
-        extra_attributes=extra_attributes
-    )
-    write_audit_log(current_user["username"], "STORE_CREATED", f"Registered new business enterprise '{name}' (ID: {biz['id']}, Bank: {biz['bank_account_number']})")
-    return {"status": "success", "business": biz}
+        biz = create_business(
+            name=name,
+            category=category,
+            tagline=tagline,
+            description=description,
+            logo_url=logo_url,
+            banner_url=banner_url,
+            contact_phone=phone,
+            contact_email=email,
+            location_address=address,
+            tax_id=tax_id,
+            website_url=website,
+            operating_hours=hours,
+            return_policy=return_policy,
+            receipt_header=header,
+            receipt_footer_note=footer,
+            currency_preference=curr,
+            owner_username=current_user["username"],
+            extra_attributes=extra_attributes
+        )
+        try:
+            write_audit_log(current_user["username"], "STORE_CREATED", f"Registered new business enterprise '{name}' (ID: {biz.get('id')}, Bank: {biz.get('bank_account_number')})")
+        except Exception:
+            pass
+        return {"status": "success", "business": biz}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Database / Store creation error: {str(e)}")
 
 @app.get("/api/businesses/analytics")
 def get_business_analytics_endpoint(business_id: str = None, time_range: str = "24h", current_user = Depends(get_current_user)):

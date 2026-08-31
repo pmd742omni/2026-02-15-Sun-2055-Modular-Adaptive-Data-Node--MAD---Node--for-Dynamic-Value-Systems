@@ -72,14 +72,14 @@
           </div>
 
           <!-- Mode 2: Store Setup Workspace Form (Replaces Launchpad in-place when clicking '+ Set Up Your Store') -->
-          <div id="business-setup-workspace-container" class="store-setup-form-wrapper" style="display: none; padding-top: 10px; width: 100%;">
-            <div style="text-align: center; margin-bottom: 14px;">
+          <div id="business-setup-workspace-container" class="store-setup-form-wrapper" style="display: none; padding-top: 10px; width: 100%; text-align: left !important; box-sizing: border-box;">
+            <div style="text-align: center; margin-bottom: 16px;">
               <h3 style="font-size: 1.35rem; margin-bottom: 4px; color: #fff;">🏪 Set Up Business / Store</h3>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Configure your store identity, visual branding, and banking settlement</p>
             </div>
 
             <!-- Dynamic Live Sector Inspiration Banner -->
-            <div id="biz-inspiration-banner" style="display: flex; align-items: center; justify-content: space-between; background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 9999px; padding: 7px 16px; margin-bottom: 14px; font-size: 0.78rem; transition: all 0.3s ease; flex-wrap: wrap; gap: 6px;">
+            <div id="biz-inspiration-banner" style="display: flex; align-items: center; justify-content: space-between; background: rgba(0, 229, 255, 0.04); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 9999px; padding: 7px 16px; margin-bottom: 16px; font-size: 0.78rem; transition: all 0.3s ease; flex-wrap: wrap; gap: 6px; text-align: left;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="color: var(--accent-cyan); font-weight: 700;">✨ Sector Inspiration:</span>
                 <span id="biz-inspiration-sector-badge" style="font-weight: 600; color: #fff; background: rgba(255,255,255,0.08); padding: 2px 10px; border-radius: 9999px; border: 1px solid rgba(255,255,255,0.12);">Electronics, Hardware & Solar</span>
@@ -87,32 +87,32 @@
               <span id="biz-inspiration-action-hint" style="color: var(--text-muted); font-size: 0.72rem;">Examples cycle live • Focus any field to freeze</span>
             </div>
 
-            <form novalidate id="form-create-business" onsubmit="event.preventDefault(); submitCreateBusiness(); return false;">
+            <form novalidate id="form-create-business" onsubmit="event.preventDefault(); submitCreateBusiness(); return false;" style="text-align: left !important;">
               <!-- Mandatory Core Section -->
-              <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 14px;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+              <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; margin-bottom: 16px; text-align: left;">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; text-align: left;">
                   📌 Core Store Details (Mandatory)
                 </div>
 
-                <div style="margin-bottom: 10px;">
-                  <label for="new-biz-name" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Business / Store Name *</label>
-                  <input type="text" id="new-biz-name" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Apex Cybernetics & Solar Depot" required>
+                <div style="margin-bottom: 12px; text-align: left;">
+                  <label for="new-biz-name" style="display: block; font-size: 0.76rem; font-weight: 600; color: #e2e8f0; margin-bottom: 5px; text-align: left;">Business / Store Name *</label>
+                  <input type="text" id="new-biz-name" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. Apex Cybernetics & Solar Depot" required>
                 </div>
 
-                <div style="margin-bottom: 10px;">
-                  <label for="new-biz-tagline" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Tagline (Brief Overview) *</label>
-                  <input type="text" id="new-biz-tagline" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Off-grid solar inverters, smart sensors, and sovereign computing nodes" required>
+                <div style="margin-bottom: 12px; text-align: left;">
+                  <label for="new-biz-tagline" style="display: block; font-size: 0.76rem; font-weight: 600; color: #e2e8f0; margin-bottom: 5px; text-align: left;">Tagline (Brief Overview) *</label>
+                  <input type="text" id="new-biz-tagline" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. Off-grid solar inverters, smart sensors, and sovereign computing nodes" required>
                 </div>
 
-                <div>
-                  <label for="new-biz-desc" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Detailed Store Description</label>
-                  <textarea id="new-biz-desc" class="search-input biz-inspire-input" style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; min-height: 90px; line-height: 1.45; resize: vertical; box-sizing: border-box;" placeholder="Comprehensive overview of products, commercial practices, and store services..."></textarea>
+                <div style="text-align: left;">
+                  <label for="new-biz-desc" style="display: block; font-size: 0.76rem; font-weight: 600; color: #e2e8f0; margin-bottom: 5px; text-align: left;">Detailed Store Description</label>
+                  <textarea id="new-biz-desc" class="search-input biz-inspire-input" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; min-height: 90px; line-height: 1.45; resize: vertical; box-sizing: border-box; text-align: left;" placeholder="Comprehensive overview of products, commercial practices, and store services..."></textarea>
                 </div>
               </div>
 
               <!-- Dynamic Modular Attribute Pills Toolbar -->
-              <div style="margin-bottom: 14px;">
-                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">
+              <div style="margin-bottom: 16px; text-align: left;">
+                <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-align: left;">
                   ➕ Choose Additional Store Attributes:
                 </div>
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="biz-attribute-pills-bar">
@@ -128,28 +128,28 @@
               </div>
 
               <!-- Modular Container: Visual Branding (Logo & Banner) -->
-              <div id="biz-field-branding" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(167,139,250,0.3); border-radius: 18px; padding: 18px; margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px;">
-                  <span style="font-size: 0.85rem; font-weight: 700; color: #c4b5fd; display: flex; align-items: center; gap: 6px;">🖼️ Visual Brand Assets (Store Logo & Hero Banner)</span>
+              <div id="biz-field-branding" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(167,139,250,0.3); border-radius: 18px; padding: 18px; margin-bottom: 16px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
+                  <span style="font-size: 0.85rem; font-weight: 700; color: #c4b5fd; display: flex; align-items: center; gap: 6px;">🖼️ Visual Brand Assets (Store Logo & Flexible Hero Banner)</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.68rem; background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.35);" onclick="toggleBizField('branding')">✕ Remove</button>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 16px; text-align: left;">
                   
                   <!-- Row 1: Store Logo (Badge + Upload Buttons) -->
-                  <div style="background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                  <div style="background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; text-align: left;">
                     <!-- Logo Preview Box -->
-                    <div id="new-biz-logo-preview" style="flex-shrink: 0;">
+                    <div id="new-biz-logo-preview" style="flex-shrink: 0; width: 88px; height: 88px;">
                       <img id="new-biz-logo-img" src="" alt="Logo Preview" style="width: 88px; height: 88px; border-radius: 18px; object-fit: cover; border: 2px solid rgba(167,139,250,0.7); box-shadow: 0 4px 16px rgba(0,0,0,0.6); display: none;">
-                      <div id="new-biz-logo-placeholder" style="width: 88px; height: 88px; border-radius: 18px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.72rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 4px;">
+                      <div id="new-biz-logo-placeholder" style="width: 88px; height: 88px; border-radius: 18px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.72rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 4px; box-sizing: border-box;">
                         <span style="font-size: 1.6rem; margin-bottom: 2px;">🏪</span>
                         <span>No Logo</span>
                       </div>
                     </div>
 
-                    <div style="flex-grow: 1; min-width: 200px;">
-                      <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px;">Store Identity Logo</label>
-                      <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0 0 10px 0;">Square avatar badge displayed on storefronts, POS terminals, and customer receipts.</p>
+                    <div style="flex-grow: 1; min-width: 200px; text-align: left;">
+                      <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; text-align: left;">Store Identity Logo</label>
+                      <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0 0 10px 0; text-align: left;">Square avatar badge displayed on storefronts, POS terminals, and customer receipts.</p>
                       
                       <input type="file" id="new-biz-logo-file" accept="image/*" style="display: none;" onchange="handleBizLogoUpload(this)">
                       <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -160,27 +160,27 @@
                     </div>
                   </div>
 
-                  <!-- Row 2: Storefront Hero Banner (Full-Width Panoramic) -->
-                  <div style="background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                      <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #e2e8f0; margin-bottom: 2px;">Storefront Hero Banner (Panoramic Cover)</label>
-                        <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0;">Wide panoramic showcase banner displayed at the top of your digital marketplace storefront.</p>
+                  <!-- Row 2: Storefront Hero Banner (Flexible Adaptive Aspect Ratio) -->
+                  <div style="background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                      <div style="text-align: left;">
+                        <label style="display: block; font-size: 0.84rem; font-weight: 700; color: #e2e8f0; margin-bottom: 3px; text-align: left;">Storefront Hero Banner (Flexible Aspect Ratio)</label>
+                        <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0; text-align: left;">Showcase banner displayed across digital storefronts. Adapts flexibly to whatever image proportions you upload.</p>
                       </div>
-                      <div style="display: flex; gap: 8px;">
+                      <div style="display: flex; gap: 8px; align-items: center;">
                         <input type="file" id="new-biz-banner-file" accept="image/*" style="display: none;" onchange="handleBizBannerUpload(this)">
                         <button type="button" class="btn-pill-small" onclick="document.getElementById('new-biz-banner-file').click()" style="padding: 8px 14px; font-size: 0.78rem; background: rgba(167,139,250,0.25); border: 1px solid rgba(167,139,250,0.5); color: #c4b5fd; font-weight: 700; cursor: pointer;">Upload Banner 🌄</button>
                         <button type="button" id="btn-clear-banner" class="btn-pill-small" onclick="clearBizBanner()" style="display: none; padding: 8px 12px; font-size: 0.78rem; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); color: #f87171; cursor: pointer;">✕ Remove Banner</button>
                       </div>
                     </div>
 
-                    <!-- Full-Width Panoramic Banner Preview Box -->
-                    <div id="new-biz-banner-preview" style="width: 100%; min-height: 140px; border-radius: 14px; overflow: hidden; position: relative;">
-                      <img id="new-biz-banner-img" src="" alt="Banner Preview" style="width: 100%; height: 160px; border-radius: 14px; object-fit: cover; object-position: center; border: 2px solid rgba(167,139,250,0.7); box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: none;">
-                      <div id="new-biz-banner-placeholder" style="width: 100%; height: 140px; border-radius: 14px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.82rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 12px;">
+                    <!-- Flexible Adaptive Banner Preview Box -->
+                    <div id="new-biz-banner-preview" style="width: 100%; border-radius: 14px; overflow: hidden; position: relative; background: rgba(6, 8, 13, 0.6); display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.08);">
+                      <img id="new-biz-banner-img" src="" alt="Banner Preview" style="width: 100%; height: auto; max-height: 420px; object-fit: contain; object-position: center; border-radius: 14px; border: 2px solid rgba(167,139,250,0.7); box-shadow: 0 8px 24px rgba(0,0,0,0.6); display: none;">
+                      <div id="new-biz-banner-placeholder" style="width: 100%; min-height: 120px; border-radius: 14px; border: 2px dashed rgba(167,139,250,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.82rem; color: #a78bfa; background: rgba(167,139,250,0.06); text-align: center; padding: 18px; box-sizing: border-box;">
                         <span style="font-size: 2rem; margin-bottom: 4px;">🌄</span>
                         <span style="font-weight: 600; color: #c4b5fd;">No Storefront Hero Banner Uploaded</span>
-                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Click "Upload Banner" to select a panoramic image from your device</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">Upload any photo or panoramic image — aspect ratio adjusts dynamically</span>
                       </div>
                     </div>
                     <input type="hidden" id="new-biz-banner-url" value="">
@@ -190,37 +190,37 @@
               </div>
 
               <!-- Modular Container: Contact & Location -->
-              <div id="biz-field-contact" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #38bdf8;">📞 Contact & Physical Location</span>
+              <div id="biz-field-contact" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #38bdf8;">📞 Contact & Physical Location</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171;" onclick="toggleBizField('contact')">✕ Remove</button>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
-                  <div>
-                    <label for="new-biz-phone" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Phone Number</label>
-                    <input type="text" id="new-biz-phone" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. +263 77 456 7890">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; text-align: left;">
+                  <div style="text-align: left;">
+                    <label for="new-biz-phone" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Phone Number</label>
+                    <input type="text" id="new-biz-phone" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. +263 77 456 7890">
                   </div>
-                  <div>
-                    <label for="new-biz-email" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Email Address</label>
-                    <input type="email" id="new-biz-email" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. orders@apexcyber.co.zw">
+                  <div style="text-align: left;">
+                    <label for="new-biz-email" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Email Address</label>
+                    <input type="email" id="new-biz-email" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. orders@apexcyber.co.zw">
                   </div>
                 </div>
-                <div>
-                  <label for="new-biz-address" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Physical Address / Stall / Suite #</label>
-                  <input type="text" id="new-biz-address" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Shop 12, Cyber Hub Arcade, Bulawayo CBD">
+                <div style="text-align: left;">
+                  <label for="new-biz-address" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Physical Address / Stall / Suite #</label>
+                  <input type="text" id="new-biz-address" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. Shop 12, Cyber Hub Arcade, Bulawayo CBD">
                 </div>
               </div>
 
               <!-- Modular Container: Tax ID & Category -->
-              <div id="biz-field-tax" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #fbbf24;">🏷️ Enterprise Category & Tax ID</span>
+              <div id="biz-field-tax" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #fbbf24;">🏷️ Enterprise Category & Tax ID</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171;" onclick="toggleBizField('tax')">✕ Remove</button>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                  <div>
-                    <label for="new-biz-category" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Industry Category</label>
-                    <select id="new-biz-category" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; color: #fff;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left;">
+                  <div style="text-align: left;">
+                    <label for="new-biz-category" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Industry Category</label>
+                    <select id="new-biz-category" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; color: #fff; text-align: left; box-sizing: border-box;">
                       <option value="Hardware & Technology">⚡ Electronics, Hardware & Computing</option>
                       <option value="Bakery & Specialty Food">🥐 Bakery, Coffee & Specialty Foods</option>
                       <option value="Community Wholesale & Retail">🛒 Supermarket, Wholesale & General Retail</option>
@@ -232,22 +232,22 @@
                       <option value="General Enterprise">🏬 General Commercial Enterprise</option>
                     </select>
                   </div>
-                  <div>
-                    <label for="new-biz-tax-id" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Tax ID / Business Reg #</label>
-                    <input type="text" id="new-biz-tax-id" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. ZW-2026-TECH-08">
+                  <div style="text-align: left;">
+                    <label for="new-biz-tax-id" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Tax ID / Business Reg #</label>
+                    <input type="text" id="new-biz-tax-id" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. ZW-2026-TECH-08">
                   </div>
                 </div>
               </div>
 
               <!-- Modular Container: Base Settlement Currency -->
-              <div id="biz-field-currency" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #34d399;">💳 Primary Banking Settlement Currency</span>
+              <div id="biz-field-currency" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #34d399;">💳 Primary Banking Settlement Currency</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171;" onclick="toggleBizField('currency')">✕ Remove</button>
                 </div>
-                <div>
-                  <label for="new-biz-currency" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Primary Ledger Currency</label>
-                  <select id="new-biz-currency" class="search-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; color: #fff;">
+                <div style="text-align: left;">
+                  <label for="new-biz-currency" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Primary Ledger Currency</label>
+                  <select id="new-biz-currency" class="search-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; color: #fff; text-align: left; box-sizing: border-box;">
                     <option value="USD">USD ($ - US Dollar)</option>
                     <option value="ZAR">ZAR (R - South African Rand)</option>
                     <option value="ZWG">ZWG (Zimbabwe Gold / ZiG)</option>
@@ -256,63 +256,63 @@
               </div>
 
               <!-- Modular Container: Website & Social Links -->
-              <div id="biz-field-web" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #60a5fa;">🌐 Website & Social Channels</span>
+              <div id="biz-field-web" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #60a5fa;">🌐 Website & Social Channels</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171;" onclick="toggleBizField('web')">✕ Remove</button>
                 </div>
-                <div>
-                  <label for="new-biz-website" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Website URL / WhatsApp Channel</label>
-                  <input type="text" id="new-biz-website" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. https://apexcyber.co.zw">
+                <div style="text-align: left;">
+                  <label for="new-biz-website" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Website URL / WhatsApp Channel</label>
+                  <input type="text" id="new-biz-website" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. https://apexcyber.co.zw">
                 </div>
               </div>
 
               <!-- Modular Container: Operating Hours -->
-              <div id="biz-field-hours" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #f472b6;">⏰ Operating Hours & Schedule</span>
+              <div id="biz-field-hours" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #f472b6;">⏰ Operating Hours & Schedule</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171;" onclick="toggleBizField('hours')">✕ Remove</button>
                 </div>
-                <div>
-                  <label for="new-biz-hours" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Trading Schedule</label>
-                  <input type="text" id="new-biz-hours" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Mon - Fri: 08:30 - 17:30 | Sat: 09:00 - 14:00">
+                <div style="text-align: left;">
+                  <label for="new-biz-hours" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Trading Schedule</label>
+                  <input type="text" id="new-biz-hours" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. Mon - Fri: 08:30 - 17:30 | Sat: 09:00 - 14:00">
                 </div>
               </div>
 
               <!-- Modular Container: Return Policy -->
-              <div id="biz-field-policy" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #fb923c;">🛡️ Return & Warranty Policy</span>
+              <div id="biz-field-policy" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #fb923c;">🛡️ Return & Warranty Policy</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171;" onclick="toggleBizField('policy')">✕ Remove</button>
                 </div>
-                <div>
-                  <label for="new-biz-policy" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Customer Return Terms</label>
-                  <input type="text" id="new-biz-policy" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. 1-year direct manufacturer warranty on all electronics.">
+                <div style="text-align: left;">
+                  <label for="new-biz-policy" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Customer Return Terms</label>
+                  <input type="text" id="new-biz-policy" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. 1-year direct manufacturer warranty on all electronics.">
                 </div>
               </div>
 
               <!-- Modular Container: Receipt Customization -->
-              <div id="biz-field-receipt" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span style="font-size: 0.75rem; font-weight: 700; color: #4ade80;">🧾 Receipt Header & Footer Customization</span>
+              <div id="biz-field-receipt" style="display: none; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; margin-bottom: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #4ade80;">🧾 Receipt Header & Footer Customization</span>
                   <button type="button" class="btn-pill-small" style="font-size: 0.65rem; background: rgba(239,68,68,0.2); color: #f87171;" onclick="toggleBizField('receipt')">✕ Remove</button>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                  <div>
-                    <label for="new-biz-header" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Receipt Top Header</label>
-                    <input type="text" id="new-biz-header" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Apex Cybernetics & Solar">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left;">
+                  <div style="text-align: left;">
+                    <label for="new-biz-header" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Receipt Top Header</label>
+                    <input type="text" id="new-biz-header" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. Apex Cybernetics & Solar">
                   </div>
-                  <div>
-                    <label for="new-biz-footer" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Receipt Bottom Footer</label>
-                    <input type="text" id="new-biz-footer" class="search-input biz-inspire-input" style="width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px;" placeholder="e.g. Powering sovereign communities with decentralized tech!">
+                  <div style="text-align: left;">
+                    <label for="new-biz-footer" style="display: block; font-size: 0.76rem; font-weight: 600; color: #cbd5e1; margin-bottom: 5px; text-align: left;">Receipt Bottom Footer</label>
+                    <input type="text" id="new-biz-footer" class="search-input biz-inspire-input" style="width: 100%; padding: 10px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 9999px; text-align: left; box-sizing: border-box;" placeholder="e.g. Powering sovereign communities with decentralized tech!">
                   </div>
                 </div>
               </div>
 
               <!-- Form Action Buttons -->
-              <div style="display: flex; gap: 12px; margin-top: 18px;">
-                <button type="button" class="btn-pill-secondary" onclick="cancelBusinessSetupWorkspace()" style="flex-grow: 1;">Cancel</button>
-                <button type="submit" class="btn-pill-primary glow-launch-btn" style="flex-grow: 2; margin: 0; background: linear-gradient(135deg, #10b981, #0284c7); font-weight: 700;">Create Store & Banking Account 🏪</button>
+              <div style="display: flex; gap: 12px; margin-top: 20px; align-items: center;">
+                <button type="button" class="btn-pill-secondary" onclick="cancelBusinessSetupWorkspace()" style="flex-grow: 1; padding: 12px 20px; font-weight: 600;">Cancel</button>
+                <button type="submit" class="btn-pill-primary glow-launch-btn" style="flex-grow: 2; margin: 0; padding: 12px 24px; background: linear-gradient(135deg, #10b981, #0284c7); font-weight: 700; font-size: 0.95rem;">Create Store & Banking Account 🏪</button>
               </div>
             </form>
           </div>

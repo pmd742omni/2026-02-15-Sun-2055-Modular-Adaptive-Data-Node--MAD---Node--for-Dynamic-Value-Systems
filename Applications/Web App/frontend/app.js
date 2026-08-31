@@ -2324,8 +2324,8 @@ function handleBizBannerUpload(inputEl) {
     if (placeholder) placeholder.style.display = 'none';
     if (clearBtn) clearBtn.style.display = 'inline-block';
 
-    // Compress in background for lightweight database payload (wide panoramic 1200x480)
-    compressClientImage(file, 1200, 480, 0.88, function(compressedUrl) {
+    // Compress in background for lightweight database payload with flexible aspect ratio (up to 1600x900)
+    compressClientImage(file, 1600, 900, 0.88, function(compressedUrl) {
       if (compressedUrl) {
         state.pendingBizBanner = compressedUrl;
         if (urlInput) urlInput.value = compressedUrl;
@@ -3143,7 +3143,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260830_1856`)
+      fetch(`./components/${v}.html?v=20260831_0740`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3158,7 +3158,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260830_1856`);
+      const res = await fetch(`./components/${target}.html?v=20260831_0740`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {

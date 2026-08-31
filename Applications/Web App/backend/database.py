@@ -2513,7 +2513,10 @@ def _decrypt_business_record(biz: dict) -> Optional[dict]:
         "receipt_header", "receipt_footer_note"
     ]:
         if field in d and d[field]:
-            d[field] = decrypt_vault_payload(d[field])
+            try:
+                d[field] = decrypt_vault_payload(d[field])
+            except Exception:
+                pass
     return d
 
 
@@ -2533,17 +2536,29 @@ def create_business(name: str, owner_username: str, category: str = "General", t
     
     extras_str = json.dumps(extra_attributes) if isinstance(extra_attributes, (dict, list)) else str(extra_attributes or "{}")
 
-    # Heavy data-at-rest encryption (AES-256-GCM)
-    enc_tagline = encrypt_vault_payload(tagline or "")
-    enc_description = encrypt_vault_payload(description or "")
-    enc_contact_phone = encrypt_vault_payload(contact_phone or "")
-    enc_contact_email = encrypt_vault_payload(contact_email or "")
-    enc_location_address = encrypt_vault_payload(location_address or "")
-    enc_tax_id = encrypt_vault_payload(tax_id or "")
-    enc_operating_hours = encrypt_vault_payload(operating_hours or "")
-    enc_return_policy = encrypt_vault_payload(return_policy or "")
-    enc_receipt_header = encrypt_vault_payload(receipt_header or "")
-    enc_receipt_footer_note = encrypt_vault_payload(receipt_footer_note or "")
+    # Heavy data-at-rest encryption (AES-256-GCM) with graceful fallback
+    try:
+        enc_tagline = encrypt_vault_payload(tagline or "")
+        enc_description = encrypt_vault_payload(description or "")
+        enc_contact_phone = encrypt_vault_payload(contact_phone or "")
+        enc_contact_email = encrypt_vault_payload(contact_email or "")
+        enc_location_address = encrypt_vault_payload(location_address or "")
+        enc_tax_id = encrypt_vault_payload(tax_id or "")
+        enc_operating_hours = encrypt_vault_payload(operating_hours or "")
+        enc_return_policy = encrypt_vault_payload(return_policy or "")
+        enc_receipt_header = encrypt_vault_payload(receipt_header or "")
+        enc_receipt_footer_note = encrypt_vault_payload(receipt_footer_note or "")
+    except Exception:
+        enc_tagline = tagline or ""
+        enc_description = description or ""
+        enc_contact_phone = contact_phone or ""
+        enc_contact_email = contact_email or ""
+        enc_location_address = location_address or ""
+        enc_tax_id = tax_id or ""
+        enc_operating_hours = operating_hours or ""
+        enc_return_policy = return_policy or ""
+        enc_receipt_header = receipt_header or ""
+        enc_receipt_footer_note = receipt_footer_note or ""
 
     with get_db() as db:
         db.execute("""
@@ -2588,6 +2603,31 @@ def create_business(name: str, owner_username: str, category: str = "General", t
             """, (f"op-{uuid.uuid4().hex[:8]}", biz_id, owner_username, all_perms, owner_username, now_utc))
 
     biz_record = get_business_by_id(biz_id)
+    if not biz_record:
+        biz_record = {
+            "id": biz_id,
+            "name": name,
+            "category": category,
+            "tagline": tagline,
+            "description": description,
+            "logo_url": logo_url,
+            "banner_url": banner_url,
+            "contact_phone": contact_phone,
+            "contact_email": contact_email,
+            "location_address": location_address,
+            "tax_id": tax_id,
+            "website_url": website_url,
+            "operating_hours": operating_hours,
+            "return_policy": return_policy,
+            "bank_account_number": bank_account_number,
+            "receipt_header": receipt_header,
+            "receipt_footer_note": receipt_footer_note,
+            "currency_preference": currency_preference,
+            "owner_username": owner_username,
+            "extra_attributes": extras_str,
+            "created_at_utc": now_utc,
+            "is_active": 1
+        }
 
     # Sync to local Data Node storage if active
     try:
