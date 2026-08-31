@@ -514,6 +514,9 @@ function initAuthSystem() {
       if (pwInput) pwInput.focus();
     };
 
+    let authSucceeded = false;
+    let authData = null;
+
     try {
       window._isAuthTransitioning = true;
       const authBody = { username: u, password: p };
@@ -546,10 +549,22 @@ function initAuthSystem() {
         return;
       }
 
-      const data = await res.json();
-      state.user = data;
-      state.currentRole = data.role;
-      updateUserUI(data);
+      authData = await res.json();
+      authSucceeded = true;
+    } catch (e) {
+      if (!authSucceeded) {
+        resetToLoginCard(e.message || "Network error. Server might be restarting.");
+        return;
+      }
+    }
+
+    if (!authSucceeded || !authData) return;
+
+    // --- FROM THIS POINT FORWARD, OPERATOR IS FULLY AUTHENTICATED ---
+    try {
+      state.user = authData;
+      state.currentRole = authData.role;
+      updateUserUI(authData);
 
       // Stage 2: Connecting with community (fast 70ms step)
       const barEl = document.getElementById('journey-progress-bar');
@@ -571,8 +586,8 @@ function initAuthSystem() {
       await new Promise(r => setTimeout(r, 70));
 
       // Stage 3: Preparing workspace (fast 80ms step)
-      const userRole = (data.role || 'guest').toLowerCase();
-      const displayName = data.full_name || data.username || 'Friend';
+      const userRole = (authData.role || 'guest').toLowerCase();
+      const displayName = authData.full_name || authData.username || 'Friend';
       
       const s3Icon = document.getElementById('journey-step-3-icon');
       const s3El = document.getElementById('journey-step-3');
@@ -604,14 +619,19 @@ function initAuthSystem() {
       await new Promise(r => setTimeout(r, 120));
 
       hideLoginOverlay();
+      ensureModulesInitialized();
       switchView(state.activeView || 'dashboard');
       showSuccessToast(`Welcome back, ${displayName}! 🚀✨`, 4000);
 
       // Load subsystem data safely in background after overlay is dismissed
-      loadAllSubsystemData();
+      setTimeout(() => {
+        loadAllSubsystemData().catch(err => console.warn("Subsystem data sync error:", err));
+      }, 50);
 
-    } catch (e) {
-      resetToLoginCard(e.message || "Network error. Server might be restarting.");
+    } catch (err) {
+      console.error("Post-login rendering exception caught safely:", err);
+      hideLoginOverlay();
+      switchView('dashboard');
     } finally {
       window._isAuthTransitioning = false;
       isAuthSubmitting = false;
@@ -3171,7 +3191,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_0842`)
+      fetch(`./components/${v}.html?v=20260831_0906`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3186,7 +3206,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_0842`);
+      const res = await fetch(`./components/${target}.html?v=20260831_0906`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {

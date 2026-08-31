@@ -6,7 +6,7 @@
   <title>MADN • Isango LomPhakathi</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="alternate icon" href="./favicon.svg">
-  <link rel="stylesheet" href="./index.css?v=20260831_0855">
+  <link rel="stylesheet" href="./index.css?v=20260831_0906">
   <!-- KaTeX CSS for LaTeX Formula Rendering (Non-blocking Async) -->
   <style>
 /* Critical Instant First-Paint Sovereign Login Styling */
@@ -465,7 +465,7 @@ body:not(.authenticated) .app-container {
       
       <div class="auth-alert hidden" id="login-error" style="background-color: var(--danger-glow); color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 16px; text-align: center; display: none;"></div>
 
-      <form novalidate id="form-login">
+      <form novalidate id="form-login" onsubmit="event.preventDefault(); return false;">
         <div class="form-group" style="margin-bottom: 16px;">
           <label for="login-username" style="display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600;">Username or Operator ID</label>
           <div style="position: relative; display: flex; align-items: center; width: 100%;">
@@ -486,7 +486,7 @@ body:not(.authenticated) .app-container {
           <input type="text" id="login-mfa-token" name="mfa_token" class="search-input" style="width: 100%; box-sizing: border-box; padding: 12px 18px; font-size: 0.95rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9999px;" placeholder="6-digit authenticator code" maxlength="6" autocomplete="one-time-code">
         </div>
         
-        <button type="submit" class="btn-pill-primary glow-launch-btn" id="btn-login-submit" style="width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 14px 20px; font-size: 1.02rem; border-radius: 9999px; font-weight: 700; margin-top: 4px; background: linear-gradient(135deg, #00e5ff, #0284c7, #10b981); box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35); transition: transform 0.15s ease, box-shadow 0.15s ease; cursor: pointer;">
+        <button type="button" onclick="executeLogin()" class="btn-pill-primary glow-launch-btn" id="btn-login-submit" style="width: 100%; box-sizing: border-box; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 14px 20px; font-size: 1.02rem; border-radius: 9999px; font-weight: 700; margin-top: 4px; background: linear-gradient(135deg, #00e5ff, #0284c7, #10b981); box-shadow: 0 6px 20px rgba(0, 229, 255, 0.35); transition: transform 0.15s ease, box-shadow 0.15s ease; cursor: pointer;">
           <span id="btn-login-text">Let's Go!</span>
           <span id="btn-login-rocket" style="display: inline-block; font-size: 1.15rem;">🚀✨</span>
         </button>
@@ -1815,6 +1815,6 @@ body:not(.authenticated) .app-container {
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
 
   <!-- Main script with cache buster -->
-  <script src="./app.js?v=20260831_0855"></script>
+  <script src="./app.js?v=20260831_0906"></script>
 </body>
 </html>
