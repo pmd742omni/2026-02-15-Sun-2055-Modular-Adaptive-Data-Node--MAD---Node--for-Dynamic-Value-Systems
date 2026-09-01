@@ -437,16 +437,18 @@ def main():
             print(f"[!] CLI Shell error: {e}")
         finally:
             supervisor.stop_all()
-            return
+            sys.exit(0)
 
     print("\n[*] Press Ctrl+C at any time to gracefully stop all node services.\n")
 
     # Process monitor loop
+    reported_exits = set()
     try:
         while True:
             time.sleep(1)
             for name, proc in list(supervisor.processes.items()):
-                if proc.poll() is not None:
+                if proc.poll() is not None and name not in reported_exits:
+                    reported_exits.add(name)
                     print(f"[!] Warning: Process {name} exited with code {proc.returncode}")
     except KeyboardInterrupt:
         supervisor.stop_all()
