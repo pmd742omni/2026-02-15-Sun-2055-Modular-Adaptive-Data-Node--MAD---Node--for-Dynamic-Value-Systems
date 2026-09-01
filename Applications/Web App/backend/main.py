@@ -52,6 +52,7 @@ try:
         generate_system_sku
     )
     from .node_discovery import discovery_manager
+    from .telemetry import system_telemetry
     from .auth_utils import (
         verify_password,
         hash_password,
@@ -90,6 +91,7 @@ except ImportError:
         generate_system_sku
     )
     from node_discovery import discovery_manager
+    from telemetry import system_telemetry
     from auth_utils import (
         verify_password,
         hash_password,
@@ -205,8 +207,8 @@ async def add_security_headers(request: Request, call_next):
 @app.middleware("http")
 async def csrf_validation(request: Request, call_next):
     if request.method in ["POST", "PUT", "DELETE"] and request.url.path.startswith("/api"):
-        # Bypass login/register/logout check if no cookie was issued yet or during session termination
-        if request.url.path not in ["/api/auth/login", "/api/auth/register", "/api/auth/logout"]:
+        # Bypass login/register/logout check if no cookie was issued yet or during session termination / public beacon logging
+        if request.url.path not in ["/api/auth/login", "/api/auth/register", "/api/auth/logout", "/api/system/telemetry/log"]:
             cookie_csrf = request.cookies.get("csrf_token")
             header_csrf = request.headers.get("X-CSRF-Token")
             
@@ -217,6 +219,25 @@ async def csrf_validation(request: Request, call_next):
                     media_type="application/json"
                 )
     return await call_next(request)
+
+# High-Resolution Request Profiling & Telemetry Middleware
+@app.middleware("http")
+async def profile_request_execution(request: Request, call_next):
+    start_time = time.perf_counter()
+    client_ip = request.client.host if request.client else ""
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start_time) * 1000.0
+    response.headers["X-Process-Time-Ms"] = str(round(duration_ms, 2))
+
+    if request.url.path.startswith("/api") and not request.url.path.startswith("/api/system/telemetry"):
+        system_telemetry.record_api_request(
+            path=request.url.path,
+            method=request.method,
+            status_code=response.status_code,
+            duration_ms=duration_ms,
+            client_ip=client_ip
+        )
+    return response
 
 # Helper: Get current authenticated user
 async def get_current_user(request: Request):
@@ -2337,6 +2358,38 @@ def get_my_receipts_endpoint(query: Optional[str] = None, current_user = Depends
     """Fetch customer's archived digital receipts from their personal receipt vault."""
     receipts = get_customer_receipts(current_user["username"], query=query)
     return {"status": "success", "username": current_user["username"], "receipts": receipts}
+
+
+# =====================================================================
+# SYSTEM TELEMETRY & HOST DIAGNOSTICS ENDPOINTS
+# =====================================================================
+@app.get("/api/system/telemetry")
+def get_system_telemetry_endpoint():
+    """Returns real-time host hardware, process metrics, and API latency distributions."""
+    return {"status": "success", "telemetry": system_telemetry.get_system_snapshot()}
+
+@app.post("/api/system/telemetry/log")
+async def log_client_telemetry_endpoint(request: Request):
+    """Ingests client-side performance events, long tasks, and UI interaction telemetry."""
+    try:
+        body = await request.json()
+        event_type = body.get("type", "generic")
+        data = body.get("data", {})
+        system_telemetry.record_client_event(event_type, data)
+        return {"status": "success", "message": "Telemetry event logged"}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
+
+@app.get("/api/system/telemetry/diagnostics-log")
+def get_diagnostics_log_endpoint(lines: int = 100):
+    """Returns the tail of the unified system diagnostics log."""
+    return {"status": "success", "logs": system_telemetry.get_recent_diagnostics_log(max_lines=lines)}
+
+@app.delete("/api/system/telemetry/diagnostics-log")
+def clear_diagnostics_log_endpoint():
+    """Truncates the system diagnostics log file."""
+    system_telemetry.clear_diagnostics_log()
+    return {"status": "success", "message": "Diagnostics log reset"}
 
 
 _INDEX_HTML_CACHE = None

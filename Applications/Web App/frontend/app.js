@@ -292,16 +292,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Ticker for continuous decay update and Data Node live telemetry sync (only when active)
+  // Ticker for continuous decay update and Data Node live telemetry sync (smart idle throttled)
   setInterval(() => {
-    if (state.activeView === 'business' && state.user) {
+    if (document.hidden) return; // Smart tab throttling: do not run background polls if tab is not active
+    if (state.activeView === 'business' && state.user && state.businesses.length > 0) {
       loadPosProducts();
       loadMarketplaceCatalog();
     }
     if (state.user) {
       pingDataNodeTelemetry();
     }
-  }, 10000);
+  }, 12000);
 });
 
 async function pingDataNodeTelemetry() {
@@ -3273,7 +3274,7 @@ async function preloadAllViewTemplates() {
   const views = ['dashboard', 'business', 'banking', 'agriculture', 'security', 'social', 'cluster', 'admin', 'tutorials'];
   for (const v of views) {
     if (!templateCache[v]) {
-      fetch(`./components/${v}.html?v=20260831_1756`)
+      fetch(`./components/${v}.html?v=20260901_0615`)
         .then(r => r.ok ? r.text() : '')
         .then(html => { if (html) templateCache[v] = html; })
         .catch(() => {});
@@ -3288,7 +3289,7 @@ async function loadComponentView(target) {
   // 1. Fetch template if not in cache
   if (!templateCache[target]) {
     try {
-      const res = await fetch(`./components/${target}.html?v=20260831_1756`);
+      const res = await fetch(`./components/${target}.html?v=20260901_0615`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       templateCache[target] = await res.text();
     } catch (err) {

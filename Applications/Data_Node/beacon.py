@@ -71,9 +71,7 @@ class BeaconBroadcaster:
                 }
                 message = json.dumps(payload).encode("utf-8")
                 sock.sendto(message, (MULTICAST_GROUP, MULTICAST_PORT))
-                now_str = time.strftime("%H:%M:%S")
-                print(f"[{now_str}] 📡 UDP Multicast Beacon -> {MULTICAST_GROUP}:{MULTICAST_PORT} [Node: {self.node_id}, Port: {self.port}]")
-                sys.stdout.flush()
+                logger.debug(f"UDP Multicast Beacon -> {MULTICAST_GROUP}:{MULTICAST_PORT} [Node: {self.node_id}, Port: {self.port}]")
             except Exception as e:
                 logger.debug(f"Broadcast error: {e}")
             time.sleep(self.interval)
